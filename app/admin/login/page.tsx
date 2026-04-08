@@ -5,15 +5,18 @@ import { useState, type FormEvent } from 'react'
 import { useRouter }                from 'next/navigation'
 
 export default function AdminLogin() {
-  const [secret,  setSecret]  = useState('')
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // Leer del FormData — funciona con autofill y gestores de contraseñas
+    const formData = new FormData(e.currentTarget)
+    const secret   = (formData.get('secret') as string ?? '').trim()
 
     const res = await fetch('/api/admin/auth', {
       method:  'POST',
@@ -47,10 +50,8 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        {/* Separador */}
         <hr className="separator mb-8" />
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
             <label
@@ -62,16 +63,15 @@ export default function AdminLogin() {
             </label>
             <input
               id="secret"
+              name="secret"
               type="password"
-              value={secret}
-              onChange={e => setSecret(e.target.value)}
               required
               autoFocus
               autoComplete="current-password"
               className="w-full bg-transparent font-meta text-sm px-4 py-3 focus:outline-none"
               style={{
-                border:      'var(--rc-border-main)',
-                color:       'var(--rc-color-text)',
+                border:        'var(--rc-border-main)',
+                color:         'var(--rc-color-text)',
                 letterSpacing: 'var(--rc-tracking-mono)',
               }}
               placeholder="••••••••"

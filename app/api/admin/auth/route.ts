@@ -17,6 +17,14 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const { secret } = body as { secret?: string }
 
+  // ADMIN_SECRET no configurado — falta en .env.local
+  if (!process.env.ADMIN_SECRET) {
+    return Response.json(
+      { error: 'ADMIN_SECRET no está configurado en .env.local' },
+      { status: 500 }
+    )
+  }
+
   // DEBUG — quitar después de resolver el problema
   const envSet     = !!process.env.ADMIN_SECRET
   const envLength  = process.env.ADMIN_SECRET?.length ?? 0
