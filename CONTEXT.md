@@ -53,6 +53,13 @@ Stack: Next.js 16 + TypeScript + Tailwind v4 + Shopify Headless + Supabase + Ver
 - Proporcionar siempre bloques de código completos para evitar errores de pegado parcial
 - Indicar siempre la ruta del archivo al inicio de cada bloque
 
+### 5. Gotchas de Setup (aprendidos)
+- El `.env.local` debe estar en la raíz del proyecto (al lado de `package.json`). Next.js NO lo carga si está en otro directorio
+- Cada cambio en `.env.local` requiere reiniciar el servidor (`Ctrl+C` + `npm run dev`). El hot reload no recarga env vars
+- Nunca clonar el repo dentro de sí mismo. Si existe una subcarpeta con el mismo nombre del proyecto, borrarla con `rm -rf nombre-subcarpeta` desde la raíz
+- El login admin lee el formulario via `FormData` (no estado React) para compatibilidad con gestores de contraseñas y autofill del navegador
+- Los datos de muestra (seed) se insertan desde `/admin` → botón "INSERTAR MUESTRA". Usan `discogs_listing_id >= 9000` para distinguirse de datos reales
+
 ---
 
 ## ESTRUCTURA DE ESTILOS
@@ -69,7 +76,7 @@ app/
 ## FASES
 
 - Fase 0 (COMPLETADA): setup base, globals.css, variables.css, tipos TypeScript, schema Supabase
-- Fase 1: Discogs sync + admin escáner barcode
+- Fase 1 (COMPLETADA): Discogs sync + admin escáner barcode + seed datos de muestra
 - Fase 2: catálogo público + filtros + player flotante + BPM/key
 - Fase 3: hero dividido + sellos + agenda eventos + mix del mes
 - Fase 4: reservas + WhatsApp + emails + wantlist

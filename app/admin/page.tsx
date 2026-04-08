@@ -59,12 +59,10 @@ export default async function AdminDashboard() {
 
       <hr className="separator mb-10" />
 
-      {/* Datos de muestra — solo en desarrollo */}
-      {process.env.NODE_ENV !== 'production' && (
-        <section className="mb-10">
-          <SeedButton />
-        </section>
-      )}
+      {/* Datos de muestra — oculto en producción por el propio endpoint */}
+      <section className="mb-10">
+        <SeedButton />
+      </section>
 
       <hr className="separator mb-10" />
 

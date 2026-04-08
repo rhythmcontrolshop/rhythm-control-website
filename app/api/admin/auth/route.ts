@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const { secret } = body as { secret?: string }
 
-  // ADMIN_SECRET no configurado — falta en .env.local
   if (!process.env.ADMIN_SECRET) {
     return Response.json(
       { error: 'ADMIN_SECRET no está configurado en .env.local' },
@@ -25,25 +24,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // DEBUG — quitar después de resolver el problema
-  const envSet     = !!process.env.ADMIN_SECRET
-  const envLength  = process.env.ADMIN_SECRET?.length ?? 0
-  const match      = secret === process.env.ADMIN_SECRET
-
-  if (!secret || !match) {
-    return Response.json({
-      error: 'Contraseña incorrecta',
-      debug: {
-        secretReceived: !!secret,
-        secretLength:   secret?.length ?? 0,
-        envSet,
-        envLength,
-        match,
-      },
-    }, { status: 401 })
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return Response.json({ error: 'Contraseña incorrecta' }, { status: 401 })
   }
 
-  const token      = computeAdminToken(secret)
+  const token       = computeAdminToken(secret)
   const cookieStore = await cookies()
 
   cookieStore.set('rc_admin', token, {
