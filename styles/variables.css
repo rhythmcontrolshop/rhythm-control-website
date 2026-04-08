@@ -1,8 +1,6 @@
 /* ============================================================
    RHYTHM CONTROL — DESIGN TOKENS
    Fuente única de verdad para todos los valores visuales.
-   Para cambiar cualquier aspecto visual del proyecto,
-   edita ÚNICAMENTE este archivo.
    ============================================================ */
 
 :root {
@@ -11,57 +9,56 @@
 
   --rc-color-bg:           #000000;
   --rc-color-text:         #FFFFFF;
-  --rc-color-accent:       #F0E040;   /* Amarillo limón — tab activo, BPM, M/NM */
-  --rc-color-separator:    #1C1C1C;   /* Separador entre cards */
-  --rc-color-muted:        rgba(255, 255, 255, 0.4);
+  --rc-color-accent:       #F0E040;
+  --rc-color-separator:    #1C1C1C;
   --rc-color-overlay:      rgba(0, 0, 0, 0.85);
 
 
   /* ── TIPOGRAFÍA ─────────────────────────────────────────── */
 
-  --rc-font-display:       "Arial Black", Arial, sans-serif;
+  --rc-font-display:       "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rc-font-mono:          "IBM Plex Mono", "Courier New", monospace;
 
   /* Letter spacing */
-  --rc-tracking-display:   -0.04em;  /* Display: Arial Black */
-  --rc-tracking-mono:       0.07em;  /* Metadata: IBM Plex Mono */
+  --rc-tracking-display:   -0.04em;
+  --rc-tracking-mono:       0.07em;
 
   /* Escala tipográfica */
-  --rc-text-xs:    0.75rem;    /* 12px */
-  --rc-text-sm:    0.875rem;   /* 14px */
-  --rc-text-base:  1rem;       /* 16px */
-  --rc-text-lg:    1.125rem;   /* 18px */
-  --rc-text-xl:    1.25rem;    /* 20px */
-  --rc-text-2xl:   1.5rem;     /* 24px */
-  --rc-text-3xl:   1.875rem;   /* 30px */
-  --rc-text-4xl:   2.25rem;    /* 36px */
-  --rc-text-5xl:   3rem;       /* 48px */
-  --rc-text-6xl:   3.75rem;    /* 60px */
-  --rc-text-7xl:   4.5rem;     /* 72px */
+  --rc-text-xs:    0.75rem;
+  --rc-text-sm:    0.875rem;
+  --rc-text-base:  1rem;
+  --rc-text-lg:    1.125rem;
+  --rc-text-xl:    1.25rem;
+  --rc-text-2xl:   1.5rem;
+  --rc-text-3xl:   1.875rem;
+  --rc-text-4xl:   2.25rem;
+  --rc-text-5xl:   3rem;
+  --rc-text-6xl:   3.75rem;
+  --rc-text-7xl:   4.5rem;
 
 
   /* ── BORDES ─────────────────────────────────────────────── */
 
-  --rc-border-main:        2px solid #FFFFFF;   /* Separadores principales */
-  --rc-border-card:        1px solid #1C1C1C;   /* Separadores entre cards */
-  --rc-border-accent:      2px solid #F0E040;   /* Tab activo */
-  --rc-radius:             0;                   /* Sin border-radius — nunca */
+  --rc-border-main:        2px solid #FFFFFF;
+  --rc-border-card:        1px solid #1C1C1C;
+  --rc-border-accent:      2px solid #F0E040;
+  --rc-radius:             0;
 
 
   /* ── ESPACIADO ──────────────────────────────────────────── */
 
-  --rc-space-1:    0.25rem;    /* 4px  */
-  --rc-space-2:    0.5rem;     /* 8px  */
-  --rc-space-3:    0.75rem;    /* 12px */
-  --rc-space-4:    1rem;       /* 16px */
-  --rc-space-5:    1.25rem;    /* 20px */
-  --rc-space-6:    1.5rem;     /* 24px */
-  --rc-space-8:    2rem;       /* 32px */
-  --rc-space-10:   2.5rem;     /* 40px */
-  --rc-space-12:   3rem;       /* 48px */
-  --rc-space-16:   4rem;       /* 64px */
-  --rc-space-20:   5rem;       /* 80px */
-  --rc-space-24:   6rem;       /* 96px */
+  --rc-space-1:    0.25rem;
+  --rc-space-2:    0.5rem;
+  --rc-space-3:    0.75rem;
+  --rc-space-4:    1rem;
+  --rc-space-5:    1.25rem;
+  --rc-space-6:    1.5rem;
+  --rc-space-8:    2rem;
+  --rc-space-10:   2.5rem;
+  --rc-space-12:   3rem;
+  --rc-space-16:   4rem;
+  --rc-space-20:   5rem;
+  --rc-space-24:   6rem;
 
 
   /* ── LAYOUT ─────────────────────────────────────────────── */
@@ -70,8 +67,7 @@
   --rc-player-height:       72px;
   --rc-max-width:           1440px;
 
-  /* Grid del catálogo — columnas por breakpoint */
-  --rc-grid-cols:           2;    /* móvil (base) */
+  --rc-grid-cols:           2;
 
 
   /* ── TRANSICIONES ───────────────────────────────────────── */
@@ -89,42 +85,19 @@
   --rc-z-overlay:   190;
   --rc-z-modal:     200;
   --rc-z-toast:     300;
-
-
-  /* ── LOCALIZACIÓN ───────────────────────────────────────── */
-
-  /* Moneda: Euro (€). Formato: 1.234,56 €
-     Usar: price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
-     Idioma UI: Español (ES)                                    */
 }
 
 
-/* ── BREAKPOINTS (Mobile-First) ─────────────────────────────
-   Usar en Media Queries como referencia:
-
-   sm:  480px   → móvil landscape
-   md:  768px   → tablet
-   lg:  1024px  → desktop pequeño
-   xl:  1280px  → desktop
-   2xl: 1440px  → desktop grande
-
-   Ejemplo de uso:
-   .component { ... }                        (base: móvil)
-   @media (min-width: 768px)  { ... }        (tablet)
-   @media (min-width: 1024px) { ... }        (desktop)
-   ─────────────────────────────────────────────────────────── */
-
-/* Grid del catálogo — ajuste de columnas por breakpoint */
 @media (min-width: 768px) {
   :root {
-    --rc-grid-cols: 3;     /* tablet */
+    --rc-grid-cols: 3;
     --rc-nav-height: 64px;
   }
 }
 
 @media (min-width: 1024px) {
   :root {
-    --rc-grid-cols: 6;     /* desktop */
+    --rc-grid-cols: 6;
     --rc-player-height: 80px;
   }
 }

@@ -1,6 +1,5 @@
 // app/api/catalogue/route.ts
 // GET /api/catalogue — releases activos con filtros y paginación.
-// Usa RLS del cliente anon: solo devuelve status = 'active'.
 
 import { createClient } from '@/lib/supabase/server'
 import type { NextRequest } from 'next/server'

@@ -1,9 +1,8 @@
 'use client'
 // components/store/CatalogueView.tsx
-// Orquestador del catálogo: tabs de géneros, grid de discos, modal y player.
-// Gestiona todo el estado del lado cliente.
+// Orquestador del catálogo: tabs, grid, modal y player.
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import CatalogueTabs  from './CatalogueTabs'
 import RecordGrid     from './RecordGrid'
 import RecordModal    from './RecordModal'
@@ -17,13 +16,15 @@ interface CatalogueViewProps {
 }
 
 export default function CatalogueView({ initialReleases, initialTotal, genres }: CatalogueViewProps) {
-  const [releases, setReleases]         = useState<Release[]>(initialReleases)
-  const [total,    setTotal]            = useState(initialTotal)
-  const [loading,  setLoading]          = useState(false)
-  const [genre,    setGenre]            = useState<string | null>(null)
-  const [page,     setPage]             = useState(1)
-  const [selected, setSelected]         = useState<Release | null>(null)
-  const [track,    setTrack]            = useState<PlayerTrack | null>(null)
+  const [releases, setReleases] = useState<Release[]>(initialReleases)
+  const [total,    setTotal]    = useState(initialTotal)
+  const [loading,  setLoading]  = useState(false)
+  const [genre,    setGenre]    = useState<string | null>(null)
+  const [page,     setPage]     = useState(1)
+  const [selected, setSelected] = useState<Release | null>(null)
+  const [openTab,  setOpenTab]  = useState<'tracklist' | 'notes' | 'artist' | 'label' | undefined>(undefined)
+  const [track,    setTrack]    = useState<PlayerTrack | null>(null)
+  const [clipIndex, setClipIndex] = useState(1)
 
   const perPage = 24
 
@@ -39,7 +40,6 @@ export default function CatalogueView({ initialReleases, initialTotal, genres }:
       setReleases(json.data)
       setTotal(json.total)
     } catch {
-      // mantener datos anteriores en caso de error de red
     } finally {
       setLoading(false)
     }
@@ -65,45 +65,45 @@ export default function CatalogueView({ initialReleases, initialTotal, genres }:
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handlePlay = (newTrack: PlayerTrack, clip: number) => {
+    setTrack(newTrack)
+    setClipIndex(clip)
+  }
+
+  const handleSelectRelease = (release: Release, openInTab?: 'tracklist' | 'notes' | 'artist' | 'label') => {
+    setSelected(release)
+    setOpenTab(openInTab)
+  }
+
   const totalPages = Math.ceil(total / perPage)
 
   return (
     <>
-      {/* Tabs de géneros */}
-      <CatalogueTabs
-        genres={genres}
-        active={genre}
-        onChange={handleGenreChange}
-      />
+      <CatalogueTabs genres={genres} active={genre} onChange={handleGenreChange} />
 
-      {/* Grid */}
       <RecordGrid
         releases={releases}
         loading={loading}
-        onSelect={setSelected}
-        onPlay={setTrack}
+        onSelect={(r) => handleSelectRelease(r)}
+        onPlay={handlePlay}
       />
 
-      {/* Paginación */}
       {totalPages > 1 && !loading && (
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderTop: 'var(--rc-border-card)' }}
-        >
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #1C1C1C' }}>
           <button
             className="font-display text-xs transition-opacity disabled:opacity-30 hover:opacity-60"
-            style={{ color: 'var(--rc-color-text)' }}
+            style={{ color: '#FFFFFF' }}
             onClick={handlePagePrev}
             disabled={page <= 1}
           >
             ← ANTERIOR
           </button>
-          <span className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+          <span className="font-meta text-xs" style={{ color: '#FFFFFF' }}>
             {page} / {totalPages}
           </span>
           <button
             className="font-display text-xs transition-opacity disabled:opacity-30 hover:opacity-60"
-            style={{ color: 'var(--rc-color-text)' }}
+            style={{ color: '#FFFFFF' }}
             onClick={handlePageNext}
             disabled={page >= totalPages}
           >
@@ -112,22 +112,21 @@ export default function CatalogueView({ initialReleases, initialTotal, genres }:
         </div>
       )}
 
-      {/* Modal */}
       {selected && (
         <RecordModal
           release={selected}
+          releases={releases}
           onClose={() => setSelected(null)}
-          onPlay={t => {
-            setTrack(t)
-            setSelected(null)
-          }}
+          onPlay={handlePlay}
+          onSelect={(r) => handleSelectRelease(r)}
+          openTab={openTab}
         />
       )}
 
-      {/* Player flotante */}
       {track && (
         <FloatingPlayer
           track={track}
+          clipIndex={clipIndex}
           onClose={() => setTrack(null)}
         />
       )}

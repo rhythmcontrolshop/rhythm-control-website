@@ -1,6 +1,6 @@
 'use client'
 // components/store/CatalogueTabs.tsx
-// Tabs de género. Activo en amarillo. border-top y border-bottom 2px white.
+// Tabs de género. Línea superior 2px white, underline amarillo en activo.
 
 interface CatalogueTabsProps {
   genres:   string[]
@@ -9,17 +9,14 @@ interface CatalogueTabsProps {
 }
 
 export default function CatalogueTabs({ genres, active, onChange }: CatalogueTabsProps) {
-  const tabs = [{ key: null, label: 'TODO' }, ...genres.map(g => ({ key: g, label: g.toUpperCase() }))]
+  const tabs = [
+    { key: null, label: 'TODO' },
+    ...genres.map(g => ({ key: g, label: g.toUpperCase() }))
+  ]
 
   return (
-    <div
-      className="overflow-x-auto"
-      style={{
-        borderTop:    'var(--rc-border-main)',
-        borderBottom: 'var(--rc-border-main)',
-      }}
-    >
-      <div className="flex items-stretch min-w-max">
+    <div style={{ borderTop: 'var(--rc-border-main)' }}>
+      <div className="flex items-stretch overflow-x-auto">
         {tabs.map(({ key, label }) => {
           const isActive = key === active
           return (
@@ -28,9 +25,9 @@ export default function CatalogueTabs({ genres, active, onChange }: CatalogueTab
               onClick={() => onChange(key)}
               className="font-display text-xs px-5 py-4 transition-colors whitespace-nowrap"
               style={{
-                color:        isActive ? 'var(--rc-color-accent)' : 'var(--rc-color-muted)',
+                color: isActive ? 'var(--rc-color-accent)' : 'var(--rc-color-text)',
                 borderBottom: isActive ? 'var(--rc-border-accent)' : '2px solid transparent',
-                marginBottom: '-2px', // compensa el border-bottom del contenedor
+                marginBottom: '-2px',
               }}
             >
               {label}

@@ -1,10 +1,5 @@
 /* ============================================================
    RHYTHM CONTROL — GLOBALS
-   Este archivo NO define valores. Solo:
-   1. Importa los design tokens desde styles/variables.css
-   2. Mapea los tokens al @theme de Tailwind v4
-   3. Define utilidades CSS globales que no tienen equivalente Tailwind
-   Para cambiar colores, fuentes o espaciados → edita styles/variables.css
    ============================================================ */
 
 @import "../styles/variables.css";
@@ -18,12 +13,10 @@
   --color-foreground:  var(--rc-color-text);
   --color-accent:      var(--rc-color-accent);
   --color-separator:   var(--rc-color-separator);
-  --color-muted:       var(--rc-color-muted);
 
   --font-display:      var(--rc-font-display);
   --font-mono:         var(--rc-font-mono);
 
-  /* Sin border-radius en ningún elemento */
   --radius:    0;
   --radius-sm: 0;
   --radius-md: 0;
@@ -62,24 +55,22 @@ body {
 }
 
 
-/* ── TIPOGRAFÍA — UTILIDADES GLOBALES ───────────────────────── */
+/* ── TIPOGRAFÍA ────────────────────────────────────────────── */
 
-/* Display: Arial Black — títulos, artistas, géneros */
 .font-display {
   font-family: var(--rc-font-display);
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--rc-tracking-display);
 }
 
-/* Mono: IBM Plex Mono — metadata, precios, BPM, catno */
 .font-meta {
   font-family: var(--rc-font-mono);
   letter-spacing: var(--rc-tracking-mono);
 }
 
 
-/* ── SEPARADORES ────────────────────────────────────────────── */
+/* ── SEPARADORES ───────────────────────────────────────────── */
 
 .separator {
   border: none;
@@ -92,30 +83,29 @@ body {
 }
 
 
-/* ── ACENTO ─────────────────────────────────────────────────── */
+/* ── MARQUEE SCROLL ────────────────────────────────────────── */
 
-/* Solo para: tab activo, BPM tag, badge M/NM */
-.accent {
-  color: var(--rc-color-accent);
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.accent-bg {
-  background-color: var(--rc-color-accent);
-  color: var(--rc-color-bg);
+.marquee-content {
+  display: inline-block;
+  animation: marquee 8s linear infinite;
 }
 
-.tab-active {
-  color: var(--rc-color-accent);
-  border-bottom: var(--rc-border-accent);
+.marquee:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 
-/* ── PRECIOS (formato Euro) ─────────────────────────────────── */
-/* Usar en JS: price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) */
-/* Resultado: 1.234,56 € */
-
-
-/* ── SCROLLBAR ──────────────────────────────────────────────── */
+/* ── SCROLLBAR ─────────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
   width: 4px;
@@ -131,7 +121,7 @@ body {
 }
 
 
-/* ── FOCUS ──────────────────────────────────────────────────── */
+/* ── FOCUS ─────────────────────────────────────────────────── */
 
 :focus-visible {
   outline: 2px solid var(--rc-color-accent);
@@ -139,9 +129,8 @@ body {
 }
 
 
-/* ── LAYOUT BASE ────────────────────────────────────────────── */
+/* ── LAYOUT BASE ───────────────────────────────────────────── */
 
-/* Compensar altura de nav fija en el contenido */
 .page-content {
   padding-top: var(--rc-nav-height);
   padding-bottom: var(--rc-player-height);

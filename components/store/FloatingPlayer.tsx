@@ -1,30 +1,81 @@
 'use client'
 // components/store/FloatingPlayer.tsx
-// Player flotante fijo en la parte inferior.
-// Muestra portada, artista, título, BPM/key, y controles.
-// Spotify embed como fuente de audio principal.
+// Player flotante que reproduce previews de Spotify.
 
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import type { PlayerTrack } from '@/types'
 
 interface FloatingPlayerProps {
-  track:   PlayerTrack
-  onClose: () => void
+  track:     PlayerTrack
+  clipIndex: number
+  onClose:   () => void
 }
 
-export default function FloatingPlayer({ track, onClose }: FloatingPlayerProps) {
+export default function FloatingPlayer({ track, clipIndex, onClose }: FloatingPlayerProps) {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  useEffect(() => {
+    async function fetchPreview() {
+      if (!track.source_id) {
+        setError(true)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/audio/spotify/${track.source_id}`)
+        const data = await res.json()
+
+        if (data.preview_url) {
+          setPreviewUrl(data.preview_url)
+        } else {
+          setError(true)
+        }
+      } catch {
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPreview()
+  }, [track.source_id])
+
+  useEffect(() => {
+    if (previewUrl && audioRef.current) {
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {})
+    }
+  }, [previewUrl])
+
+  const togglePlay = () => {
+    if (!audioRef.current) return
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      audioRef.current.play()
+      setIsPlaying(true)
+    }
+  }
+
   return (
     <div
-      className="fixed left-0 right-0 bottom-0 flex items-stretch"
+      className="fixed left-0 right-0 bottom-0 flex items-center"
       style={{
-        height:          'var(--rc-player-height)',
-        backgroundColor: 'var(--rc-color-bg)',
-        borderTop:       'var(--rc-border-main)',
-        zIndex:          'var(--rc-z-player)' as React.CSSProperties['zIndex'],
+        height:          '80px',
+        backgroundColor: '#000000',
+        borderTop:       '2px solid #FFFFFF',
+        zIndex:          90,
       }}
     >
-      {/* Portada */}
-      <div className="relative shrink-0" style={{ width: 'var(--rc-player-height)' }}>
+      <div className="relative shrink-0" style={{ width: '80px', height: '80px' }}>
         {track.cover_image ? (
           <Image
             src={track.cover_image}
@@ -39,70 +90,76 @@ export default function FloatingPlayer({ track, onClose }: FloatingPlayerProps) 
         )}
       </div>
 
-      {/* Spotify embed (oculto visualmente, activa el audio) */}
-      {track.source === 'spotify' && track.source_id && (
-        <div className="shrink-0" style={{ width: 0, overflow: 'hidden' }}>
-          <iframe
-            key={track.source_id}
-            src={`https://open.spotify.com/embed/track/${track.source_id}?utm_source=generator&theme=0`}
-            width="300"
-            height="80"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            title={`${track.artist} — ${track.title}`}
-          />
-        </div>
-      )}
-
-      {/* Info del track */}
       <div className="flex flex-col justify-center px-4 flex-1 min-w-0">
-        <p className="font-display text-xs truncate" style={{ color: 'var(--rc-color-text)' }}>
+        <p className="font-display text-sm truncate" style={{ color: '#FFFFFF' }}>
           {track.artist}
         </p>
-        <p className="font-meta truncate mt-0.5" style={{ color: 'var(--rc-color-muted)', fontSize: '0.65rem' }}>
+        <p className="font-display text-sm truncate" style={{ color: '#F0E040' }}>
           {track.title}
+        </p>
+        <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>
+          CLIP {clipIndex}
         </p>
       </div>
 
-      {/* BPM + Key — solo desktop */}
-      {(track.bpm || track.key_camelot || track.key) && (
-        <div className="hidden md:flex items-center gap-2 px-4 shrink-0">
+      {(track.bpm || track.key) && (
+        <div className="hidden md:flex items-center gap-2 px-4">
           {track.bpm && (
-            <span
-              className="font-meta px-2 py-0.5"
-              style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)', fontSize: '0.6rem' }}
-            >
+            <span className="font-meta text-xs px-2 py-0.5" style={{ backgroundColor: '#F0E040', color: '#000000' }}>
               {track.bpm} BPM
             </span>
           )}
-          {(track.key_camelot ?? track.key) && (
-            <span
-              className="font-meta px-2 py-0.5"
-              style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)', fontSize: '0.6rem' }}
-            >
-              {track.key_camelot ?? track.key}
+          {track.key && (
+            <span className="font-meta text-xs px-2 py-0.5" style={{ backgroundColor: '#F0E040', color: '#000000' }}>
+              {track.key}
             </span>
           )}
         </div>
       )}
 
-      {/* Precio + Cerrar */}
-      <div className="flex items-center gap-4 px-4 shrink-0">
-        <span
-          className="hidden sm:block font-display text-xs"
-          style={{ color: 'var(--rc-color-text)' }}
-        >
+      <div className="hidden sm:flex items-center px-4">
+        <span className="font-display text-sm" style={{ color: '#FFFFFF' }}>
           {track.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
         </span>
-        <button
-          className="font-meta text-xs transition-opacity hover:opacity-60"
-          style={{ color: 'var(--rc-color-muted)' }}
-          onClick={onClose}
-          aria-label="Cerrar player"
-        >
-          ✕
-        </button>
       </div>
+
+      <div className="flex items-center gap-2 px-4">
+        {loading && (
+          <p className="font-meta text-xs animate-pulse" style={{ color: '#FFFFFF' }}>Cargando...</p>
+        )}
+        {error && (
+          <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>Sin preview</p>
+        )}
+        {previewUrl && !error && (
+          <>
+            <audio ref={audioRef} src={previewUrl} onEnded={() => setIsPlaying(false)} onError={() => setError(true)} />
+            <button
+              className="flex items-center justify-center transition-colors"
+              style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#FFFFFF' }}
+              onClick={togglePlay}
+            >
+              {isPlaying ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="6" y="4" width="4" height="16" fill="#000000" />
+                  <rect x="14" y="4" width="4" height="16" fill="#000000" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ marginLeft: '2px' }}>
+                  <polygon points="5,3 19,12 5,21" fill="#000000" />
+                </svg>
+              )}
+            </button>
+          </>
+        )}
+      </div>
+
+      <button
+        className="font-display text-xs px-4 transition-opacity hover:opacity-60"
+        style={{ color: '#FFFFFF' }}
+        onClick={onClose}
+      >
+        ✕
+      </button>
     </div>
   )
 }

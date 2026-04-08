@@ -1,21 +1,31 @@
 'use client'
 // components/store/RecordCard.tsx
-// Card individual de un disco. Hover: imagen desaparece, muestra metadata completa.
+// Card individual de un disco.
 
-import Image               from 'next/image'
-import { buildPlayerTrack } from '@/lib/utils/track'
+import { useRef, useEffect, useState } from 'react'
+import Image from 'next/image'
 import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
   release:  Release
   onSelect: (release: Release) => void
-  onPlay:   (track: PlayerTrack) => void
+  onPlay:   (track: PlayerTrack, clipIndex: number) => void
 }
 
-const ACCENT_CONDITIONS = ['M', 'NM']
-
 export default function RecordCard({ release, onSelect, onPlay }: RecordCardProps) {
-  const isAccentCondition = ACCENT_CONDITIONS.includes(release.condition)
+  const artistRef = useRef<HTMLDivElement>(null)
+  const titleRef  = useRef<HTMLDivElement>(null)
+  const [artistNeedsScroll, setArtistNeedsScroll] = useState(false)
+  const [titleNeedsScroll, setTitleNeedsScroll]  = useState(false)
+
+  useEffect(() => {
+    if (artistRef.current) {
+      setArtistNeedsScroll(artistRef.current.scrollWidth > artistRef.current.clientWidth)
+    }
+    if (titleRef.current) {
+      setTitleNeedsScroll(titleRef.current.scrollWidth > titleRef.current.clientWidth)
+    }
+  }, [release.artists, release.title])
 
   return (
     <article
@@ -23,10 +33,8 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
       style={{ aspectRatio: '1' }}
       onClick={() => onSelect(release)}
     >
-
-      {/* Estado por defecto: imagen + title strip */}
+      {/* Estado por defecto: Imagen + Info */}
       <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
-
         {release.cover_image ? (
           <Image
             src={release.cover_image}
@@ -37,93 +45,104 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
             unoptimized
           />
         ) : (
-          <div className="w-full h-full flex items-end" style={{ backgroundColor: '#0a0a0a' }} />
+          <div className="w-full h-full" style={{ backgroundColor: '#0a0a0a' }} />
         )}
 
         <div
-          className="absolute bottom-0 left-0 right-0 px-2 pt-4 pb-2"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)' }}
+          className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}
         >
-          <p className="font-display text-xs truncate" style={{ color: 'var(--rc-color-text)' }}>
-            {release.artists[0] ?? '—'}
-          </p>
-          <p className="font-meta text-xs truncate mt-0.5" style={{ color: 'var(--rc-color-muted)', fontSize: '0.65rem' }}>
-            {release.title}
-          </p>
-        </div>
+          <div ref={artistRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <p
+              className={`font-display ${artistNeedsScroll ? 'marquee-content' : ''}`}
+              style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}
+            >
+              {artistNeedsScroll ? `${release.artists[0] ?? '—'} · ${release.artists[0] ?? '—'} ` : (release.artists[0] ?? '—')}
+            </p>
+          </div>
 
+          <div ref={titleRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <p
+              className={`font-display ${titleNeedsScroll ? 'marquee-content' : ''}`}
+              style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}
+            >
+              {titleNeedsScroll ? `${release.title} · ${release.title} ` : release.title}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Estado hover: metadata */}
+      {/* Estado hover: Info completa */}
       <div
-        className="absolute inset-0 flex flex-col justify-between p-3 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100"
-        style={{ backgroundColor: 'var(--rc-color-bg)' }}
+        className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100"
+        style={{ backgroundColor: '#000000' }}
       >
-        <div>
-          <p className="font-display text-sm leading-tight" style={{ color: 'var(--rc-color-text)' }}>
+        <div
+          className="absolute top-0 left-0 bottom-0"
+          style={{ width: '2px', backgroundColor: '#FFFFFF' }}
+        />
+
+        {/* Info arriba */}
+        <div style={{ marginLeft: '6px' }}>
+          <p className="font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
             {release.artists[0] ?? '—'}
           </p>
-          <p className="font-meta mt-1 leading-snug" style={{ color: 'var(--rc-color-muted)', fontSize: '0.7rem' }}>
+
+          <p className="font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
             {release.title}
           </p>
-          <p className="font-meta mt-1" style={{ color: 'var(--rc-color-muted)', fontSize: '0.65rem' }}>
-            {[release.labels[0], release.catno].filter(Boolean).join(' · ')}
+
+          <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>
+            {release.labels[0] ?? ''}
           </p>
-          <p className="font-meta" style={{ color: 'var(--rc-color-muted)', fontSize: '0.65rem' }}>
-            {[release.year, release.format, release.country].filter(Boolean).join(' · ')}
+
+          <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>
+            {[release.year, release.format].filter(Boolean).join(' · ')}
           </p>
         </div>
 
-        {(release.bpm || release.key_camelot || release.key) && (
-          <div className="flex gap-1 flex-wrap">
-            {release.bpm && (
-              <span className="font-meta px-1.5 py-0.5" style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)', fontSize: '0.6rem' }}>
-                {release.bpm} BPM
-              </span>
-            )}
-            {(release.key_camelot ?? release.key) && (
-              <span className="font-meta px-1.5 py-0.5" style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)', fontSize: '0.6rem' }}>
-                {release.key_camelot ?? release.key}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Botones abajo */}
+        <div className="flex gap-2" style={{ marginLeft: '6px' }}>
+          <button
+            className="font-display text-xs px-4 py-2 transition-colors"
+            style={{ backgroundColor: '#F0E040', color: '#000000' }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect(release)
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#FFFFFF'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#F0E040'
+            }}
+          >
+            ESCUCHAR
+          </button>
 
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span
-              className="font-display text-xs px-1.5 py-0.5"
-              style={isAccentCondition
-                ? { backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)' }
-                : { border: '1px solid rgba(255,255,255,0.3)', color: 'var(--rc-color-text)' }
-              }
-            >
-              {release.condition}
-            </span>
-            <span className="font-meta text-xs" style={{ color: 'var(--rc-color-text)' }}>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2 transition-colors"
+            style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', backgroundColor: 'transparent' }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#FFFFFF'
+              e.currentTarget.style.color = '#000000'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#FFFFFF'
+            }}
+          >
+            <span style={{ fontWeight: 700 }}>
               {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
             </span>
-          </div>
-
-          <div className="flex gap-1">
-            <button
-              className="flex-1 font-display py-1.5 transition-colors hover:opacity-80"
-              style={{ backgroundColor: 'var(--rc-color-text)', color: 'var(--rc-color-bg)', fontSize: '0.6rem' }}
-              onClick={e => { e.stopPropagation(); onPlay(buildPlayerTrack(release)) }}
-            >
-              ▶ ESCUCHAR
-            </button>
-            <button
-              className="font-display px-2 py-1.5 transition-colors hover:bg-white hover:text-black"
-              style={{ border: 'var(--rc-border-card)', color: 'var(--rc-color-text)', fontSize: '0.6rem' }}
-              onClick={e => e.stopPropagation()}
-            >
-              +
-            </button>
-          </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" fill="none" />
+              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
         </div>
       </div>
-
     </article>
   )
 }

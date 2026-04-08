@@ -1,33 +1,36 @@
 // app/page.tsx
 // Página principal — catálogo público.
-// Server Component: obtiene releases iniciales y géneros desde la API.
-// Renderiza Navigation + CatalogueView (client).
+// Server Component: obtiene releases iniciales y géneros directamente de Supabase.
 
 import Navigation    from '@/components/layout/Navigation'
 import CatalogueView from '@/components/store/CatalogueView'
-import type { Release, PaginatedResponse } from '@/types'
+import { createClient } from '@/lib/supabase/server'
+import type { Release } from '@/types'
 
 async function getInitialData(): Promise<{ releases: Release[]; total: number; genres: string[] }> {
   try {
-    // Usar URL absoluta para fetch en Server Component
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const supabase = await createClient()
 
-    const res = await fetch(`${baseUrl}/api/catalogue?page=1`, {
-      cache: 'no-store',
-    })
+    const { data, error, count } = await supabase
+      .from('releases')
+      .select('*', { count: 'exact' })
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(24)
 
-    if (!res.ok) throw new Error(`API error: ${res.status}`)
+    if (error) {
+      console.error('Error fetching releases:', error)
+      return { releases: [], total: 0, genres: [] }
+    }
 
-    const json = (await res.json()) as PaginatedResponse<Release>
-
-    // Extraer géneros únicos de los releases devueltos
+    // Extraer géneros únicos
     const genreSet = new Set<string>()
-    json.data.forEach(r => r.genres?.forEach(g => genreSet.add(g)))
+    ;(data ?? []).forEach(r => r.genres?.forEach((g: string) => genreSet.add(g)))
     const genres = Array.from(genreSet).sort()
 
-    return { releases: json.data, total: json.total, genres }
-  } catch {
+    return { releases: data ?? [], total: count ?? 0, genres }
+  } catch (err) {
+    console.error('Error in getInitialData:', err)
     return { releases: [], total: 0, genres: [] }
   }
 }
