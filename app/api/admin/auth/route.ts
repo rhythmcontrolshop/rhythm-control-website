@@ -18,12 +18,21 @@ export async function POST(request: NextRequest) {
   const { secret } = body as { secret?: string }
 
   // DEBUG — quitar después de resolver el problema
-  console.log('[auth] secret recibido  :', JSON.stringify(secret))
-  console.log('[auth] ADMIN_SECRET env :', JSON.stringify(process.env.ADMIN_SECRET))
-  console.log('[auth] coinciden        :', secret === process.env.ADMIN_SECRET)
+  const envSet     = !!process.env.ADMIN_SECRET
+  const envLength  = process.env.ADMIN_SECRET?.length ?? 0
+  const match      = secret === process.env.ADMIN_SECRET
 
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
-    return Response.json({ error: 'Contraseña incorrecta' }, { status: 401 })
+  if (!secret || !match) {
+    return Response.json({
+      error: 'Contraseña incorrecta',
+      debug: {
+        secretReceived: !!secret,
+        secretLength:   secret?.length ?? 0,
+        envSet,
+        envLength,
+        match,
+      },
+    }, { status: 401 })
   }
 
   const token      = computeAdminToken(secret)
