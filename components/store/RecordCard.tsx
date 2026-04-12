@@ -11,20 +11,24 @@ interface RecordCardProps {
   onPlay:   (track: PlayerTrack, clipIndex: number) => void
 }
 
-export default function RecordCard({ release, onSelect }: RecordCardProps) {
-  const artist = release.artists[0] ?? '—'
-
-  const artistRef = useRef<HTMLDivElement>(null)
-  const titleRef  = useRef<HTMLDivElement>(null)
-  const [artistOverflows, setArtistOverflows] = useState(false)
-  const [titleOverflows,  setTitleOverflows]  = useState(false)
+function useTextOverflows(text: string) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const spanRef      = useRef<HTMLSpanElement>(null)
+  const [overflows, setOverflows] = useState(false)
 
   useEffect(() => {
-    if (artistRef.current)
-      setArtistOverflows(artistRef.current.scrollWidth > artistRef.current.clientWidth)
-    if (titleRef.current)
-      setTitleOverflows(titleRef.current.scrollWidth > titleRef.current.clientWidth)
-  }, [artist, release.title])
+    if (containerRef.current && spanRef.current) {
+      setOverflows(spanRef.current.offsetWidth > containerRef.current.offsetWidth)
+    }
+  }, [text])
+
+  return { containerRef, spanRef, overflows }
+}
+
+export default function RecordCard({ release, onSelect }: RecordCardProps) {
+  const artist = release.artists[0] ?? '—'
+  const { containerRef: aRef, spanRef: aSpan, overflows: aOver } = useTextOverflows(artist)
+  const { containerRef: tRef, spanRef: tSpan, overflows: tOver } = useTextOverflows(release.title)
 
   return (
     <article
@@ -38,8 +42,7 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
           <Image
             src={release.cover_image}
             alt={`${artist} — ${release.title}`}
-            fill
-            className="object-cover"
+            fill className="object-cover"
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
             unoptimized
           />
@@ -51,16 +54,18 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
           className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}
         >
-          <div ref={artistRef} className="marquee">
-            <p className={`font-display ${artistOverflows ? 'marquee-fast' : ''}`}
-               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
-              {artistOverflows ? `${artist} · ${artist} ` : artist}
+          {/* Artist row — mide con span oculto */}
+          <div ref={aRef} style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <span ref={aSpan} className="font-display" style={{ visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap', fontSize: '1.3rem' }}>{artist}</span>
+            <p className={`font-display ${aOver ? 'marquee-fast' : ''}`} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {aOver ? `${artist} · ${artist} ` : artist}
             </p>
           </div>
-          <div ref={titleRef} className="marquee">
-            <p className={`font-display ${titleOverflows ? 'marquee-fast' : ''}`}
-               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
-              {titleOverflows ? `${release.title} · ${release.title} ` : release.title}
+          {/* Title row */}
+          <div ref={tRef} style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <span ref={tSpan} className="font-display" style={{ visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap', fontSize: '1.3rem' }}>{release.title}</span>
+            <p className={`font-display ${tOver ? 'marquee-fast' : ''}`} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {tOver ? `${release.title} · ${release.title} ` : release.title}
             </p>
           </div>
         </div>
@@ -74,24 +79,18 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
         <div className="absolute top-0 left-0 bottom-0" style={{ width: '2px', backgroundColor: '#FFFFFF' }} />
 
         <div style={{ marginLeft: '6px' }}>
-          <div className="marquee">
-            <p className={`font-display ${artistOverflows ? 'marquee-fast' : ''}`}
-               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
-              {artistOverflows ? `${artist} · ${artist} ` : artist}
+          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <p className={`font-display ${aOver ? 'marquee-fast' : ''}`} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {aOver ? `${artist} · ${artist} ` : artist}
             </p>
           </div>
-          <div className="marquee">
-            <p className={`font-display ${titleOverflows ? 'marquee-fast' : ''}`}
-               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
-              {titleOverflows ? `${release.title} · ${release.title} ` : release.title}
+          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <p className={`font-display ${tOver ? 'marquee-fast' : ''}`} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {tOver ? `${release.title} · ${release.title} ` : release.title}
             </p>
           </div>
-          <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>
-            {release.labels[0] ?? ''}
-          </p>
-          <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>
-            {[release.year, release.format].filter(Boolean).join(' · ')}
-          </p>
+          <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>{release.labels[0] ?? ''}</p>
+          <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>{[release.year, release.format].filter(Boolean).join(' · ')}</p>
         </div>
 
         <div className="flex gap-2" style={{ marginLeft: '6px' }}>
@@ -105,15 +104,13 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
             ESCUCHAR
           </button>
           <button
-            className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2"
             style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', backgroundColor: 'transparent' }}
             onClick={e => e.stopPropagation()}
             onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#000000' }}
             onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' }}
           >
-            <span style={{ fontWeight: 700 }}>
-              {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-            </span>
+            <span style={{ fontWeight: 700 }}>{release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" fill="none"/>
               <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2"/>
