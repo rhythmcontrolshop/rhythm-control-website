@@ -8,6 +8,7 @@ import RecordCard     from '@/components/store/RecordCard'
 import RecordModal    from '@/components/store/RecordModal'
 import FloatingPlayer from '@/components/store/FloatingPlayer'
 import type { Release, PlayerTrack } from '@/types'
+import { Marquee } from '@/components/ui/Marquee'
 
 type HeroTab = 'top' | 'mix' | 'events'
 
@@ -184,16 +185,10 @@ function MixContent() {
         className="hidden md:flex flex-col"
         style={{ width: 'calc(100% / 6 * 2)', flexShrink: 0 }}
       >
-        <div
-          className="marquee flex items-center"
-          style={{ height: '42px', borderBottom: '1px solid #1C1C1C', paddingLeft: '12px', flexShrink: 0 }}
-        >
-          <span
-            className="marquee-content font-display"
-            style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}
-          >
+        <div style={{ height: '42px', borderBottom: '1px solid #1C1C1C', flexShrink: 0 }}>
+          <Marquee className="font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', paddingLeft: '12px', height: '42px', display: 'flex', alignItems: 'center' }}>
             {djMarquee}&nbsp;&nbsp;&nbsp;&nbsp;{djMarquee}&nbsp;&nbsp;&nbsp;&nbsp;
-          </span>
+          </Marquee>
         </div>
         <div style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center' }}>
           <p className="font-meta" style={{ color: '#FFFFFF', fontSize: '0.62rem', lineHeight: 1.6, opacity: 0.7 }}>
@@ -256,14 +251,9 @@ function EventsContent({ onFlyer }: { onFlyer: (f: { url: string; title: string 
             </div>
 
             {/* Marquee título + venue */}
-            <div className="marquee" style={{ overflow: 'hidden', flexShrink: 0 }}>
-              <span
-                className="marquee-content font-display"
-                style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.2', whiteSpace: 'nowrap' }}
-              >
-                {marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;{marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;
-              </span>
-            </div>
+            <Marquee className="font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.2', flexShrink: 0 }}>
+              {marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;{marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;
+            </Marquee>
 
             {/* Lineup */}
             <p
@@ -379,16 +369,10 @@ export default function Hero({ releases }: HeroProps) {
         </div>
 
         {/* Marquee */}
-        <div
-          className="marquee flex items-center flex-1"
-          style={{ minWidth: 0, paddingLeft: '12px' }}
-        >
-          <span
-            className="marquee-content font-display"
-            style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}
-          >
+        <div className="flex items-center flex-1" style={{ minWidth: 0, paddingLeft: '12px' }}>
+          <Marquee className="font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
             {marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          </span>
+          </Marquee>
         </div>
       </div>
 
