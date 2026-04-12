@@ -51,7 +51,9 @@ const MOCK_EVENTS = [
 
 const MIX = {
   date:      '2026-04-01',
-  embed:     'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&autoplay=0&feed=%2Frhythmcontrolshop%2F',
+  // ⚠ Replace with a real mix slug: feed=%2Frhythmcontrolshop%2Fmix-name%2F
+  // Mixcloud widget needs a specific mix URL, not just the profile
+  embed:     'https://www.mixcloud.com/widget/iframe/?hide_cover=0&mini=0&autoplay=0&feed=%2Frhythmcontrolshop%2F',
   dj:        'RC SELECTOR',
   origin:    'Barcelona',
   dj_image:  'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=440&fit=crop',
@@ -155,65 +157,108 @@ function TopContent({
 
 // ── MixContent ─────────────────────────────────────────────────────────────────
 
-function MixContent() {
-  const djMarquee = `${MIX.dj} — ${MIX.origin}`
-
+function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) => void }) {
   return (
-    <div style={{ display: 'flex', minHeight: '220px' }}>
-      {/* Imagen DJ */}
+    <div className="grid grid-cols-1 md:grid-cols-6" style={{ minHeight: '300px' }}>
+
+      {/* Col 1: DJ image — hidden on mobile */}
       <div
-        className="hidden md:block"
-        style={{ width: 'calc(100% / 6)', flexShrink: 0, position: 'relative', borderRight: '1px solid #1C1C1C', overflow: 'hidden' }}
+        className="hidden md:block md:col-span-1 relative overflow-hidden cursor-pointer group"
+        style={{ borderRight: '1px solid #1C1C1C' }}
+        onClick={() => onImage({ url: MIX.dj_image, title: MIX.dj })}
       >
-        <Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top' }} sizes="240px" />
+        <Image
+          src={MIX.dj_image}
+          alt={MIX.dj}
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'top' }}
+          sizes="200px"
+          unoptimized
+        />
+        {/* Zoom hint */}
+        <div
+          className="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
+          <span className="font-display" style={{ color: '#FFFFFF', fontSize: '0.6rem', border: '1px solid #FFFFFF', padding: '2px 6px' }}>
+            ↗
+          </span>
+        </div>
       </div>
 
-      {/* Embed */}
-      <div style={{ flex: 1, borderRight: '1px solid #1C1C1C', overflow: 'hidden' }}>
+      {/* Col 2-3: Text info */}
+      <div
+        className="col-span-1 md:col-span-2 flex flex-col"
+        style={{ borderLeft: '2px solid #FFFFFF', borderRight: '1px solid #1C1C1C' }}
+      >
+        <div style={{ padding: '16px 16px 12px', flexShrink: 0 }}>
+          <Marquee
+            text={MIX.dj}
+            style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2', marginBottom: '4px' }}
+          />
+          <p className="font-display" style={{ color: '#FFFFFF', fontSize: '0.65rem', opacity: 0.45 }}>
+            {MIX.origin}
+          </p>
+        </div>
+
+        <div style={{ flex: 1, padding: '0 16px 12px' }}>
+          <p className="font-meta" style={{ color: '#FFFFFF', fontSize: '0.62rem', lineHeight: 1.7, opacity: 0.7 }}>
+            {MIX.bio}
+          </p>
+        </div>
+
+        <div className="flex gap-3 flex-wrap" style={{ padding: '12px 16px', borderTop: '1px solid #1C1C1C', flexShrink: 0 }}>
+          {MIX.mixcloud && (
+            <a
+              href={MIX.mixcloud}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-display"
+              style={{ color: '#000000', backgroundColor: '#F0E040', fontSize: '0.6rem', padding: '7px 14px', textDecoration: 'none' }}
+            >
+              MIXCLOUD →
+            </a>
+          )}
+          {MIX.web && (
+            <a
+              href={MIX.web}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-display"
+              style={{ color: '#FFFFFF', border: '1px solid #FFFFFF', fontSize: '0.6rem', padding: '7px 14px', textDecoration: 'none' }}
+            >
+              WEB →
+            </a>
+          )}
+          {MIX.instagram && (
+            <a
+              href={MIX.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-display"
+              style={{ color: '#FFFFFF', border: '1px solid #FFFFFF', fontSize: '0.6rem', padding: '7px 14px', textDecoration: 'none' }}
+            >
+              IG →
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Col 4-6: Mixcloud full player */}
+      <div
+        className="col-span-1 md:col-span-3 overflow-hidden"
+        style={{ minHeight: '300px', backgroundColor: '#000000' }}
+      >
         <iframe
           title={getMixLabel()}
           src={MIX.embed}
           width="100%"
           height="100%"
-          style={{ border: 'none', display: 'block', minHeight: '220px' }}
+          style={{ border: 'none', display: 'block', minHeight: '300px' }}
           allow="autoplay"
         />
       </div>
 
-      {/* Info */}
-      <div
-        className="hidden md:flex flex-col"
-        style={{ width: 'calc(100% / 6 * 2)', flexShrink: 0 }}
-      >
-        <div style={{ height: '42px', borderBottom: '1px solid #1C1C1C', flexShrink: 0 }}>
-          <Marquee text={djMarquee} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', paddingLeft: '12px', height: '42px', display: 'flex', alignItems: 'center' }} />
-        </div>
-        <div style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center' }}>
-          <p className="font-meta" style={{ color: '#FFFFFF', fontSize: '0.62rem', lineHeight: 1.6, opacity: 0.7 }}>
-            {MIX.bio}
-          </p>
-        </div>
-        <div className="flex gap-4" style={{ padding: '12px 14px', borderTop: '1px solid #1C1C1C' }}>
-          {MIX.web && (
-            <a href={MIX.web} target="_blank" rel="noopener noreferrer"
-              className="font-display" style={{ color: '#F0E040', fontSize: '0.62rem', textDecoration: 'none' }}>
-              WEB
-            </a>
-          )}
-          {MIX.instagram && (
-            <a href={MIX.instagram} target="_blank" rel="noopener noreferrer"
-              className="font-display" style={{ color: '#F0E040', fontSize: '0.62rem', textDecoration: 'none' }}>
-              INSTAGRAM
-            </a>
-          )}
-          {MIX.mixcloud && (
-            <a href={MIX.mixcloud} target="_blank" rel="noopener noreferrer"
-              className="font-display" style={{ color: '#F0E040', fontSize: '0.62rem', textDecoration: 'none' }}>
-              MIXCLOUD →
-            </a>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -420,7 +465,7 @@ export default function Hero({ releases }: HeroProps) {
       {/* ── Contenido del tab ── */}
       <div style={{ borderBottom: '2px solid #FFFFFF' }}>
         {tab === 'top'    && <TopContent releases={topReleases} onSelect={setSelected} onPlay={handlePlay} />}
-        {tab === 'mix'    && <MixContent />}
+        {tab === 'mix'    && <MixContent onImage={setFlyer} />}
         {tab === 'events' && <EventsContent onFlyer={setFlyer} />}
       </div>
 
