@@ -186,9 +186,7 @@ function MixContent() {
         style={{ width: 'calc(100% / 6 * 2)', flexShrink: 0 }}
       >
         <div style={{ height: '42px', borderBottom: '1px solid #1C1C1C', flexShrink: 0 }}>
-          <Marquee className="font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', paddingLeft: '12px', height: '42px', display: 'flex', alignItems: 'center' }}>
-            {djMarquee}&nbsp;&nbsp;&nbsp;&nbsp;{djMarquee}&nbsp;&nbsp;&nbsp;&nbsp;
-          </Marquee>
+          <Marquee text={djMarquee} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', paddingLeft: '12px', height: '42px', display: 'flex', alignItems: 'center' }} />
         </div>
         <div style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center' }}>
           <p className="font-meta" style={{ color: '#FFFFFF', fontSize: '0.62rem', lineHeight: 1.6, opacity: 0.7 }}>
@@ -251,9 +249,7 @@ function EventsContent({ onFlyer }: { onFlyer: (f: { url: string; title: string 
             </div>
 
             {/* Marquee título + venue */}
-            <Marquee className="font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.2', flexShrink: 0 }}>
-              {marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;{marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;
-            </Marquee>
+            <Marquee text={marqueeText} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.2', flexShrink: 0 }} />
 
             {/* Lineup */}
             <p
@@ -370,9 +366,7 @@ export default function Hero({ releases }: HeroProps) {
 
         {/* Marquee */}
         <div className="flex items-center flex-1" style={{ minWidth: 0, paddingLeft: '12px' }}>
-          <Marquee className="font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
-            {marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{marqueeText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          </Marquee>
+          <Marquee text={marqueeText} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
         </div>
       </div>
 
