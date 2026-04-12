@@ -2,7 +2,7 @@
 // components/home/Hero.tsx
 // Tabs horizontales (izquierda) + marquee (derecha) + contenido bajo.
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import RecordCard     from '@/components/store/RecordCard'
 import RecordModal    from '@/components/store/RecordModal'
@@ -55,7 +55,7 @@ const MIX = {
   dj:        'RC SELECTOR',
   origin:    'Barcelona',
   dj_image:  'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=440&fit=crop',
-  bio:       'Residente en Rhythm Control. Especialista en house, techno y jazz electrónico.',
+  bio:       'Residente en {{Rhythm Control}} desde la apertura. Especialista en {{deep house}} de los noventa, {{techno}} de Detroit y {{jazz electrónico}}. Sus sets combinan edits raros con clásicos olvidados, construyendo una narrativa que va de lo íntimo a lo eufórico. Toca cada primer sábado de mes.',
   web:       null as string | null,
   instagram: null as string | null,
   mixcloud:  'https://www.mixcloud.com/rhythmcontrolshop/' as string | null,
@@ -155,6 +155,16 @@ function TopContent({
 
 // ── MixContent ─────────────────────────────────────────────────────────────────
 
+// Markup: wrap words in {{...}} in the admin to highlight them in yellow
+function parseBio(text: string): React.ReactNode[] {
+  return text.split(/(\{\{[^}]+\}\})/g).map((part, i) => {
+    const match = part.match(/^\{\{(.+)\}\}$/)
+    return match
+      ? <span key={i} style={{ color: '#F0E040' }}>{match[1]}</span>
+      : <span key={i}>{part}</span>
+  })
+}
+
 function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-6" style={{ minHeight: '300px' }}>
@@ -189,19 +199,20 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
         className="col-span-1 md:col-span-2 flex flex-col"
         style={{ borderLeft: '2px solid #FFFFFF', borderRight: '1px solid #1C1C1C' }}
       >
-        <div style={{ padding: '16px 16px 12px', flexShrink: 0 }}>
+        <div style={{ padding: '16px 16px 8px', flexShrink: 0 }}>
           <Marquee
             text={MIX.dj}
             style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2', marginBottom: '4px' }}
           />
-          <p className="font-display" style={{ color: '#FFFFFF', fontSize: '0.65rem', opacity: 0.45 }}>
-            {MIX.origin}
-          </p>
+          <Marquee
+            text={MIX.origin}
+            style={{ color: '#FFFFFF', fontSize: '0.85rem', lineHeight: '1.3', opacity: 0.6 }}
+          />
         </div>
 
-        <div style={{ flex: 1, padding: '0 16px 12px' }}>
-          <p className="font-meta" style={{ color: '#FFFFFF', fontSize: '0.62rem', lineHeight: 1.7, opacity: 0.7 }}>
-            {MIX.bio}
+        <div style={{ flex: 1, padding: '10px 16px 12px' }}>
+          <p className="font-meta font-bold" style={{ color: '#FFFFFF', fontSize: '0.68rem', lineHeight: 1.8 }}>
+            {parseBio(MIX.bio)}
           </p>
         </div>
 
