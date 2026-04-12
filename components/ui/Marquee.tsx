@@ -36,8 +36,8 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
     setDuration(textW / PX_PER_SECOND)
   }, [text])
 
-  // Animación keyframe inline: mueve exactamente un "textW" → seamless
-  const animName = `mq-${text.slice(0, 8).replace(/\s/g, '')}`
+  // Nombre seguro para @keyframes: solo alfanuméricos
+  const animName = `mq${text.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'x'}`
 
   return (
     <div
