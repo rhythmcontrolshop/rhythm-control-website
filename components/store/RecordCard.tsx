@@ -38,12 +38,12 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}
         >
           <div className="marquee">
-            <span className="marquee-fast font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
+            <span className="marquee-content font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
               {artist}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{artist}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </span>
           </div>
           <div className="marquee">
-            <span className="marquee-fast font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
+            <span className="marquee-content font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
               {release.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{release.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </span>
           </div>
@@ -59,12 +59,12 @@ export default function RecordCard({ release, onSelect }: RecordCardProps) {
 
         <div style={{ marginLeft: '6px' }}>
           <div className="marquee">
-            <span className="marquee-fast font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
+            <span className="marquee-content font-display" style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
               {artist}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{artist}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </span>
           </div>
           <div className="marquee">
-            <span className="marquee-fast font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
+            <span className="marquee-content font-display" style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1', whiteSpace: 'nowrap' }}>
               {release.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{release.title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </span>
           </div>
