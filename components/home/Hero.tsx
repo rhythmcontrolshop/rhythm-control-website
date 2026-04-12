@@ -8,7 +8,8 @@ import RecordCard     from '@/components/store/RecordCard'
 import RecordModal    from '@/components/store/RecordModal'
 import FloatingPlayer from '@/components/store/FloatingPlayer'
 import type { Release, PlayerTrack } from '@/types'
-import { Marquee } from '@/components/ui/Marquee'
+import { Marquee }           from '@/components/ui/Marquee'
+import { FlyerPlaceholder }  from '@/components/ui/FlyerPlaceholder'
 
 type HeroTab = 'top' | 'mix' | 'events'
 
@@ -171,27 +172,36 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
 
       {/* Col 1: DJ image — hidden on mobile */}
       <div
-        className="hidden md:block md:col-span-1 relative overflow-hidden cursor-pointer group"
-        style={{ borderRight: '1px solid #1C1C1C' }}
-        onClick={() => onImage({ url: MIX.dj_image, title: MIX.dj })}
+        className="hidden md:block md:col-span-1 relative overflow-hidden group"
+        style={{
+          borderRight: '1px solid #1C1C1C',
+          cursor: MIX.dj_image ? 'pointer' : 'default',
+        }}
+        onClick={() => { if (MIX.dj_image) onImage({ url: MIX.dj_image, title: MIX.dj }) }}
       >
-        <Image
-          src={MIX.dj_image}
-          alt={MIX.dj}
-          fill
-          style={{ objectFit: 'cover', objectPosition: 'top' }}
-          sizes="200px"
-          unoptimized
-        />
-        {/* Zoom hint */}
-        <div
-          className="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-        >
-          <span className="font-display" style={{ color: '#FFFFFF', fontSize: '0.6rem', border: '1px solid #FFFFFF', padding: '2px 6px' }}>
-            ↗
-          </span>
-        </div>
+        {MIX.dj_image ? (
+          <>
+            <Image
+              src={MIX.dj_image}
+              alt={MIX.dj}
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'top' }}
+              sizes="200px"
+              unoptimized
+            />
+            {/* Zoom hint */}
+            <div
+              className="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+            >
+              <span className="font-display" style={{ color: '#FFFFFF', fontSize: '0.6rem', border: '1px solid #FFFFFF', padding: '2px 6px' }}>
+                ↗
+              </span>
+            </div>
+          </>
+        ) : (
+          <FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />
+        )}
       </div>
 
       {/* Col 2-3: Text info */}
@@ -396,7 +406,12 @@ function EventsContent({ onFlyer }: { onFlyer: (f: { url: string; title: string 
                 unoptimized
               />
             ) : (
-              <div style={{ position: 'absolute', inset: 0, backgroundColor: '#0a0a0a' }} />
+              <FlyerPlaceholder
+                title={event.title}
+                date={formatEventDate(event.date)}
+                type={event.type}
+                code={event.id}
+              />
             )}
           </div>,
         ]
