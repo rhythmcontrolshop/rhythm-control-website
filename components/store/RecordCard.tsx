@@ -54,7 +54,7 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
         >
           <div ref={artistRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <p
-              className={`font-display ${artistNeedsScroll ? 'marquee-content' : ''}`}
+              className={`font-display ${artistNeedsScroll ? 'marquee-fast' : ''}`}
               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}
             >
               {artistNeedsScroll ? `${release.artists[0] ?? '—'} · ${release.artists[0] ?? '—'} ` : (release.artists[0] ?? '—')}
@@ -63,7 +63,7 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
 
           <div ref={titleRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <p
-              className={`font-display ${titleNeedsScroll ? 'marquee-content' : ''}`}
+              className={`font-display ${titleNeedsScroll ? 'marquee-fast' : ''}`}
               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}
             >
               {titleNeedsScroll ? `${release.title} · ${release.title} ` : release.title}
@@ -86,7 +86,7 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
         <div style={{ marginLeft: '6px' }}>
           <div className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <p
-              className={`font-display ${artistNeedsScroll ? 'marquee-content' : ''}`}
+              className={`font-display ${artistNeedsScroll ? 'marquee-fast' : ''}`}
               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}
             >
               {artistNeedsScroll ? `${release.artists[0] ?? '—'} · ${release.artists[0] ?? '—'} ` : (release.artists[0] ?? '—')}
@@ -95,7 +95,7 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
 
           <div className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <p
-              className={`font-display ${titleNeedsScroll ? 'marquee-content' : ''}`}
+              className={`font-display ${titleNeedsScroll ? 'marquee-fast' : ''}`}
               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}
             >
               {titleNeedsScroll ? `${release.title} · ${release.title} ` : release.title}
