@@ -96,17 +96,6 @@ body {
   animation: marquee 30s linear infinite;
 }
 
-/* Card marquee: paused by default, plays on card hover */
-.marquee-card {
-  display: inline-block;
-  animation: marquee 8s linear infinite;
-  animation-play-state: paused;
-}
-
-.group:hover .marquee-card {
-  animation-play-state: running;
-}
-
 @keyframes marquee {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
