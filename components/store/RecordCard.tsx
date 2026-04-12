@@ -1,6 +1,5 @@
 'use client'
 // components/store/RecordCard.tsx
-// Card individual de un disco.
 
 import { useRef, useEffect, useState } from 'react'
 import Image from 'next/image'
@@ -12,20 +11,20 @@ interface RecordCardProps {
   onPlay:   (track: PlayerTrack, clipIndex: number) => void
 }
 
-export default function RecordCard({ release, onSelect, onPlay }: RecordCardProps) {
+export default function RecordCard({ release, onSelect }: RecordCardProps) {
+  const artist = release.artists[0] ?? '—'
+
   const artistRef = useRef<HTMLDivElement>(null)
   const titleRef  = useRef<HTMLDivElement>(null)
-  const [artistNeedsScroll, setArtistNeedsScroll] = useState(false)
-  const [titleNeedsScroll, setTitleNeedsScroll]  = useState(false)
+  const [artistOverflows, setArtistOverflows] = useState(false)
+  const [titleOverflows,  setTitleOverflows]  = useState(false)
 
   useEffect(() => {
-    if (artistRef.current) {
-      setArtistNeedsScroll(artistRef.current.scrollWidth > artistRef.current.clientWidth)
-    }
-    if (titleRef.current) {
-      setTitleNeedsScroll(titleRef.current.scrollWidth > titleRef.current.clientWidth)
-    }
-  }, [release.artists, release.title])
+    if (artistRef.current)
+      setArtistOverflows(artistRef.current.scrollWidth > artistRef.current.clientWidth)
+    if (titleRef.current)
+      setTitleOverflows(titleRef.current.scrollWidth > titleRef.current.clientWidth)
+  }, [artist, release.title])
 
   return (
     <article
@@ -33,12 +32,12 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
       style={{ aspectRatio: '1' }}
       onClick={() => onSelect(release)}
     >
-      {/* Estado por defecto: Imagen + Info */}
+      {/* Default: imagen + gradiente */}
       <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
         {release.cover_image ? (
           <Image
             src={release.cover_image}
-            alt={`${release.artists[0]} — ${release.title}`}
+            alt={`${artist} — ${release.title}`}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
@@ -52,103 +51,72 @@ export default function RecordCard({ release, onSelect, onPlay }: RecordCardProp
           className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}
         >
-          <div ref={artistRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <p
-              className={`font-display ${artistNeedsScroll ? 'marquee-fast' : ''}`}
-              style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}
-            >
-              {artistNeedsScroll ? `${release.artists[0] ?? '—'} · ${release.artists[0] ?? '—'} ` : (release.artists[0] ?? '—')}
+          <div ref={artistRef} className="marquee">
+            <p className={`font-display ${artistOverflows ? 'marquee-fast' : ''}`}
+               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {artistOverflows ? `${artist} · ${artist} ` : artist}
             </p>
           </div>
-
-          <div ref={titleRef} className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <p
-              className={`font-display ${titleNeedsScroll ? 'marquee-fast' : ''}`}
-              style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}
-            >
-              {titleNeedsScroll ? `${release.title} · ${release.title} ` : release.title}
+          <div ref={titleRef} className="marquee">
+            <p className={`font-display ${titleOverflows ? 'marquee-fast' : ''}`}
+               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {titleOverflows ? `${release.title} · ${release.title} ` : release.title}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Estado hover: Info completa */}
+      {/* Hover: info completa */}
       <div
         className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100"
         style={{ backgroundColor: '#000000' }}
       >
-        <div
-          className="absolute top-0 left-0 bottom-0"
-          style={{ width: '2px', backgroundColor: '#FFFFFF' }}
-        />
+        <div className="absolute top-0 left-0 bottom-0" style={{ width: '2px', backgroundColor: '#FFFFFF' }} />
 
-        {/* Info arriba */}
         <div style={{ marginLeft: '6px' }}>
-          <div className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <p
-              className={`font-display ${artistNeedsScroll ? 'marquee-fast' : ''}`}
-              style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}
-            >
-              {artistNeedsScroll ? `${release.artists[0] ?? '—'} · ${release.artists[0] ?? '—'} ` : (release.artists[0] ?? '—')}
+          <div className="marquee">
+            <p className={`font-display ${artistOverflows ? 'marquee-fast' : ''}`}
+               style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {artistOverflows ? `${artist} · ${artist} ` : artist}
             </p>
           </div>
-
-          <div className="marquee" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <p
-              className={`font-display ${titleNeedsScroll ? 'marquee-fast' : ''}`}
-              style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}
-            >
-              {titleNeedsScroll ? `${release.title} · ${release.title} ` : release.title}
+          <div className="marquee">
+            <p className={`font-display ${titleOverflows ? 'marquee-fast' : ''}`}
+               style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }}>
+              {titleOverflows ? `${release.title} · ${release.title} ` : release.title}
             </p>
           </div>
-
           <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>
             {release.labels[0] ?? ''}
           </p>
-
           <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>
             {[release.year, release.format].filter(Boolean).join(' · ')}
           </p>
         </div>
 
-        {/* Botones abajo */}
         <div className="flex gap-2" style={{ marginLeft: '6px' }}>
           <button
             className="font-display text-xs px-4 py-2 transition-colors"
             style={{ backgroundColor: '#F0E040', color: '#000000' }}
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelect(release)
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFFFFF'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#F0E040'
-            }}
+            onClick={e => { e.stopPropagation(); onSelect(release) }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#FFFFFF' }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F0E040' }}
           >
             ESCUCHAR
           </button>
-
           <button
             className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2 transition-colors"
             style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', backgroundColor: 'transparent' }}
-            onClick={(e) => e.stopPropagation()}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFFFFF'
-              e.currentTarget.style.color = '#000000'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = '#FFFFFF'
-            }}
+            onClick={e => e.stopPropagation()}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#000000' }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' }}
           >
             <span style={{ fontWeight: 700 }}>
               {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
             </span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" fill="none" />
-              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" fill="none"/>
+              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2"/>
             </svg>
           </button>
         </div>
