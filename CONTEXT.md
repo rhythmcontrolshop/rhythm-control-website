@@ -1,131 +1,275 @@
-# RHYTHM CONTROL — CONTEXTO
-Tienda online de discos en Barcelona. DJ activo con dos sellos propios.
-Stack: Next.js 16 + TypeScript + Tailwind v4 + Shopify Headless + Supabase + Vercel
+# RHYTHM CONTROL — Project Context
+
+> Prompt de arranque para nuevas sesiones.
+> Última actualización: fase UI completada (marquee, events, mix, placeholder).
+> Próxima fase: entorno de shop — Medusa vs Shopify, migración Vercel → Coolify/Hetzner.
 
 ---
 
-## REGLAS DE ARQUITECTURA
+## Qué es Rhythm Control
 
-- El cliente solo toca Discogs. Todo sync es automático vía cron job
-- Admin en /app/admin/* protegido por middleware
-- Nunca hardcodear colores o fuentes — todo en styles/variables.css
-- Tipografía display: Arial Black, uppercase, letter-spacing -0.04em
-- Tipografía metadata: IBM Plex Mono, letter-spacing 0.07em
-- Fondo siempre negro #000000, texto siempre blanco #FFFFFF
-- Acento único: amarillo limón #F0E040 — solo en tab activo, BPM tag, badge M/NM
-- Cero border-radius en cualquier elemento — nunca rounded-*
-- Separadores principales: 2px solid #FFFFFF
-- Separadores entre cards del grid: 1px solid #1c1c1c
-- Audio siempre via embed — nunca almacenar audio
-- SKU de Shopify = discogs_listing_id
-- Supabase para datos extendidos (BPM, key, wantlist, eventos, requests)
-- Shopify para comercio (productos, órdenes, checkout, pagos)
+Tienda de vinilos en Barcelona. Vende discos de segunda mano (house, techno, jazz) vía web propia. El dueño es también DJ y tiene sello propio. La web es la cara digital de la tienda: catálogo navegable, previews de audio, eventos, mixes mensuales.
 
 ---
 
-## DIRECTRICES DEL PROYECTO
+## Stack actual
 
-### 1. Localización y Formato
-- Idioma principal: Español (ES). Todos los textos de interfaz, mensajes de error y etiquetas en español
-- Moneda: Euro (€). Formato estándar: 1.234,56 €
-- Fechas: formato DD/MM/AAAA, hora en formato 24h
-
-### 2. Arquitectura de Estilos (CSS)
-- Fuente única de verdad: styles/variables.css con todos los design tokens como CSS Custom Properties (--rc-*)
-- El @theme de Tailwind v4 en globals.css referencia siempre las variables de styles/variables.css
-- Nunca hardcodear valores de color, tipografía, espaciado o bordes fuera de styles/variables.css
-- Responsive Mobile-First: breakpoints en orden sm → md → lg → xl → 2xl
-  - sm:  480px  (móvil landscape)
-  - md:  768px  (tablet)
-  - lg:  1024px (desktop pequeño)
-  - xl:  1280px (desktop)
-  - 2xl: 1440px (desktop grande)
-- Grid del catálogo: 2 cols (móvil) → 3 cols (tablet) → 6 cols (desktop)
-
-### 3. Principios de Desarrollo
-- Modularidad estricta: componentes pequeños con única responsabilidad
-- Preservación de código: extender sobre modificar. No alterar partes resueltas salvo refactorización técnica necesaria
-- Aislamiento: arquitecturas que eviten efectos en cascada al tocar archivos individuales
-- Nomenclatura: PascalCase para componentes, camelCase para funciones/vars, kebab-case para rutas y archivos CSS
-- Imports: usar siempre el alias @/* (nunca rutas relativas ../../../)
-
-### 4. Formato de Entrega
-- Proporcionar siempre bloques de código completos para evitar errores de pegado parcial
-- Indicar siempre la ruta del archivo al inicio de cada bloque
-
-### 5. Gotchas de Setup (aprendidos)
-- El `.env.local` debe estar en la raíz del proyecto (al lado de `package.json`). Next.js NO lo carga si está en otro directorio
-- Cada cambio en `.env.local` requiere reiniciar el servidor (`Ctrl+C` + `npm run dev`). El hot reload no recarga env vars
-- Nunca clonar el repo dentro de sí mismo. Si existe una subcarpeta con el mismo nombre del proyecto, borrarla con `rm -rf nombre-subcarpeta` desde la raíz
-- El login admin lee el formulario via `FormData` (no estado React) para compatibilidad con gestores de contraseñas y autofill del navegador
-- Los datos de muestra (seed) se insertan desde `/admin` → botón "INSERTAR MUESTRA". Usan `discogs_listing_id >= 9000` para distinguirse de datos reales
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 App Router, TypeScript |
+| Estilos | Tailwind v4 + inline styles (sistema de diseño propio) |
+| Build | Turbopack |
+| Base de datos | Supabase (PostgreSQL + RLS) |
+| E-commerce | Shopify headless (en evaluación → posible reemplazo por Medusa) |
+| Hosting | Vercel (en migración → Coolify en Hetzner) |
+| Inventario | Discogs API (listings propios) |
+| Audio | YouTube IFrame API + YouTube Data API v3 |
+| Branch activo | `claude/create-website-project-upZgC` |
+| Repo | `rhythmcontrolshop/rhythm-control-website` |
 
 ---
 
-## ESTRUCTURA DE ESTILOS
+## Sistema de diseño
 
+**Paleta:**
+- Fondo: `#000000`
+- Texto primario: `#FFFFFF`
+- Acento / highlight: `#F0E040` (amarillo)
+- Bordes sutiles: `#1C1C1C` | Bordes estructurales: `#FFFFFF`
+
+**Tipografía:**
+- `font-display` — display caps (títulos, botones, labels)
+- `font-meta` — texto pequeño informativo
+
+**Principios:**
+- Grid 6 columnas desktop / 2 columnas mobile
+- Bordes blancos 2px como elemento estructural
+- Sin border-radius en ningún sitio
+- Amarillo solo para: tab activo, precio, acento de texto, botón primario, placeholder
+- Copy siempre en mayúsculas
+
+---
+
+## Componentes completados
+
+### `components/ui/Marquee.tsx`
+Velocidad constante 80px/s para todos los marquees del sitio.
+- Mide ancho real del texto con `<span>` oculto antes de animar
+- Rellena con N repeticiones para que el loop nunca salte
+- Separador `·` entre repeticiones
+- Keyframe name sanitizado (solo alfanuméricos) — fix "Sgt. Pepper's" y similares
+- Props: `text`, `className?`, `style?`
+
+### `components/ui/FlyerPlaceholder.tsx`
+SVG placeholder para eventos/mix sin imagen. Estética industrial.
+- 8 franjas amarillas a 45° sobre negro, 50/50 amarillo/negro
+- Corrección geométrica: `LWIDTH = PERIOD / (2√2)` (a 45° el stroke ocupa más horizontal)
+- `preserveAspectRatio="xMidYMid slice"` — se comporta como `object-cover`
+- Labels mínimos: código top-left, fecha bottom-right (en negro sobre la franja)
+- Props: `title`, `date?`, `type?`, `code?`
+
+### `components/store/RecordCard.tsx`
+Tarjeta de vinilo 1:1.
+- **Default:** imagen portada + gradiente con `<Marquee>` artista (blanco) y título (amarillo)
+- **Hover:** fondo negro, borde blanco 2px izquierda, marquees, label, año/formato, botones `[ESCUCHAR]` y `[€ + carrito]`
+
+### `components/home/Hero.tsx`
+Sección principal con tres tabs. Barra: tabs (activo = amarillo) + `<Marquee>` contextual.
+
+#### Tab TOP
+Grid 6 columnas de `RecordCard` con badges (STAFF PICK / NEW! / ON HYPE).
+
+#### Tab MIX — grid 6 columnas
+
+| Col 1 | Col 2–3 | Col 4–6 |
+|---|---|---|
+| Foto DJ (hover zoom, click → lightbox) | Texto | Player Mixcloud `mini=0` |
+
+- Texto: `<Marquee>` nombre DJ (amarillo) + `<Marquee>` procedencia (blanco) + bio bold
+- **Highlights en bio:** `{{palabra}}` en el texto → renderiza en amarillo via `parseBio()`
+- Botones: `[MIXCLOUD →]` amarillo, `[WEB →]` / `[IG →]` borde blanco
+- Sin foto DJ → `<FlyerPlaceholder code="RC-MIX">`
+- Embed de prueba: `maxvibes/the-cat-walk-040426-totally-wired-radio`
+
+**Formato embed Mixcloud:**
 ```
-styles/
-  variables.css     ← ÚNICO archivo editable para tokens visuales
-app/
-  globals.css       ← @import variables.css + @theme Tailwind + utilidades globales
+https://www.mixcloud.com/widget/iframe/?hide_cover=0&mini=0&autoplay=0&feed=%2FUSUARIO%2FMIX-SLUG%2F
+```
+`mini=0` = player completo | `mini=1` = barra compacta | `light=1` = tema blanco
+
+#### Tab EVENTOS — grid 6 columnas, pares texto+flyer
+
+| Eventos | Cols texto | Cols flyer |
+|---|---|---|
+| 1 | 3 | 3 |
+| 2 | 2 | 1 |
+| 3 | 1 | 1 |
+
+- Mobile: siempre 2 cols (texto | flyer), eventos apilan verticalmente
+- Texto: borde blanco 2px izquierda, fecha `SÁB 18 ABRIL` (calculado de ISO), tipo, `<Marquee>` título, venue truncado, `<Marquee>` lineup, botones `[VER FLYER]` / `[WEB →]`
+- Flyer: `object-cover`, click → `FlyerModal`. Sin flyer → `<FlyerPlaceholder>`
+- **Fechas en `MOCK_EVENTS`:** ISO `'2026-04-18'`, formateadas en runtime en español
+
+#### `FlyerModal` (inline en Hero.tsx)
+Overlay fullscreen. Reutilizado para flyers de eventos y foto DJ del mix.
+Cierra con Escape o click en backdrop.
+
+---
+
+## Pipeline de enriquecimiento
+
+### `lib/discogs/enrich.ts`
+- `enrichReleases(ids?)` — enriquece releases con datos extendidos de Discogs
+- Rate limit 1200ms entre llamadas a la API
+- Extrae: `styles`, `genres`, `discogs_tracklist`, `back_cover_image` (segunda imagen), `artist_profile`
+
+### `app/api/admin/enrich/route.ts`
+```
+POST /api/admin/enrich
+Authorization: Bearer {ADMIN_SECRET}
+Body opcional: { "releaseIds": ["id1", "id2"] }
+```
+
+### `app/api/youtube/search/route.ts`
+- Caché en Supabase (`youtube_track_ids`) antes de llamar a YouTube
+- Cuota YouTube: 10k unidades/día, reset medianoche Pacific
+
+---
+
+## Player de audio
+
+- `components/player/UnifiedAudioPlayer.tsx` — enruta a Bandcamp iframe o YouTube IFrame API
+- `components/player/TrackPlayers.tsx` — búsqueda lazy: `undefined` no buscado / `null` sin resultado / `string` videoId
+- `lib/youtube/search.ts` — YouTube Data API v3, prioriza resultado oficial/audio/vevo
+
+---
+
+## Types — campos extendidos en `Release` (`types/index.ts`)
+
+```typescript
+youtube_track_ids?:   Record<string, string> | null
+bandcamp_album_id?:   string | null
+bandcamp_track_id?:   string | null
+discogs_tracklist?:   { position: string; title: string; duration?: string; type?: string | null }[] | null
+discogs_notes?:       string | null
+artist_profile?:      string | null
+back_cover_image?:    string | null
 ```
 
 ---
 
-## FASES
+## Infraestructura — decisiones pendientes
 
-- Fase 0 (COMPLETADA): setup base, globals.css, variables.css, tipos TypeScript, schema Supabase
-- Fase 1 (COMPLETADA): Discogs sync + admin escáner barcode + seed datos de muestra
-- Fase 2: catálogo público + filtros + player flotante + BPM/key
-- Fase 3: hero dividido + sellos + agenda eventos + mix del mes
-- Fase 4: reservas + WhatsApp + emails + wantlist
-- Fase 5: requests votados + perfil usuario
-- Fase 6: Instagram Shopping + Rekordbox XML + TIPSA + Packlink + Printful
-- Fase 7: Shazam vinyl + recomendación semántica + newsletter
+### Migración Vercel → Coolify en Hetzner
+**Motivación:** eliminar el "Success Tax" — el coste de Vercel escala agresivamente con tráfico.
 
----
+**Plan:**
+- VPS Hetzner (Alemania) desde ~4€/mes — buena relación precio/rendimiento
+- Coolify como plataforma self-hosted (open-source, gestiona containers, SSL, dominios)
+- Coolify soporta Next.js out-of-the-box via Nixpacks o Dockerfile
+- SSL automático vía Let's Encrypt
+- Preview deployments vía webhooks de GitHub
 
-## COMPONENTES PRINCIPALES (home, todo en una página sin recargas)
-
-- Navigation: logo izquierda, links centro, carrito derecha — border-bottom 2px white
-- HeroSection: dos columnas divididas por línea blanca 2px
-  - Columna izquierda: tabs "Mix del mes" / "Comunidad" (amarillo activo)
-  - Columna derecha: próximo evento con flyer dominante
-- CatalogueTabs: tabs género con amarillo activo, border-top y bottom 2px white
-- RecordGrid: 2/3/6 columnas (móvil/tablet/desktop), cards con título strip + imagen a sangre
-  - Hover: imagen desaparece, muestra artista + metadata + BPM + key + precio + botones
-- FloatingPlayer: fixed bottom, border-top 2px white, IBM Plex Mono
-- RecordModal: abre sobre la página, no navega
+**Lo que hay que revisar:**
+- Edge functions / middleware — si algo depende del runtime Edge de Vercel
+- Image optimization (`next/image`) — necesita configuración en self-hosted
+- Variables de entorno: `.env.local` → secrets en Coolify UI
 
 ---
 
-## VARIABLES DE ENTORNO NECESARIAS (.env.local)
+## E-commerce — decisión pendiente: Shopify vs Medusa
 
-```
+### Shopify (integración existente)
+- ✅ Ya hay código en el proyecto (cart, checkout, variants, Storefront API)
+- ✅ Gestión de pagos/envíos/impuestos resuelta out-of-the-box
+- ❌ Shopify Payments no disponible en España → comisión extra por transacción
+- ❌ Coste fijo $29–$79/mes + apps adicionales
+- ❌ Dependencia de plataforma — pricing puede cambiar
+
+### Medusa.js (evaluación)
+- ✅ Open-source, self-hosted (mismo Hetzner/Coolify)
+- ✅ Sin comisiones por transacción
+- ✅ API-first, integración nativa con Next.js App Router
+- ✅ Admin UI incluido para pedidos, stock, envíos
+- ✅ Proveedores de pago: Stripe (oficial), PayPal, Redsys (comunidad)
+- ❌ Setup inicial más complejo (backend Node.js + PostgreSQL separados)
+- ❌ Hay que configurar impuestos ES, métodos de envío, etc.
+- ❌ Comunidad más pequeña que Shopify
+
+**Contexto del catálogo:** vinilos de segunda mano, inventario único por ítem (sin variantes de talla/color), stock de 1 unidad por release → caso de uso simple que se adapta bien a Medusa.
+
+**Recomendación:** Medusa elimina todas las dependencias de plataforma y encaja con la estrategia de self-hosting en Hetzner. El stack quedaría 100% bajo control propio.
+
+---
+
+## Variables de entorno
+
+```bash
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+
+# Discogs
+DISCOGS_TOKEN=
+
+# YouTube
+YOUTUBE_API_KEY=        # AIzaSy... (10k unidades/día, reset medianoche Pacific)
+
+# Shopify (mientras se mantenga)
 SHOPIFY_STORE_DOMAIN=
-SHOPIFY_STOREFRONT_ACCESS_TOKEN=
-SHOPIFY_ADMIN_ACCESS_TOKEN=
-SHOPIFY_WEBHOOK_SECRET=
-DISCOGS_CONSUMER_KEY=
-DISCOGS_CONSUMER_SECRET=
-DISCOGS_ACCESS_TOKEN=
-DISCOGS_ACCESS_SECRET=
-DISCOGS_USERNAME=
-SPOTIFY_CLIENT_ID=
-SPOTIFY_CLIENT_SECRET=
-YOUTUBE_API_KEY=
-WHATSAPP_ACCESS_TOKEN=
-WHATSAPP_PHONE_NUMBER_ID=
-RESEND_API_KEY=
-RESEND_FROM_EMAIL=
-TIPSA_API_KEY=
-PACKLINK_API_KEY=
-ADMIN_SECRET=
-CRON_SECRET=
-NEXT_PUBLIC_SITE_URL=
-NEXT_PUBLIC_STORE_NAME=Rhythm Control
+SHOPIFY_STOREFRONT_TOKEN=
+SHOPIFY_ADMIN_TOKEN=
+
+# Admin
+ADMIN_SECRET=           # Bearer token para /api/admin/*
+
+# Medusa (si se migra)
+MEDUSA_BACKEND_URL=
+MEDUSA_PUBLISHABLE_KEY=
+```
+
+---
+
+## Tareas pendientes
+
+### UI (siguientes pasos)
+- [ ] Paginación del catálogo (página, filtros, URL params)
+- [ ] Footer (links, redes, info tienda)
+- [ ] Subir primer mix a Mixcloud → actualizar `MIX.embed`
+- [ ] Ejecutar `/api/admin/enrich` cuando renueve cuota YouTube
+
+### Shop (próxima fase)
+- [ ] Decisión final Shopify vs Medusa
+- [ ] Si Medusa: setup backend Docker, Stripe, admin UI, impuestos ES
+- [ ] Carrito funcional (añadir/quitar, persistencia local)
+- [ ] Checkout completo (dirección, pago, confirmación de pedido)
+- [ ] Webhook "sold" → marcar release como vendido en Supabase
+
+### Infraestructura
+- [ ] Decisión final Vercel vs Coolify/Hetzner
+- [ ] Si Coolify: Dockerfile Next.js, secrets, dominio, SSL, preview deployments
+- [ ] GitHub Actions → deploy automático en push a main
+
+### Contenido / datos
+- [ ] Tabla `events` en Supabase con datos reales
+- [ ] Mix mensual gestionado desde Supabase (no hardcoded en Hero.tsx)
+- [ ] Sync automático Discogs → Supabase
+- [ ] Foto DJ real para sección Mix
+
+---
+
+## Workflow local
+
+```bash
+# Primera vez
+git clone --branch claude/create-website-project-upZgC \
+  https://github.com/rhythmcontrolshop/rhythm-control-website.git rhythm-control-website_v2
+cd rhythm-control-website_v2
+cp /ruta/a/.env.local .env.local
+npm install && npm run dev
+
+# Actualizar
+cd ~/rhythm-control-website_v2
+git pull origin claude/create-website-project-upZgC
 ```
