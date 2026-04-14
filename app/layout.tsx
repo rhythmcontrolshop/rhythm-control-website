@@ -1,26 +1,26 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: '--font-ibm-plex-mono',
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-})
+import { CartProvider } from '@/context/CartContext'
+import CartDrawer from '@/components/cart/CartDrawer'
 
 export const metadata: Metadata = {
-  title: 'Rhythm Control',
-  description: 'Tienda de discos en Barcelona',
+  title: 'RHYTHM CONTROL',
+  description: 'Tienda de vinilos en Barcelona',
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="es" className={`${ibmPlexMono.variable} h-full`}>
-      <body className="min-h-full bg-black text-white">{children}</body>
+    <html lang="es">
+      <body style={{ backgroundColor: '#000000' }}>
+        <CartProvider>
+          {children}
+          <CartDrawer />
+        </CartProvider>
+      </body>
     </html>
   )
 }

@@ -1,83 +1,64 @@
 'use client'
-// components/store/RecordCard.tsx
-
 import Image from 'next/image'
 import { Marquee } from '@/components/ui/Marquee'
+import { useCart } from '@/context/CartContext'
 import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
   release:  Release
   onSelect: (release: Release) => void
   onPlay:   (track: PlayerTrack, clipIndex: number) => void
+  theme?:   'default' | 'magenta'
 }
 
-export default function RecordCard({ release, onSelect }: RecordCardProps) {
+export default function RecordCard({ release, onSelect, theme = 'default' }: RecordCardProps) {
+  const { addItem } = useCart()
   const artist = release.artists[0] ?? '—'
+  const accentColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
 
   return (
     <article
       className="group relative overflow-hidden cursor-pointer"
-      style={{ aspectRatio: '1' }}
+      style={{ aspectRatio: '1', backgroundColor: '#000000' }}
       onClick={() => onSelect(release)}
     >
-      {/* Default: imagen + gradiente */}
+      <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20" style={{ backgroundColor: accentColor }} />
+
+      {/* Default State */}
       <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
         {release.cover_image ? (
-          <Image
-            src={release.cover_image}
-            alt={`${artist} — ${release.title}`}
-            fill className="object-cover"
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-            unoptimized
-          />
+          <Image src={release.cover_image} alt={`${artist} — ${release.title}`} fill className="object-cover" sizes="(max-width: 768px) 50vw, 16vw" unoptimized />
         ) : (
           <div className="w-full h-full" style={{ backgroundColor: '#0a0a0a' }} />
         )}
-
-        <div
-          className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}
-        >
+        <div className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}>
           <Marquee text={artist} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }} />
-          <Marquee text={release.title} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
+          <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.3rem', lineHeight: '1.1' }} />
         </div>
       </div>
 
-      {/* Hover: info completa */}
-      <div
-        className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100"
-        style={{ backgroundColor: '#000000' }}
-      >
-        <div className="absolute top-0 left-0 bottom-0" style={{ width: '2px', backgroundColor: '#FFFFFF' }} />
-
+      {/* Hover State */}
+      <div className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100" style={{ backgroundColor: '#000000' }}>
         <div style={{ marginLeft: '6px' }}>
           <Marquee text={artist} style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.1' }} />
-          <Marquee text={release.title} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
+          <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.3rem', lineHeight: '1.1' }} />
           <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>{release.labels[0] ?? ''}</p>
           <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>{[release.year, release.format].filter(Boolean).join(' · ')}</p>
         </div>
 
         <div className="flex gap-2" style={{ marginLeft: '6px' }}>
-          <button
-            className="font-display text-xs px-4 py-2 transition-colors"
-            style={{ backgroundColor: '#F0E040', color: '#000000' }}
-            onClick={e => { e.stopPropagation(); onSelect(release) }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#FFFFFF' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F0E040' }}
-          >
-            ESCUCHAR
-          </button>
-          <button
-            className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2"
-            style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', backgroundColor: 'transparent' }}
-            onClick={e => e.stopPropagation()}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#000000' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' }}
+          <button className="font-display text-xs px-4 py-2" style={{ backgroundColor: accentColor, color: '#000000' }} onClick={e => { e.stopPropagation(); onSelect(release) }}>ESCUCHAR</button>
+          <button 
+            className="flex-1 flex items-center justify-center gap-2 font-display text-xs px-3 py-2" 
+            style={{ border: '2px solid #FFFFFF', color: '#FFFFFF' }} 
+            onClick={e => { e.stopPropagation(); addItem(release) }}
           >
             <span style={{ fontWeight: 700 }}>{release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" fill="none"/>
-              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2"/>
+            {/* Icono de carrito */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
             </svg>
           </button>
         </div>
