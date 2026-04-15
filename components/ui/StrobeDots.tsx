@@ -12,11 +12,11 @@ const ROW_HEIGHTS = [18, 18, 26, 18];
 const HEIGHT = ROW_HEIGHTS.reduce((a, b) => a + b, 0);
 
 export default function StrobeDots() {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(320);
   const offsetsRef = useRef(ROWS.map(() => 0));
-  const lastTimeRef = useRef(null);
-  const rafRef = useRef(null);
+  const lastTimeRef = useRef<number>(null);
+  const rafRef = useRef<number>(null);
   const [, forceRender] = useState(0);
 
   useEffect(() => {
