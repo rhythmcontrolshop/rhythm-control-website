@@ -16,7 +16,7 @@ interface RecordModalProps {
 }
 
 const ACCENT_CONDITIONS = ['M', 'NM']
-const MOCK_TRACKLIST: Record<string, { position: string; track: string; duration: string }[]> = {
+const MOCK_TRACKLIST: Record<string, { side: string; track: string; duration: string }[]> = {
   'Strings of Life': [
     { side: 'A1', track: 'Strings of Life', duration: '6:18' },
     { side: 'A2', track: 'The Dance', duration: '5:42' },

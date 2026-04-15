@@ -2,7 +2,6 @@ import Link           from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import SyncStatus     from '@/components/admin/SyncStatus'
 import SeedButton     from '@/components/admin/SeedButton'
-import AdminInteractiveTools from '@/components/admin/AdminInteractiveTools'
 import type { SyncJob } from '@/types'
 
 async function getStats() {
@@ -21,29 +20,38 @@ export default async function AdminDashboard() {
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto">
       <h1 className="font-display text-3xl mb-8" style={{ color: 'var(--rc-color-text)' }}>DASHBOARD</h1>
+      
       <section className="mb-10">
-        <p className="font-meta text-xs mb-4" style={{ color: 'var(--rc-color-muted)' }}>INVENTARIO REAL</p>
+        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>INVENTARIO</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard label="En venta"   value={active}   accent />
           <StatCard label="Vendidos"   value={sold}   />
           <StatCard label="Reservados" value={reserved} />
         </div>
       </section>
+      
       <hr className="separator mb-10" />
+      
       <section className="mb-10">
-        <p className="font-meta text-xs mb-4" style={{ color: 'var(--rc-color-muted)' }}>SINCRONIZACIÓN DISCOGS</p>
+        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>SINCRONIZACIÓN DISCOGS</p>
         <SyncStatus lastJob={lastJob} />
       </section>
+      
       <hr className="separator mb-10" />
-      <section className="mb-10"><SeedButton /></section>
-      <AdminInteractiveTools />
+      
+      <section className="mb-10">
+        <SeedButton />
+      </section>
+      
       <hr className="separator mb-10" />
+      
       <section>
-        <p className="font-meta text-xs mb-4" style={{ color: 'var(--rc-color-muted)' }}>ACCIONES RÁPIDAS</p>
+        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>ACCIONES RÁPIDAS</p>
         <div className="flex flex-col sm:flex-row gap-3">
+          <QuickLink href="/admin/inventory" label="VER INVENTARIO" />
+          <QuickLink href="/admin/reservations" label="GESTIONAR RESERVAS" />
           <QuickLink href="/admin/scan" label="ESCANEAR DISCO" />
-          <QuickLink href="/admin/agenda" label="GESTIONAR AGENDA" />
-          <QuickLink href="/admin/order/RC-00235" label="VER PEDIDO EJEMPLO" />
+          <QuickLink href="/admin/events" label="GESTIONAR AGENDA" />
           <QuickLink href="/" label="VER TIENDA →" external />
         </div>
       </section>
@@ -54,7 +62,7 @@ export default async function AdminDashboard() {
 function StatCard({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
   return (
     <div className="p-5" style={{ border: 'var(--rc-border-main)' }}>
-      <p className="font-meta text-xs mb-3" style={{ color: 'var(--rc-color-muted)' }}>{label.toUpperCase()}</p>
+      <p className="font-meta text-xs mb-3" style={{ color: '#FFFFFF' }}>{label.toUpperCase()}</p>
       <p className="font-display text-4xl" style={{ color: accent ? 'var(--rc-color-accent)' : 'var(--rc-color-text)' }}>{value}</p>
     </div>
   )

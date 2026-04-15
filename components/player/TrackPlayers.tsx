@@ -225,7 +225,7 @@ function TrackPlayer({ track, artist, releaseId }: { track: Track; artist: strin
           <p className="font-display text-xs truncate" style={{ color: '#FFFFFF' }}>
             {track.position} — {track.title}
           </p>
-          <p className="font-meta text-[10px]" style={{ color: '#555555' }}>Buscando...</p>
+          <p className="font-meta text-[10px]" style={{ color: '#FFFFFF555' }}>Buscando...</p>
         </div>
       </div>
     )
@@ -289,7 +289,7 @@ function TrackPlayer({ track, artist, releaseId }: { track: Track; artist: strin
               />
             </div>
             {duration > 0 && (
-              <span className="font-meta text-[10px] tabular-nums" style={{ color: '#666666' }}>
+              <span className="font-meta text-[10px] tabular-nums" style={{ color: '#FFFFFF666' }}>
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             )}
@@ -314,7 +314,7 @@ function TrackPlayer({ track, artist, releaseId }: { track: Track; artist: strin
     >
       <div
         className="w-10 h-full flex items-center justify-center flex-shrink-0"
-        style={{ color: '#555555' }}
+        style={{ color: '#FFFFFF555' }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="8,5 20,12 8,19" />

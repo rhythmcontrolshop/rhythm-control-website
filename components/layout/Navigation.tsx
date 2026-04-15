@@ -57,6 +57,9 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
             </svg>
             CARRITO ({totalItems})
           </button>
+          <Link href="/cuenta" className="font-display text-xs transition-opacity hover:opacity-60" style={{ color: textColor }}>
+            CUENTA
+          </Link>
         </nav>
       </div>
       

@@ -1,5 +1,6 @@
-// components/admin/LogoutButton.tsx
-import { logout } from '@/app/admin/login/actions'
+'use client'
+
+import { logout } from './actions'
 
 export default function LogoutButton() {
   return (
@@ -7,7 +8,7 @@ export default function LogoutButton() {
       <button
         type="submit"
         className="font-meta text-xs transition-colors"
-        style={{ color: 'var(--rc-color-muted)' }}
+        style={{ color: '#FFFFFF' }}
       >
         SALIR
       </button>

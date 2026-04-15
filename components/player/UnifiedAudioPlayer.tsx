@@ -258,7 +258,7 @@ function YouTubeStylePlayer({ videoId, artist, title }: { videoId: string; artis
             />
           </div>
           {duration > 0 && (
-            <span className="font-meta text-[10px] tabular-nums" style={{ color: '#666666' }}>
+            <span className="font-meta text-[10px] tabular-nums" style={{ color: '#FFFFFF666' }}>
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           )}
@@ -266,7 +266,7 @@ function YouTubeStylePlayer({ videoId, artist, title }: { videoId: string; artis
       </div>
 
       {/* YouTube logo */}
-      <div className="flex items-center px-3 flex-shrink-0" style={{ color: '#555555' }}>
+      <div className="flex items-center px-3 flex-shrink-0" style={{ color: '#FFFFFF555' }}>
         <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor">
           <path d="M15.7 1.7c-.2-.7-.7-1.2-1.4-1.4C13 0 8 0 8 0S3 0 1.7.3C1 .5.5 1 .3 1.7 0 3 0 5.5 0 5.5s0 2.5.3 3.8c.2.7.7 1.2 1.4 1.4C3 11 8 11 8 11s5 0 6.3-.3c.7-.2 1.2-.7 1.4-1.4C16 8 16 5.5 16 5.5s0-2.5-.3-3.8zM6.4 7.8V3.2L10.5 5.5 6.4 7.8z"/>
         </svg>

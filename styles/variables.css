@@ -17,7 +17,8 @@
   /* ── TIPOGRAFÍA ─────────────────────────────────────────── */
 
   --rc-font-display:       "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --rc-font-mono:          "IBM Plex Mono", "Courier New", monospace;
+  --rc-font-mono:          "Space Mono", "JetBrains Mono", monospace;
+  --rc-font-mono-weight:    500;
 
   /* Letter spacing */
   --rc-tracking-display:   -0.04em;
