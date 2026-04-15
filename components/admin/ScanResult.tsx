@@ -25,12 +25,12 @@ export default function ScanResult({ data }: ScanResultProps) {
     : ['', discogs.title]
 
   return (
-    <div style={{ border: 'var(--rc-border-main)' }}>
+    <div style={{ border: '1px solid #d1d5db', backgroundColor: '#FFFFFF' }}>
 
       {/* Cabecera: portada + datos */}
       <div
         className="flex gap-4 p-4"
-        style={{ borderBottom: 'var(--rc-border-card)' }}
+        style={{ borderBottom: '1px solid #e5e7eb' }}
       >
         {discogs.cover_image && (
           <div className="relative shrink-0 overflow-hidden" style={{ width: 72, height: 72 }}>
@@ -46,13 +46,13 @@ export default function ScanResult({ data }: ScanResultProps) {
 
         <div className="flex-1 min-w-0">
           {artist && (
-            <p className="font-display text-sm truncate" style={{ color: 'var(--rc-color-text)' }}>
+            <p className="text-sm font-bold truncate" style={{ color: '#000000' }}>
               {artist}
             </p>
           )}
           <p
-            className="font-meta text-xs truncate mt-0.5"
-            style={{ color: artist ? 'var(--rc-color-muted)' : 'var(--rc-color-text)' }}
+            className="text-xs truncate mt-0.5"
+            style={{ color: artist ? '#6b7280' : '#000000' }}
           >
             {title}
           </p>
@@ -78,10 +78,10 @@ export default function ScanResult({ data }: ScanResultProps) {
       {(discogs.genre?.length || discogs.style?.length) ? (
         <div
           className="px-4 py-3 flex flex-wrap gap-2"
-          style={{ borderBottom: 'var(--rc-border-card)' }}
+          style={{ borderBottom: '1px solid #e5e7eb' }}
         >
           {[...(discogs.genre ?? []), ...(discogs.style ?? [])].map(g => (
-            <span key={g} className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+            <span key={g} className="text-xs" style={{ color: '#6b7280' }}>
               {g}
             </span>
           ))}
@@ -89,20 +89,17 @@ export default function ScanResult({ data }: ScanResultProps) {
       ) : null}
 
       {/* Estado en inventario */}
-      <div className="px-4 py-3" style={{ borderBottom: 'var(--rc-border-card)' }}>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid #e5e7eb' }}>
         {inventory ? (
           <div className="flex items-center justify-between">
-            <span className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+            <span className="text-xs" style={{ color: '#6b7280' }}>
               EN INVENTARIO
             </span>
             <div className="flex gap-4 items-center">
-              <span
-                className="font-display text-xs"
-                style={{ color: 'var(--rc-color-accent)' }}
-              >
+              <span className="text-xs font-bold" style={{ color: '#000000' }}>
                 {inventory.condition}
               </span>
-              <span className="font-meta text-xs" style={{ color: 'var(--rc-color-text)' }}>
+              <span className="text-xs" style={{ color: '#000000' }}>
                 {inventory.price.toLocaleString('es-ES', {
                   style: 'currency',
                   currency: 'EUR',
@@ -110,8 +107,8 @@ export default function ScanResult({ data }: ScanResultProps) {
               </span>
               {inventory.bpm && (
                 <span
-                  className="font-meta text-xs px-1"
-                  style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)' }}
+                  className="text-xs px-1"
+                  style={{ backgroundColor: '#000000', color: '#FFFFFF' }}
                 >
                   {inventory.bpm} BPM
                 </span>
@@ -119,7 +116,7 @@ export default function ScanResult({ data }: ScanResultProps) {
             </div>
           </div>
         ) : (
-          <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+          <p className="text-xs" style={{ color: '#9ca3af' }}>
             No está en el inventario actual
           </p>
         )}
@@ -131,8 +128,8 @@ export default function ScanResult({ data }: ScanResultProps) {
           href={`https://www.discogs.com/release/${discogs.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-meta text-xs transition-colors hover:text-white"
-          style={{ color: 'var(--rc-color-muted)' }}
+          className="text-xs transition-colors hover:text-black"
+          style={{ color: '#6b7280' }}
         >
           Ver en Discogs (ID: {discogs.id}) →
         </a>
@@ -144,7 +141,7 @@ export default function ScanResult({ data }: ScanResultProps) {
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+    <span className="text-xs" style={{ color: '#6b7280' }}>
       {children}
     </span>
   )

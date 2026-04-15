@@ -19,34 +19,34 @@ export default async function AdminDashboard() {
   const { active, sold, reserved, lastJob } = await getStats()
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto">
-      <h1 className="font-display text-3xl mb-8" style={{ color: 'var(--rc-color-text)' }}>DASHBOARD</h1>
-      
+      <h1 className="text-2xl font-bold mb-8" style={{ color: '#000000' }}>DASHBOARD</h1>
+
       <section className="mb-10">
-        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>INVENTARIO</p>
+        <p className="text-xs font-medium mb-4" style={{ color: '#000000' }}>INVENTARIO</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard label="En venta"   value={active}   accent />
           <StatCard label="Vendidos"   value={sold}   />
           <StatCard label="Reservados" value={reserved} />
         </div>
       </section>
-      
-      <hr className="separator mb-10" />
-      
+
+      <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2.5rem' }} />
+
       <section className="mb-10">
-        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>SINCRONIZACIÓN DISCOGS</p>
+        <p className="text-xs font-medium mb-4" style={{ color: '#000000' }}>SINCRONIZACIÓN DISCOGS</p>
         <SyncStatus lastJob={lastJob} />
       </section>
-      
-      <hr className="separator mb-10" />
-      
+
+      <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2.5rem' }} />
+
       <section className="mb-10">
         <SeedButton />
       </section>
-      
-      <hr className="separator mb-10" />
-      
+
+      <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2.5rem' }} />
+
       <section>
-        <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>ACCIONES RÁPIDAS</p>
+        <p className="text-xs font-medium mb-4" style={{ color: '#000000' }}>ACCIONES RÁPIDAS</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <QuickLink href="/admin/inventory" label="VER INVENTARIO" />
           <QuickLink href="/admin/reservations" label="GESTIONAR RESERVAS" />
@@ -61,16 +61,18 @@ export default async function AdminDashboard() {
 
 function StatCard({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
   return (
-    <div className="p-5" style={{ border: 'var(--rc-border-main)' }}>
-      <p className="font-meta text-xs mb-3" style={{ color: '#FFFFFF' }}>{label.toUpperCase()}</p>
-      <p className="font-display text-4xl" style={{ color: accent ? 'var(--rc-color-accent)' : 'var(--rc-color-text)' }}>{value}</p>
+    <div className="p-5" style={{ border: '1px solid #e5e7eb', backgroundColor: '#FFFFFF' }}>
+      <p className="text-xs font-medium mb-3" style={{ color: '#6b7280' }}>{label.toUpperCase()}</p>
+      <p className="text-4xl font-bold" style={{ color: accent ? '#000000' : '#374151' }}>{value}</p>
     </div>
   )
 }
 
 function QuickLink({ href, label, external = false }: { href: string; label: string; external?: boolean }) {
   return (
-    <Link href={href} target={external ? '_blank' : undefined} className="font-display text-xs px-5 py-3 text-center transition-colors hover:bg-white hover:text-black" style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}>
+    <Link href={href} target={external ? '_blank' : undefined}
+      className="text-xs px-5 py-3 text-center transition-colors hover:bg-black hover:text-white"
+      style={{ border: '1px solid #d1d5db', color: '#374151' }}>
       {label}
     </Link>
   )

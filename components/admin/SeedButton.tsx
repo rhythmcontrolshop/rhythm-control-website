@@ -1,6 +1,7 @@
 'use client'
 // components/admin/SeedButton.tsx
 // Solo visible en desarrollo. Inserta / limpia datos de muestra en Supabase.
+// Tema admin B/N: blanco sobre negro invertido.
 
 import { useState } from 'react'
 
@@ -18,7 +19,7 @@ export default function SeedButton() {
     const data = await res.json()
 
     if (res.ok) {
-      setMsg(`✓ ${data.inserted} discos de muestra insertados`)
+      setMsg(`Insertados ${data.inserted} discos de muestra`)
     } else {
       setMsg(data.error ?? 'Error al insertar datos')
       setIsError(true)
@@ -33,18 +34,18 @@ export default function SeedButton() {
     const res  = await fetch('/api/admin/seed', { method: 'DELETE' })
     const data = await res.json()
 
-    setMsg(res.ok ? '✓ Datos de muestra eliminados' : (data.error ?? 'Error'))
+    setMsg(res.ok ? 'Datos de muestra eliminados' : (data.error ?? 'Error'))
     setIsError(!res.ok)
     setLoading(false)
   }
 
   return (
-    <div style={{ border: 'var(--rc-border-main)' }}>
-      <div className="p-4" style={{ borderBottom: 'var(--rc-border-card)' }}>
-        <p className="font-meta text-xs" style={{ color: 'var(--rc-color-accent)' }}>
+    <div style={{ border: '1px solid #d1d5db' }}>
+      <div className="p-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+        <p className="text-xs font-medium" style={{ color: '#000000' }}>
           MODO DESARROLLO — DATOS DE MUESTRA
         </p>
-        <p className="font-meta text-xs mt-1" style={{ color: 'var(--rc-color-muted)' }}>
+        <p className="text-xs mt-1" style={{ color: '#6b7280' }}>
           Inserta 10 discos ficticios en Supabase para probar el catálogo
         </p>
       </div>
@@ -53,8 +54,8 @@ export default function SeedButton() {
         <button
           onClick={handleSeed}
           disabled={loading}
-          className="font-display text-xs px-4 py-2 transition-colors disabled:opacity-40"
-          style={{ backgroundColor: 'var(--rc-color-accent)', color: 'var(--rc-color-bg)' }}
+          className="text-xs px-4 py-2 transition-colors disabled:opacity-40"
+          style={{ backgroundColor: '#000000', color: '#FFFFFF' }}
         >
           {loading ? '...' : 'INSERTAR MUESTRA'}
         </button>
@@ -62,8 +63,8 @@ export default function SeedButton() {
         <button
           onClick={handleClear}
           disabled={loading}
-          className="font-display text-xs px-4 py-2 transition-colors disabled:opacity-40 hover:bg-white hover:text-black"
-          style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}
+          className="text-xs px-4 py-2 transition-colors disabled:opacity-40 hover:bg-black hover:text-white"
+          style={{ border: '1px solid #d1d5db', color: '#374151' }}
         >
           LIMPIAR
         </button>
@@ -71,8 +72,8 @@ export default function SeedButton() {
 
       {msg && (
         <p
-          className="px-4 pb-4 font-meta text-xs"
-          style={{ color: isError ? '#f87171' : 'var(--rc-color-accent)' }}
+          className="px-4 pb-4 text-xs"
+          style={{ color: isError ? '#ef4444' : '#000000' }}
         >
           {msg}
         </p>

@@ -19,34 +19,32 @@ export default async function AdminLogin({
   return (
     <main
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: 'var(--rc-color-bg)' }}
+      style={{ backgroundColor: '#FFFFFF' }}
     >
       <div className="w-full max-w-xs">
 
         <div className="text-center mb-10">
-          <h1 className="font-display text-2xl" style={{ color: 'var(--rc-color-text)' }}>
+          <h1 className="text-2xl font-bold" style={{ color: '#000000' }}>
             RHYTHM CONTROL
           </h1>
-          <p className="font-meta text-xs mt-2" style={{ color: '#FFFFFF' }}>
+          <p className="text-xs mt-2" style={{ color: '#6b7280' }}>
             PANEL DE ADMINISTRACIÓN
           </p>
         </div>
 
-        <hr className="separator mb-8" />
+        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2rem' }} />
 
         <form action={login} className="flex flex-col gap-5">
 
           <div>
-            <label htmlFor="email" className="font-meta text-xs block mb-2"
-              style={{ color: '#FFFFFF' }}>
+            <label htmlFor="email" className="text-xs block mb-2" style={{ color: '#374151' }}>
               EMAIL
             </label>
             <input
               id="email" name="email" type="email"
               required autoFocus autoComplete="email"
-              className="w-full bg-transparent font-meta text-sm px-4 py-3 focus:outline-none"
-              style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)',
-                       letterSpacing: 'var(--rc-tracking-mono)' }}
+              className="w-full text-sm px-4 py-3 focus:outline-none"
+              style={{ border: '1px solid #d1d5db', color: '#000000', letterSpacing: '0.07em' }}
               placeholder="admin@rhythmcontrol.es"
             />
           </div>
@@ -58,15 +56,15 @@ export default async function AdminLogin({
           />
 
           {errorMsg && (
-            <p className="font-meta text-xs" style={{ color: '#ef4444' }}>
+            <p className="text-xs" style={{ color: '#ef4444' }}>
               {errorMsg}
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full font-display text-sm py-3"
-            style={{ backgroundColor: 'var(--rc-color-text)', color: 'var(--rc-color-bg)' }}
+            className="w-full text-sm py-3 transition-colors hover:opacity-90"
+            style={{ backgroundColor: '#000000', color: '#FFFFFF' }}
           >
             ACCEDER
           </button>
@@ -76,8 +74,8 @@ export default async function AdminLogin({
         <div className="mt-6 text-center">
           <a
             href="/admin/recover"
-            className="font-meta text-xs underline hover:opacity-60 transition-opacity"
-            style={{ color: '#FFFFFF' }}
+            className="text-xs underline hover:opacity-60 transition-opacity"
+            style={{ color: '#6b7280' }}
           >
             ¿Has olvidado tu contraseña?
           </a>
