@@ -30,6 +30,7 @@ export default function NovedadesGrid({ releases }: NovedadesGridProps) {
               onSelect={setSelected} 
               onPlay={handlePlay}
               theme="magenta" 
+              isNew
             />
           ) : (
             <div 

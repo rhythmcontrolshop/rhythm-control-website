@@ -1,9 +1,10 @@
-export const dynamic = 'force-dynamic'
 import Navigation      from '@/components/layout/Navigation'
 import Footer          from '@/components/layout/Footer'
 import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
 import { Marquee }     from '@/components/ui/Marquee'
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 
 // SVG de fondo: Líneas finas 50/50 (3px Magenta, 3px Negro)
 const MagentaStripes = () => (

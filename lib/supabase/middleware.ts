@@ -27,7 +27,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   const isProtectedAdmin =
     request.nextUrl.pathname.startsWith('/admin') &&
-    !request.nextUrl.pathname.startsWith('/admin/login')
+    !request.nextUrl.pathname.startsWith('/admin/login') &&
+    !request.nextUrl.pathname.startsWith('/admin/recover') &&
+    !request.nextUrl.pathname.startsWith('/admin/reset-password')
 
   if (isProtectedAdmin) {
     if (!user) return redirectToLogin(request)

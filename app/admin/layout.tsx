@@ -3,6 +3,8 @@ import LogoutButton from '@/components/admin/LogoutButton'
 const NAV_LINKS = [
   { href: '/admin',              label: 'Dashboard'  },
   { href: '/admin/inventory',    label: 'Inventario' },
+  { href: '/admin/pricing',      label: 'Precios'    },
+  { href: '/admin/shipping',     label: 'Envíos'     },
   { href: '/admin/reservations', label: 'Reservas'   },
   { href: '/admin/scan',         label: 'Escanear'   },
   { href: '/admin/events',       label: 'Eventos'    },
@@ -10,22 +12,26 @@ const NAV_LINKS = [
 ]
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100dvh', backgroundColor: 'var(--rc-color-bg)' }}>
+    <div data-admin-theme style={{ minHeight: '100dvh', backgroundColor: '#FFFFFF' }}>
       <nav className="fixed top-0 left-0 right-0 flex items-center justify-between px-6"
-        style={{ height: 'var(--rc-nav-height)', borderBottom: 'var(--rc-border-main)',
-                 backgroundColor: 'var(--rc-color-bg)', zIndex: 'var(--rc-z-nav)' as React.CSSProperties['zIndex'] }}>
-        <span className="font-display text-sm" style={{ color: 'var(--rc-color-text)' }}>
-          RHYTHM CONTROL <span style={{ color: 'var(--rc-color-accent)' }}>/ ADMIN</span>
+        style={{
+          height: '56px',
+          borderBottom: '1px solid #d4d4d4',
+          backgroundColor: '#FFFFFF',
+          zIndex: 100,
+        }}>
+        <span className="font-display text-sm" style={{ color: '#000000' }}>
+          RHYTHM CONTROL <span style={{ color: '#6b7280' }}>/ ADMIN</span>
         </span>
         <div className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map(({ href, label }) => (
-            <Link key={href} href={href} className="font-meta text-xs transition-colors"
-              style={{ color: 'var(--rc-color-muted)' }}>{label}</Link>
+            <Link key={href} href={href} className="text-xs transition-colors hover:text-black"
+              style={{ color: '#6b7280', fontFamily: 'var(--rc-font-mono)', letterSpacing: '0.07em' }}>{label}</Link>
           ))}
         </div>
         <LogoutButton />
       </nav>
-      <div style={{ paddingTop: 'var(--rc-nav-height)' }}>{children}</div>
+      <div style={{ paddingTop: '56px' }}>{children}</div>
     </div>
   )
 }

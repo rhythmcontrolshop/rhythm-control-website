@@ -1,7 +1,8 @@
-export const dynamic = 'force-dynamic'
 // app/cuenta/page.tsx
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 export default async function CuentaPage() {
   const supabase = await createClient()

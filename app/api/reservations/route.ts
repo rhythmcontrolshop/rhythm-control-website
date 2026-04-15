@@ -6,11 +6,13 @@ import { sendReservationEmail, sendAdminNotification } from '@/lib/resend'
 import { checkRateLimit }       from '@/lib/rate-limit'
 
 function generatePickupCode(): string {
+  // RC-XXXXX formato (5 dígitos)
   const num = Math.floor(10000 + Math.random() * 90000)
   return `RC-${num}`
 }
 
 export async function POST(request: Request) {
+  // Rate limiting por IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
           || request.headers.get('x-real-ip') 
           || 'unknown'
@@ -39,8 +41,9 @@ export async function POST(request: Request) {
   if (!release || release.status !== 'active')
     return Response.json({ error: 'Este disco no está disponible' }, { status: 409 })
 
+  // Generar código de recogida
   const pickup_code = generatePickupCode()
-  const expires_at = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+  const expires_at = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString() // 72h para Click & Collect
 
   const { data: reservation, error } = await supabase
     .from('reservations')
@@ -59,8 +62,10 @@ export async function POST(request: Request) {
     return Response.json({ error: 'No se pudo crear la reserva' }, { status: 500 })
   }
 
+  // Marcar disco como reservado
   await supabase.from('releases').update({ status: 'reserved' }).eq('id', release_id)
 
+  // Enviar emails (fire-and-forget, no bloquean la respuesta)
   const artistName = release.artists?.[0] ?? '—'
   const emailParams = {
     customerName: customer_name.trim(),

@@ -12,6 +12,7 @@
   --rc-color-accent:       #F0E040;
   --rc-color-separator:    #1C1C1C;
   --rc-color-overlay:      rgba(0, 0, 0, 0.85);
+  --rc-color-muted:        #999999;
 
 
   /* ── TIPOGRAFÍA ─────────────────────────────────────────── */
@@ -101,4 +102,28 @@
     --rc-grid-cols: 6;
     --rc-player-height: 80px;
   }
+}
+
+
+/* ── ADMIN THEME: Black on white ─────────────────────────── */
+
+[data-admin-theme] {
+  --rc-color-bg:           #FFFFFF;
+  --rc-color-text:         #1a1a1a;
+  --rc-color-accent:       #000000;
+  --rc-color-separator:    #e5e5e5;
+  --rc-color-overlay:      rgba(255, 255, 255, 0.85);
+  --rc-color-muted:        #666666;
+
+  --rc-border-main:        1px solid #d4d4d4;
+  --rc-border-card:        1px solid #e5e5e5;
+  --rc-border-accent:      2px solid #000000;
+}
+
+[data-admin-theme] ::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+[data-admin-theme] ::-webkit-scrollbar-thumb {
+  background: #999;
 }

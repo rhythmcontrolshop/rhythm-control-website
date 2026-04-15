@@ -3,15 +3,20 @@ import { useState }   from 'react'
 import Image          from 'next/image'
 import { Marquee }    from '@/components/ui/Marquee'
 import { useCart }    from '@/context/CartContext'
+import { useLocale }  from '@/context/LocaleContext'
+import FavoriteButton from '@/components/store/FavoriteButton'
 import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
   release: Release; onSelect: (release: Release) => void
   onPlay: (track: PlayerTrack, clipIndex: number) => void; theme?: 'default' | 'magenta'
+  /** Marcar como novedad (muestra badge magenta) */
+  isNew?: boolean
 }
 
-export default function RecordCard({ release, onSelect, theme = 'default' }: RecordCardProps) {
+export default function RecordCard({ release, onSelect, theme = 'default', isNew = false }: RecordCardProps) {
   const { addItem } = useCart()
+  const { t } = useLocale()
   const artist      = release.artists[0] ?? '—'
   const accentColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
   const status      = (release as any).status ?? 'active'
@@ -26,6 +31,19 @@ export default function RecordCard({ release, onSelect, theme = 'default' }: Rec
         <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
           style={{ backgroundColor: accentColor }} />
 
+        {/* Botón de favoritos (corazón amarillo) */}
+        <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
+
+        {/* Badge de novedad (magenta) */}
+        {isNew && (
+          <div className="absolute top-2 left-2 z-30">
+            <span className="text-[10px] font-bold px-2 py-1"
+              style={{ backgroundColor: '#FF00FF', color: '#FFFFFF', letterSpacing: '0.1em' }}>
+              {t('catalogue.new')}
+            </span>
+          </div>
+        )}
+
         {/* Default State */}
         <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
           {release.cover_image
@@ -37,7 +55,7 @@ export default function RecordCard({ release, onSelect, theme = 'default' }: Rec
               style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
               <span className="font-display text-xs px-3 py-1"
                 style={{ border: '1px solid #FFFFFF', color: '#FFFFFF' }}>
-                {status === 'reserved' ? 'RESERVADO' : 'VENDIDO'}
+                {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
               </span>
             </div>
           )}
@@ -61,7 +79,7 @@ export default function RecordCard({ release, onSelect, theme = 'default' }: Rec
             <button className="font-display text-xs px-4 py-2"
               style={{ backgroundColor: accentColor, color: '#000000' }}
               onClick={e => { e.stopPropagation(); onSelect(release) }}>
-              ESCUCHAR
+              {t('btn.listen')}
             </button>
             {isAvailable ? (
               <>
@@ -81,7 +99,7 @@ export default function RecordCard({ release, onSelect, theme = 'default' }: Rec
             ) : (
               <span className="flex-1 flex items-center justify-center font-display text-xs"
                 style={{ border: '1px solid #333', color: '#FFFFFF' }}>
-                {status === 'reserved' ? 'RESERVADO' : 'VENDIDO'}
+                {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
               </span>
             )}
           </div>

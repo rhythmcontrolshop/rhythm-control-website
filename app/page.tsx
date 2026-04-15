@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 import Navigation    from '@/components/layout/Navigation'
 import Hero          from '@/components/home/Hero'
 import CatalogueView from '@/components/store/CatalogueView'
@@ -6,6 +5,8 @@ import StrobeDots    from '@/components/ui/StrobeDots'
 import Footer        from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
+
+export const dynamic = 'force-dynamic'
 
 async function getInitialData(): Promise<{ releases: Release[]; total: number; genres: string[] }> {
   try {

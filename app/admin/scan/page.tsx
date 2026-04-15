@@ -78,10 +78,10 @@ export default function ScanPage() {
   return (
     <div className="p-6 md:p-10 max-w-2xl mx-auto">
 
-      <h1 className="font-display text-3xl mb-2" style={{ color: 'var(--rc-color-text)' }}>
+      <h1 className="text-2xl font-bold mb-2" style={{ color: '#000000' }}>
         ESCANEAR
       </h1>
-      <p className="font-meta text-xs mb-8" style={{ color: 'var(--rc-color-muted)' }}>
+      <p className="text-xs mb-8" style={{ color: '#6b7280' }}>
         Apunta la cámara al código de barras del disco o introdúcelo manualmente
       </p>
 
@@ -94,9 +94,9 @@ export default function ScanPage() {
       {state === 'loading' && (
         <div
           className="flex items-center justify-center py-20"
-          style={{ border: 'var(--rc-border-main)' }}
+          style={{ border: '1px solid #d1d5db' }}
         >
-          <p className="font-meta text-xs animate-pulse" style={{ color: 'var(--rc-color-muted)' }}>
+          <p className="text-xs animate-pulse" style={{ color: '#6b7280' }}>
             BUSCANDO EN DISCOGS...
           </p>
         </div>
@@ -105,11 +105,11 @@ export default function ScanPage() {
       {/* Error */}
       {state === 'error' && (
         <div className="py-10 text-center">
-          <p className="font-meta text-sm text-red-400 mb-6">{errorMsg}</p>
+          <p className="text-sm mb-6" style={{ color: '#ef4444' }}>{errorMsg}</p>
           <button
             onClick={handleReset}
-            className="font-display text-xs px-6 py-3 transition-colors hover:bg-white hover:text-black"
-            style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}
+            className="text-xs px-6 py-3 transition-colors hover:bg-black hover:text-white"
+            style={{ border: '1px solid #d1d5db', color: '#374151' }}
           >
             VOLVER A ESCANEAR
           </button>
@@ -123,15 +123,15 @@ export default function ScanPage() {
 
           {/* Editar BPM/Key si está en inventario */}
           {result.inventory && (
-            <div style={{ border: 'var(--rc-border-main)' }}>
-              <div className="p-4" style={{ borderBottom: 'var(--rc-border-card)' }}>
-                <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+            <div style={{ border: '1px solid #d1d5db' }}>
+              <div className="p-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <p className="text-xs font-medium" style={{ color: '#000000' }}>
                   DATOS TÉCNICOS
                 </p>
               </div>
               <div className="p-4 flex gap-4">
                 <div className="flex-1">
-                  <label className="font-meta text-xs block mb-2" style={{ color: 'var(--rc-color-muted)' }}>
+                  <label className="text-xs block mb-2" style={{ color: '#6b7280' }}>
                     BPM
                   </label>
                   <input
@@ -139,12 +139,12 @@ export default function ScanPage() {
                     value={bpm}
                     onChange={e => setBpm(e.target.value)}
                     placeholder="ej. 128"
-                    className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                    style={{ border: 'var(--rc-border-card)', color: 'var(--rc-color-text)' }}
+                    className="w-full text-sm px-3 py-2 focus:outline-none"
+                    style={{ border: '1px solid #d1d5db', color: '#000000' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="font-meta text-xs block mb-2" style={{ color: 'var(--rc-color-muted)' }}>
+                  <label className="text-xs block mb-2" style={{ color: '#6b7280' }}>
                     KEY
                   </label>
                   <input
@@ -152,18 +152,18 @@ export default function ScanPage() {
                     value={key}
                     onChange={e => setKey(e.target.value)}
                     placeholder="ej. 4A / Am"
-                    className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                    style={{ border: 'var(--rc-border-card)', color: 'var(--rc-color-text)' }}
+                    className="w-full text-sm px-3 py-2 focus:outline-none"
+                    style={{ border: '1px solid #d1d5db', color: '#000000' }}
                   />
                 </div>
                 <div className="flex items-end">
                   <button
                     onClick={handleSaveBpmKey}
                     disabled={saving || saved}
-                    className="font-display text-xs px-4 py-2 transition-colors disabled:opacity-40"
+                    className="text-xs px-4 py-2 transition-colors disabled:opacity-40"
                     style={{
-                      backgroundColor: saved ? 'var(--rc-color-accent)' : 'var(--rc-color-text)',
-                      color: 'var(--rc-color-bg)',
+                      backgroundColor: saved ? '#22c55e' : '#000000',
+                      color: '#FFFFFF',
                     }}
                   >
                     {saving ? '...' : saved ? 'GUARDADO' : 'GUARDAR'}
@@ -176,8 +176,8 @@ export default function ScanPage() {
           {/* Acción: escanear otro */}
           <button
             onClick={handleReset}
-            className="w-full font-display text-xs py-3 transition-colors hover:bg-white hover:text-black"
-            style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}
+            className="w-full text-xs py-3 transition-colors hover:bg-black hover:text-white"
+            style={{ border: '1px solid #d1d5db', color: '#374151' }}
           >
             ESCANEAR OTRO
           </button>
@@ -193,11 +193,11 @@ function ScannerPlaceholder() {
     <div
       className="flex items-center justify-center"
       style={{
-        border:      'var(--rc-border-main)',
+        border:      '1px solid #d1d5db',
         aspectRatio: '4/3',
       }}
     >
-      <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+      <p className="text-xs" style={{ color: '#6b7280' }}>
         CARGANDO ESCÁNER...
       </p>
     </div>

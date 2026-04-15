@@ -1,7 +1,8 @@
-export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import UpdateProfileForm from './UpdateProfileForm'
 import ShippingAddressForm from './ShippingAddressForm'
+
+export const dynamic = 'force-dynamic'
 
 export default async function DatosPage() {
   const supabase = await createClient()
