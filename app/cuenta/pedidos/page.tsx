@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 // app/cuenta/pedidos/page.tsx
 import { createClient } from '@/lib/supabase/server'
 

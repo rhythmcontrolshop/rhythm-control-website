@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 // app/cuenta/favoritos/page.tsx
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'

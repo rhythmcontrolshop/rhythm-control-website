@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import Link           from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import SyncStatus     from '@/components/admin/SyncStatus'

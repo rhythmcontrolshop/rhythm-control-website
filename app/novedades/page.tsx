@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import Navigation      from '@/components/layout/Navigation'
 import Footer          from '@/components/layout/Footer'
 import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
