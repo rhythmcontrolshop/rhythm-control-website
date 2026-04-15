@@ -5,7 +5,6 @@ import SyncStatus     from '@/components/admin/SyncStatus'
 import SeedButton     from '@/components/admin/SeedButton'
 import type { SyncJob } from '@/types'
 
-export const dynamic = 'force-dynamic'
 
 async function getStats() {
   const supabase = createAdminClient()
