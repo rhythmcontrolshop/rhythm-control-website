@@ -8,17 +8,29 @@ export const dynamic = 'force-dynamic'
 
 async function getStats() {
   const supabase = createAdminClient()
-  const [activeRes, soldRes, reservedRes, lastJobRes] = await Promise.all([
+  const [activeRes, soldRes, reservedRes, lastJobRes, ordersTodayRes, revenueRes] = await Promise.all([
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'sold'),
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'reserved'),
     supabase.from('sync_jobs').select('*').order('started_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', new Date().toISOString().slice(0, 10)),
+    supabase.from('orders').select('total_amount').eq('payment_status', 'paid'),
   ])
-  return { active: activeRes.count ?? 0, sold: soldRes.count ?? 0, reserved: reservedRes.count ?? 0, lastJob: lastJobRes.data as SyncJob | null }
+
+  const totalRevenue = (revenueRes.data ?? []).reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
+
+  return {
+    active: activeRes.count ?? 0,
+    sold: soldRes.count ?? 0,
+    reserved: reservedRes.count ?? 0,
+    lastJob: lastJobRes.data as SyncJob | null,
+    ordersToday: ordersTodayRes.count ?? 0,
+    totalRevenue,
+  }
 }
 
 export default async function AdminDashboard() {
-  const { active, sold, reserved, lastJob } = await getStats()
+  const { active, sold, reserved, lastJob, ordersToday, totalRevenue } = await getStats()
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-8" style={{ color: '#000000' }}>DASHBOARD</h1>
@@ -29,6 +41,16 @@ export default async function AdminDashboard() {
           <StatCard label="En venta"   value={active}   accent />
           <StatCard label="Vendidos"   value={sold}   />
           <StatCard label="Guardi" value={reserved} />
+        </div>
+      </section>
+
+      <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2.5rem' }} />
+
+      <section className="mb-10">
+        <p className="text-xs font-medium mb-4" style={{ color: '#000000' }}>PEDIDOS</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <StatCard label="Hoy" value={ordersToday} accent />
+          <StatCard label="Revenue total" value={`${(totalRevenue / 100).toFixed(2)} EUR`} />
         </div>
       </section>
 
@@ -49,11 +71,14 @@ export default async function AdminDashboard() {
 
       <section>
         <p className="text-xs font-medium mb-4" style={{ color: '#000000' }}>ACCIONES RÁPIDAS</p>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-wrap gap-3">
           <QuickLink href="/admin/inventory" label="VER INVENTARIO" />
+          <QuickLink href="/admin/pedidos" label="PEDIDOS" />
           <QuickLink href="/admin/guardi" label="GUARDI" />
           <QuickLink href="/admin/codigos" label="CODIGOS" />
-          <QuickLink href="/admin/pedidos" label="PEDIDOS" />
+          <QuickLink href="/admin/clientes" label="CLIENTES" />
+          <QuickLink href="/admin/discogs" label="DISCOGS" />
+          <QuickLink href="/admin/shipping" label="ENVIOS" />
           <QuickLink href="/admin/agenda" label="AGENDA" />
           <QuickLink href="/" label="VER TIENDA →" external />
         </div>
@@ -62,7 +87,7 @@ export default async function AdminDashboard() {
   )
 }
 
-function StatCard({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
+function StatCard({ label, value, accent = false }: { label: string; value: string | number; accent?: boolean }) {
   return (
     <div className="p-5" style={{ border: '1px solid #e5e7eb', backgroundColor: '#FFFFFF' }}>
       <p className="text-xs font-medium mb-3" style={{ color: '#6b7280' }}>{label.toUpperCase()}</p>
