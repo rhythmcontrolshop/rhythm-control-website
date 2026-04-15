@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CuentaPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -1,24 +1,23 @@
 'use client'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
+import { useLocale } from '@/context/LocaleContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
-const NAV_LINKS = [
-  { href: '/novedades', label: 'NOVEDADES' },
-  { href: '/',          label: 'CATÁLOGO'  },
-  { href: '/contacto',  label: 'CONTACTO'  },
-]
-
-interface NavigationProps {
-  variant?: 'default' | 'magenta'
-}
-
-export default function Navigation({ variant = 'default' }: NavigationProps) {
+export default function Navigation({ variant = 'default' }: { variant?: 'default' | 'magenta' }) {
   const isMagenta = variant === 'magenta'
   const bgColor = isMagenta ? '#FF00FF' : '#000000'
   const textColor = isMagenta ? '#000000' : '#FFFFFF'
   const logoColor = isMagenta ? '#000000' : '#F0E040'
   const borderColor = '#000000'
   const { totalItems, toggleCart } = useCart()
+  const { t } = useLocale()
+
+  const NAV_LINKS = [
+    { href: '/novedades', label: t('nav.novedades') },
+    { href: '/',          label: t('nav.catalogue')  },
+    { href: '/contacto',  label: t('nav.contact')  },
+  ]
 
   return (
     <header style={{ backgroundColor: bgColor, borderBottom: `2px solid ${borderColor}` }}>
@@ -55,11 +54,12 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
-            CARRITO ({totalItems})
+            {t('btn.addToCart').split(' ')[0]} ({totalItems})
           </button>
           <Link href="/cuenta" className="font-display text-xs transition-opacity hover:opacity-60" style={{ color: textColor }}>
-            CUENTA
+            {t('nav.account')}
           </Link>
+          <LanguageSwitcher />
         </nav>
       </div>
       
@@ -85,12 +85,16 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
               </g>
             </svg>
           </Link>
-          <button onClick={toggleCart} className="font-display text-xs" style={{ color: textColor }}>CARRITO ({totalItems})</button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <button onClick={toggleCart} className="font-display text-xs" style={{ color: textColor }}>{t('btn.addToCart').split(' ')[0]} ({totalItems})</button>
+          </div>
         </div>
         <nav className="flex items-center justify-center gap-6 border-t border-gray-800" style={{ padding: '10px 16px' }}>
           {NAV_LINKS.map(({ href, label }) => (
             <Link key={href} href={href} className="font-display text-xs" style={{ color: textColor }}>{label}</Link>
           ))}
+          <Link href="/cuenta" className="font-display text-xs" style={{ color: textColor }}>{t('nav.account')}</Link>
         </nav>
       </div>
     </header>

@@ -2,7 +2,7 @@ import type { Release } from '@/types'
 
 const qty = (min = 1, max = 5) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-export const MOCK_RELEASES: Release[] = [
+export const MOCK_RELEASES = [
   { id: 'mock-9001', discogs_listing_id: 9001, discogs_release_id: 5001, title: 'Kind of Blue', artists: ['Miles Davis'], labels: ['Columbia'], catno: 'CL 1355', genres: ['Jazz'], styles: ['Modal'], format: 'Vinyl, LP', year: 1959, country: 'US', condition: 'M', sleeve_condition: 'M', price: 350.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9001/600/600', thumb: 'https://picsum.photos/seed/9001/150/150', status: 'active', quantity: 1, comments: 'Original 6-eye pressing.' },
   { id: 'mock-9002', discogs_listing_id: 9002, discogs_release_id: 5002, title: 'Windowlicker', artists: ['Aphex Twin'], labels: ['Warp Records'], catno: 'WAP105', genres: ['Electronic'], styles: ['IDM'], format: 'Vinyl, 12"', year: 1999, country: 'UK', condition: 'NM', sleeve_condition: 'NM', price: 120.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9002/600/600', thumb: 'https://picsum.photos/seed/9002/150/150', status: 'active', quantity: qty(), comments: 'First press.' },
   { id: 'mock-9003', discogs_listing_id: 9003, discogs_release_id: 5003, title: 'Strings of Life', artists: ['Rhythim Is Rhythim'], labels: ['Transmat'], catno: 'TM-002', genres: ['Electronic'], styles: ['Detroit Techno'], format: 'Vinyl, 12"', year: 1987, country: 'US', condition: 'VG+', sleeve_condition: 'VG', price: 95.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9003/600/600', thumb: 'https://picsum.photos/seed/9003/150/150', status: 'active', quantity: qty() },
@@ -13,4 +13,4 @@ export const MOCK_RELEASES: Release[] = [
   { id: 'mock-9008', discogs_listing_id: 9008, discogs_release_id: 5008, title: 'Pacific State', artists: ['808 State'], labels: ['ZTT'], catno: 'ZT44', genres: ['Electronic'], styles: ['Acid House'], format: 'Vinyl, 12"', year: 1989, country: 'UK', condition: 'NM', price: 40.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9008/600/600', status: 'active', quantity: qty(2, 8) },
   { id: 'mock-9009', discogs_listing_id: 9009, discogs_release_id: 5009, title: 'Voodoo Ray', artists: ['A Guy Called Gerald'], labels: ['Rham!'], catno: 'RAJ1', genres: ['Electronic'], styles: ['Acid House'], format: 'Vinyl, 12"', year: 1988, country: 'UK', condition: 'VG+', price: 38.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9009/600/600', status: 'active', quantity: 1 },
   { id: 'mock-9010', discogs_listing_id: 9010, discogs_release_id: 5010, title: 'Da Funk', artists: ['Daft Punk'], labels: ['Virgin'], catno: 'VS1625', genres: ['Electronic'], styles: ['House'], format: 'Vinyl, 12"', year: 1995, country: 'FR', condition: 'NM', price: 42.00, currency: 'EUR', cover_image: 'https://picsum.photos/seed/9010/600/600', status: 'active', quantity: qty() },
-] as const
+] as Release[]

@@ -15,8 +15,8 @@ export default function StrobeDots() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(320);
   const offsetsRef = useRef(ROWS.map(() => 0));
-  const lastTimeRef = useRef<number>(null);
-  const rafRef = useRef<number>(null);
+  const lastTimeRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
   const [, forceRender] = useState(0);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function StrobeDots() {
   }, []);
 
   useEffect(() => {
-    const animate = (timestamp) => {
+    const animate = (timestamp: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = timestamp;
       const dt = (timestamp - lastTimeRef.current) / 1000;
       lastTimeRef.current = timestamp;
@@ -47,10 +47,10 @@ export default function StrobeDots() {
     };
 
     rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  const circles = [];
+  const circles: React.ReactElement[] = [];
   let y = 0;
 
   ROWS.forEach((row, i) => {

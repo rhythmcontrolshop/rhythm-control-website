@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import RemoveFavorite from './RemoveFavorite'
 
+export const dynamic = 'force-dynamic'
+
 export default async function FavoritosPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

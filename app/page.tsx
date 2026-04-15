@@ -7,6 +7,8 @@ import Footer        from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 async function getInitialData(): Promise<{ releases: Release[]; total: number; genres: string[] }> {
   try {
     const supabase = await createClient()

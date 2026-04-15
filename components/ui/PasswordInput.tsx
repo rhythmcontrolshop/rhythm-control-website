@@ -12,16 +12,15 @@ interface PasswordInputProps {
   minLength?: number
 }
 
-export default function PasswordInput({ 
-  id, name, label, placeholder = '••••••••', 
-  required = true, autoComplete = 'current-password', minLength 
+export default function PasswordInput({
+  id, name, label, placeholder = '••••••••',
+  required = true, autoComplete = 'current-password', minLength
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <div>
-      <label htmlFor={id} className="font-meta text-xs block mb-2"
-        style={{ color: '#FFFFFF' }}>
+      <label htmlFor={id} className="text-xs block mb-2" style={{ color: 'var(--rc-color-text)' }}>
         {label}
       </label>
       <div className="relative">
@@ -32,11 +31,12 @@ export default function PasswordInput({
           required={required}
           autoComplete={autoComplete}
           minLength={minLength}
-          className="w-full bg-transparent font-meta text-sm px-4 py-3 pr-10 focus:outline-none"
-          style={{ 
-            border: 'var(--rc-border-main)', 
+          className="w-full text-sm px-4 py-3 pr-10 focus:outline-none"
+          style={{
+            border: 'var(--rc-border-main)',
             color: 'var(--rc-color-text)',
-            letterSpacing: 'var(--rc-tracking-mono)' 
+            letterSpacing: '0.07em',
+            backgroundColor: 'var(--rc-color-bg)',
           }}
           placeholder={placeholder}
         />
@@ -44,7 +44,7 @@ export default function PasswordInput({
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity"
-          style={{ color: '#FFFFFF' }}
+          style={{ color: 'var(--rc-color-muted)' }}
         >
           {showPassword ? (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

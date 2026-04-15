@@ -43,8 +43,8 @@ export async function enrichReleases(releaseIds?: string[]): Promise<EnrichResul
 
       // Imagen del dorso (primera imagen secundaria)
       let backCoverImage: string | null = null
-      if (detail.images && detail.images.length > 1) {
-        const secondary = detail.images.filter(img => img.type === 'secondary')
+      if ((detail as any).images && (detail as any).images.length > 1) {
+        const secondary = (detail as any).images.filter((img: any) => img.type === 'secondary')
         if (secondary.length > 0) {
           backCoverImage = secondary[0].uri || secondary[0].resource_url
         }
@@ -53,9 +53,9 @@ export async function enrichReleases(releaseIds?: string[]): Promise<EnrichResul
       const updateData: Record<string, unknown> = {
         styles:            detail.styles  || [],
         genres:            detail.genres  || [],
-        discogs_notes:     detail.notes   || null,
+        discogs_notes:     (detail as any).notes   || null,
         back_cover_image:  backCoverImage,
-        discogs_tracklist: detail.tracklist?.map(t => ({
+        discogs_tracklist: (detail as any).tracklist?.map((t: any) => ({
           position: t.position,
           title:    t.title,
           duration: t.duration,

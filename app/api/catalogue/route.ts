@@ -1,7 +1,8 @@
 // app/api/catalogue/route.ts
-// GET /api/catalogue — releases activos con filtros y paginación.
+// GET /api/catalogue — releases activos con filtros, paginación y precios por canal.
 
 import { createClient } from '@/lib/supabase/server'
+import { getPriceChannels, calculateChannelPrice } from '@/lib/pricing'
 import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
   const label   = searchParams.get('label')
   const sort    = searchParams.get('sort') ?? 'newest'
   const page    = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+  const channel = searchParams.get('channel') ?? 'online' // canal de precio para la web
   const perPage = 24
 
   const supabase = await createClient()
@@ -46,8 +48,24 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 
+  // Obtener coeficientes de precio para el canal solicitado
+  let priceCoefficient = 1.05 // default online
+  try {
+    const channels = await getPriceChannels()
+    const ch = channels.find(c => c.slug === channel)
+    if (ch) priceCoefficient = ch.coefficient
+  } catch {
+    // Si falla, usar default
+  }
+
+  // Aplicar coeficiente de precio a cada release
+  const releasesWithPricing = (data ?? []).map(release => ({
+    ...release,
+    price: calculateChannelPrice(release.price, priceCoefficient),
+  }))
+
   return Response.json({
-    data:        data        ?? [],
+    data:        releasesWithPricing,
     total:       count       ?? 0,
     page,
     per_page:    perPage,
