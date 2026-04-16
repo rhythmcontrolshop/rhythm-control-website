@@ -17,8 +17,8 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
         <div className="col-span-2 p-6" style={{ borderRight: `2px solid ${borderColor}` }}>
           <h3 className="font-display text-2xl" style={{ color: textColor }}>RHYTHM CONTROL</h3>
           <p className="font-mono text-xs mt-2" style={{ color: textColor }}>
-            RDA. DE SANT PAU, 19-21<br />
-            BARCELONA, 08015<br />
+            C/ DE LA SALUT, 57<br />
+            BARCELONA, 08024<br />
             LUN - SAB: 11:00 - 20:00
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
             <input 
               type="email" 
               placeholder="EMAIL" 
-              className="mt-2 w-full p-2 font-mono text-xs"
+              className="mt-2 w-full p-2 font-mono text-xs placeholder:text-white"
               style={{ backgroundColor: '#000000', color: '#FFFFFF', border: 'none' }}
             />
           </div>

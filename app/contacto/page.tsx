@@ -51,15 +51,15 @@ export default function ContactoPage() {
             <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-black">
               <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>DIRECCIÓN</h2>
               <p className="font-mono text-xs leading-relaxed mb-4" style={{ color: '#000000' }}>
-                Rda. de Sant Pau, 19-21<br />
-                Local 28, Eixample<br />
-                08015 Barcelona
+                C/ de la Salut, 57<br />
+                Gràcia<br />
+                08024 Barcelona
               </p>
               <p className="font-display text-sm mb-4" style={{ color: '#000000' }}>
                 <a href="tel:+34696592106" className="hover:underline transition-colors">696 59 21 06</a>
               </p>
               <a 
-                href="https://maps.google.com/?q=Rda.+de+Sant+Pau+19+21+Barcelona" 
+                href="https://maps.google.com/?q=C+de+la+Salut+57+Barcelona" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors"
