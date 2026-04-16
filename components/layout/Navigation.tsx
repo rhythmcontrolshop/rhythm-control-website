@@ -16,7 +16,7 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
 
   const NAV_LINKS = [
     { href: '/novedades', label: t('nav.novedades') },
-    { href: '/',          label: 'STOCK' },
+    { href: '/stock',     label: 'STOCK' },
     { href: '/contacto',  label: t('nav.contact')  },
   ]
 
@@ -25,7 +25,6 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
       {/* Desktop */}
       <div className="hidden md:flex items-center justify-between" style={{ height: '120px', padding: '0 24px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', position: 'relative' }} className="group">
-          {/* Logo — hides on hover */}
           <div className="transition-opacity duration-200 group-hover:opacity-0" style={{ display: 'flex', alignItems: 'center' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 627.27 49.85" style={{ height: '60px', width: 'auto' }} fill={logoColor}>
               <g>
@@ -45,7 +44,6 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
               </g>
             </svg>
           </div>
-          {/* BARCELONA — HELVETICA BLACK UPPERCASE, same height as logo, centered */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
             <span className="whitespace-nowrap"
               style={{ color: textColor, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: '3.75rem', lineHeight: '1', fontWeight: '900', letterSpacing: '-0.02em' }}>

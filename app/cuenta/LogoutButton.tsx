@@ -1,5 +1,4 @@
 'use client'
-
 import { logout } from './actions'
 
 export default function LogoutButton() {
@@ -7,8 +6,15 @@ export default function LogoutButton() {
     <form action={logout}>
       <button
         type="submit"
-        className="font-meta text-xs transition-colors"
-        style={{ color: '#FFFFFF' }}
+        className="font-display text-xs px-5 py-2 tracking-widest transition-colors duration-200"
+        style={{
+          backgroundColor: '#FFFFFF',
+          color: '#000000',
+          border: '2px solid #000000',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF' }}
       >
         SALIR
       </button>

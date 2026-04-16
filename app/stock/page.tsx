@@ -1,5 +1,4 @@
 import Navigation    from '@/components/layout/Navigation'
-import Hero          from '@/components/home/Hero'
 import CatalogueView from '@/components/store/CatalogueView'
 import StrobeDots    from '@/components/ui/StrobeDots'
 import Footer        from '@/components/layout/Footer'
@@ -17,7 +16,7 @@ async function getInitialData(): Promise<{ releases: Release[]; total: number; g
   } catch { return { releases: [], total: 0, genres: [] } }
 }
 
-export default async function Home() {
+export default async function StockPage() {
   const { releases, total, genres } = await getInitialData()
 
   return (
@@ -25,8 +24,12 @@ export default async function Home() {
       <Navigation />
       <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
 
-        {/* Hero Section — TOP / MIX / AGENDA */}
-        <Hero releases={releases} />
+        {/* STOCK Title — centered, big */}
+        <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '24px' }}>
+          <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+            STOCK
+          </h2>
+        </div>
 
         {/* Catalogue Content + Pagination */}
         <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />

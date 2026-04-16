@@ -261,8 +261,10 @@ export default function ShippingAddressForm({ profile }: { profile: Profile | nu
         <button
           type="submit"
           disabled={loading}
-          className="font-display text-sm px-6 py-3 transition-colors hover:opacity-80"
-          style={{ backgroundColor: '#FFFFFF', color: '#000000', opacity: loading ? 0.6 : 1 }}
+          className="font-display text-sm px-6 py-3 transition-colors duration-200"
+          style={{ backgroundColor: '#FFFFFF', color: '#000000', border: '2px solid #000000', cursor: 'pointer', opacity: loading ? 0.6 : 1 }}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#F0E040' }}
+          onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#FFFFFF' }}
         >
           {loading ? 'GUARDANDO...' : 'GUARDAR DIRECCIÓN'}
         </button>
