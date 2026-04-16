@@ -142,14 +142,15 @@ export async function POST(request: Request) {
 
       if (!customer) break
 
+      const item = sub.items.data[0]
       await supabase.from('subscriptions').upsert({
         user_id: customer.user_id,
         stripe_subscription_id: sub.id,
         stripe_customer_id: sub.customer as string,
         status: sub.status,
-        price_id: sub.items.data[0].price.id,
-        current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        price_id: item.price.id,
+        current_period_start: new Date(item.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(item.current_period_end * 1000).toISOString(),
         cancel_at_period_end: sub.cancel_at_period_end,
         canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000).toISOString() : null,
       }, { onConflict: 'stripe_subscription_id' })
