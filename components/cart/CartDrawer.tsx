@@ -66,7 +66,7 @@ export default function CartDrawer() {
   return (
     <div className="fixed inset-0 z-[9999] flex justify-end">
       <div className="absolute inset-0 bg-black opacity-50" onClick={toggleCart} />
-      <div className="relative w-full max-w-md h-full bg-white shadow-xl flex flex-col border-l-2 border-black text-black">
+      <div className="relative w-full max-w-md h-full bg-white shadow-xl flex flex-col border-l-2 border-black text-black" onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between p-4 border-b-2 border-black">
           <h2 className="font-display uppercase text-xl" style={{ letterSpacing: '-0.05em', color: '#000000' }}>
@@ -75,78 +75,79 @@ export default function CartDrawer() {
           <button onClick={toggleCart} className="font-display text-xs" style={{ color: '#000000', cursor: 'pointer' }}>✕ CERRAR</button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {items.length === 0 ? (
-            <p className="font-mono text-xs text-center mt-20" style={{ color: '#000000' }}>{t('cart.empty')}</p>
-          ) : (
-            items.map((item: any) => (
-              <div key={item.discogs_listing_id} className="flex gap-3 border-b border-gray-300 pb-3">
-                <div className="w-16 h-16 relative border border-black flex-shrink-0 bg-gray-100">
-                  <Image src={item.cover_image || '/placeholder.png'} alt={item.title} fill className="object-cover" unoptimized />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-display text-xs uppercase truncate" style={{ letterSpacing: '-0.02em', color: '#000000' }}>
-                    {item.artists[0]} — {item.title}
-                  </p>
-                  <p className="font-mono text-xs mt-1" style={{ color: '#000000' }}>{item.condition}</p>
-
-                  {/* Quantity selector — capped by available stock */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <button onClick={() => updateQuantity?.(item.discogs_listing_id, Math.max(1, (item.quantity || 1) - 1))}
-                      className="w-6 h-6 flex items-center justify-center text-xs"
-                      style={{ border: '1px solid #d1d5db', cursor: 'pointer', backgroundColor: '#f9fafb' }}>−</button>
-                    <span className="font-mono text-xs w-6 text-center" style={{ color: '#000000' }}>{item.quantity || 1}</span>
-                    <button onClick={() => {
-                      const stockQty = (item as any).stock_quantity ?? (item as any).quantity ?? 999
-                      const currentQty = item.quantity || 1
-                      if (currentQty < stockQty) {
-                        updateQuantity?.(item.discogs_listing_id, currentQty + 1)
-                      }
-                    }}
-                      className="w-6 h-6 flex items-center justify-center text-xs"
-                      style={{ border: '1px solid #d1d5db', cursor: 'pointer', backgroundColor: '#f9fafb', opacity: (item.quantity || 1) >= ((item as any).stock_quantity ?? 999) ? 0.3 : 1 }}>+</button>
-                    {((item as any).stock_quantity != null && (item as any).stock_quantity > 1) && (
-                      <span className="font-mono text-[10px]" style={{ color: '#999' }}>/ {(item as any).stock_quantity} uds.</span>
-                    )}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="p-4 space-y-4">
+            {items.length === 0 ? (
+              <p className="font-mono text-xs text-center mt-20" style={{ color: '#000000' }}>{t('cart.empty')}</p>
+            ) : (
+              items.map((item: any) => (
+                <div key={item.discogs_listing_id} className="flex gap-3 border-b border-gray-300 pb-3">
+                  <div className="w-16 h-16 relative border border-black flex-shrink-0 bg-gray-100">
+                    <Image src={item.cover_image || '/placeholder.png'} alt={item.title} fill className="object-cover" unoptimized />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display text-xs uppercase truncate" style={{ letterSpacing: '-0.02em', color: '#000000' }}>
+                      {item.artists[0]} — {item.title}
+                    </p>
+                    <p className="font-mono text-xs mt-1" style={{ color: '#000000' }}>{item.condition}</p>
 
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-display text-sm" style={{ color: '#000000' }}>{(item.price * (item.quantity || 1)).toFixed(2)} €</span>
-                    <button onClick={() => removeItem(item.discogs_listing_id)} className="font-display text-xs hover:underline" style={{ color: '#000000', cursor: 'pointer' }}>{t('btn.remove')}</button>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button onClick={() => updateQuantity?.(item.discogs_listing_id, Math.max(1, (item.quantity || 1) - 1))}
+                        className="w-6 h-6 flex items-center justify-center text-xs"
+                        style={{ border: '1px solid #d1d5db', cursor: 'pointer', backgroundColor: '#f9fafb' }}>−</button>
+                      <span className="font-mono text-xs w-6 text-center" style={{ color: '#000000' }}>{item.quantity || 1}</span>
+                      <button onClick={() => {
+                        const stockQty = (item as any).stock_quantity ?? (item as any).quantity ?? 999
+                        const currentQty = item.quantity || 1
+                        if (currentQty < stockQty) {
+                          updateQuantity?.(item.discogs_listing_id, currentQty + 1)
+                        }
+                      }}
+                        className="w-6 h-6 flex items-center justify-center text-xs"
+                        style={{ border: '1px solid #d1d5db', cursor: 'pointer', backgroundColor: '#f9fafb', opacity: (item.quantity || 1) >= ((item as any).stock_quantity ?? 999) ? 0.3 : 1 }}>+</button>
+                      {((item as any).stock_quantity != null && (item as any).stock_quantity > 1) && (
+                        <span className="font-mono text-[10px]" style={{ color: '#999' }}>/ {(item as any).stock_quantity} uds.</span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-display text-sm" style={{ color: '#000000' }}>{(item.price * (item.quantity || 1)).toFixed(2)} €</span>
+                      <button onClick={() => removeItem(item.discogs_listing_id)} className="font-display text-xs hover:underline" style={{ color: '#000000', cursor: 'pointer' }}>{t('btn.remove')}</button>
+                    </div>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+
+          {/* Shipping selection — inside scroll area so it never overflows the drawer */}
+          {showShipping && items.length > 0 && (
+            <div className="border-t border-gray-300 p-4">
+              <p className="font-display text-xs mb-3" style={{ color: '#000' }}>{t('cart.shippingMethod')}</p>
+              <div className="space-y-2">
+                {shippingRates.map(rate => (
+                  <label key={rate.id}
+                    className="flex items-center gap-3 p-2"
+                    style={{
+                      border: selectedRate === rate.id ? '2px solid #000' : '1px solid #ccc',
+                      backgroundColor: selectedRate === rate.id ? '#f5f5f5' : 'transparent',
+                      cursor: 'pointer',
+                    }}>
+                    <input type="radio" name="shipping" value={rate.id} checked={selectedRate === rate.id}
+                      onChange={() => setSelectedRate(rate.id)} className="accent-black" />
+                    <div className="flex-1">
+                      <p className="font-display text-xs" style={{ color: '#000' }}>{rate.name}</p>
+                      {rate.description && <p className="font-meta text-xs" style={{ color: '#666' }}>{rate.description}</p>}
+                    </div>
+                    <span className="font-display text-xs" style={{ color: '#000' }}>
+                      {rate.price === 0 ? t('cart.free') : `${rate.price.toFixed(2)} €`}
+                    </span>
+                  </label>
+                ))}
               </div>
-            ))
+            </div>
           )}
         </div>
-
-        {/* Shipping selection */}
-        {showShipping && items.length > 0 && (
-          <div className="border-t border-gray-300 p-4">
-            <p className="font-display text-xs mb-3" style={{ color: '#000' }}>{t('cart.shippingMethod')}</p>
-            <div className="space-y-2">
-              {shippingRates.map(rate => (
-                <label key={rate.id}
-                  className="flex items-center gap-3 p-2"
-                  style={{
-                    border: selectedRate === rate.id ? '2px solid #000' : '1px solid #ccc',
-                    backgroundColor: selectedRate === rate.id ? '#f5f5f5' : 'transparent',
-                    cursor: 'pointer',
-                  }}>
-                  <input type="radio" name="shipping" value={rate.id} checked={selectedRate === rate.id}
-                    onChange={() => setSelectedRate(rate.id)} className="accent-black" />
-                  <div className="flex-1">
-                    <p className="font-display text-xs" style={{ color: '#000' }}>{rate.name}</p>
-                    {rate.description && <p className="font-meta text-xs" style={{ color: '#666' }}>{rate.description}</p>}
-                  </div>
-                  <span className="font-display text-xs" style={{ color: '#000' }}>
-                    {rate.price === 0 ? t('cart.free') : `${rate.price.toFixed(2)} €`}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="border-t-2 border-black p-4 space-y-4 bg-white">
           {showShipping && selectedShippingRate && (

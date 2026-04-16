@@ -23,10 +23,13 @@ export default async function Home() {
   return (
     <>
       <Navigation />
-      <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
+      <main style={{ minHeight: '100vh', backgroundColor: '#000000', overflowX: 'hidden' }}>
 
         {/* Hero Section — TOP / MIX / AGENDA */}
         <Hero releases={releases} />
+
+        {/* Spacer matching hero-tabs row height */}
+        <div style={{ height: '48px', borderBottom: '2px solid #333333', backgroundColor: '#000000' }} />
 
         {/* Catalogue Content + Pagination */}
         <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
