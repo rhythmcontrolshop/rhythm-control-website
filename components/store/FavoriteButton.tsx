@@ -1,7 +1,8 @@
 'use client'
 // components/store/FavoriteButton.tsx
-// Corazón: solo perfilado blanco, se pone amarillo en hover/active.
-// Sin fondo gris semi-transparente. Posicionado a la izquierda encima del nombre del artista.
+// Corazón: posicionado encima del texto/botón en cards (NO en la esquina superior).
+// Solo perfilado blanco, se pone amarillo en hover/active (magenta en tema magenta).
+// Sin fondo gris semi-transparente.
 
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/context/LocaleContext'
@@ -12,6 +13,7 @@ interface FavoriteButtonProps {
   initialFavorited?: boolean
   size?: number
   variant?: 'card' | 'modal'
+  theme?: 'default' | 'magenta' | 'green'
 }
 
 export default function FavoriteButton({
@@ -20,11 +22,15 @@ export default function FavoriteButton({
   initialFavorited = false,
   size = 18,
   variant = 'card',
+  theme = 'default',
 }: FavoriteButtonProps) {
   const { t } = useLocale()
   const [favorited, setFavorited] = useState(initialFavorited)
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState(initialFavorited)
+  const [hovering, setHovering] = useState(false)
+
+  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : '#F0E040'
 
   useEffect(() => {
     if (initialFavorited) return
@@ -38,9 +44,7 @@ export default function FavoriteButton({
             setFavorited(!!isFav)
           }
         }
-      } catch {
-        // silencioso — usuario no logueado
-      }
+      } catch { /* silencioso */ }
       setChecked(true)
     }
     check()
@@ -67,19 +71,21 @@ export default function FavoriteButton({
         })
         if (res.ok) setFavorited(true)
       }
-    } catch {
-      // silencioso
-    }
+    } catch { /* silencioso */ }
     setLoading(false)
   }
+
+  // Determine visual state
+  const fillColor = favorited ? accentColor : (hovering ? accentColor : 'none')
+  const strokeColor = favorited ? accentColor : (hovering ? accentColor : '#FFFFFF')
 
   const heartSvg = (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill={favorited ? '#F0E040' : 'none'}
-      stroke={favorited ? '#F0E040' : '#FFFFFF'}
+      fill={fillColor}
+      stroke={strokeColor}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -96,15 +102,17 @@ export default function FavoriteButton({
     return (
       <button
         onClick={toggle}
-        className="absolute top-2 left-2 z-30 transition-opacity"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        className="absolute left-0 z-30 transition-opacity"
         style={{
           opacity: !checked ? 0 : 1,
           transition: 'opacity 0.2s ease',
           cursor: 'pointer',
           padding: '2px',
+          // Position just above the buttons row
+          top: '-22px',
         }}
-        onMouseEnter={(e) => { if (!favorited) { e.currentTarget.querySelector('svg')?.setAttribute('fill', '#F0E040'); e.currentTarget.querySelector('svg')?.setAttribute('stroke', '#F0E040') } }}
-        onMouseLeave={(e) => { if (!favorited) { e.currentTarget.querySelector('svg')?.setAttribute('fill', 'none'); e.currentTarget.querySelector('svg')?.setAttribute('stroke', '#FFFFFF') } }}
         aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}
       >
         {heartSvg}
@@ -112,15 +120,17 @@ export default function FavoriteButton({
     )
   }
 
-  // Modal variant: botón inline
+  // Modal variant: inline button
   return (
     <button
       onClick={toggle}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       className="flex items-center gap-2 font-display text-xs px-4 py-2 transition-colors hover:opacity-80 shrink-0"
       style={{
-        border: favorited ? '2px solid #F0E040' : '2px solid #FFFFFF',
-        color: favorited ? '#F0E040' : '#FFFFFF',
-        backgroundColor: favorited ? 'rgba(240,224,64,0.1)' : 'transparent',
+        border: favorited ? `2px solid ${accentColor}` : '2px solid #FFFFFF',
+        color: favorited ? accentColor : '#FFFFFF',
+        backgroundColor: favorited ? `${accentColor}1a` : 'transparent',
         cursor: 'pointer',
       }}
       aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}

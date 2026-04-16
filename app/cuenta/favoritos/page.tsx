@@ -2,8 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import RemoveFavorite from './RemoveFavorite'
-
-export const dynamic = 'force-dynamic'
+import BuyButton from './BuyButton'
 
 export default async function FavoritosPage() {
   const supabase = await createClient()
@@ -11,7 +10,7 @@ export default async function FavoritosPage() {
 
   const { data: favorites } = await supabase
     .from('wantlist')
-    .select(`id, added_at, releases(id, title, artists, cover_image, price, status)`)
+    .select(`id, added_at, releases(id, title, artists, cover_image, price, status, condition, format, labels, discogs_listing_id)`)
     .eq('user_id', user!.id)
     .order('added_at', { ascending: false })
 
@@ -28,7 +27,7 @@ export default async function FavoritosPage() {
           </p>
           <a href="/" className="inline-block mt-6 font-display text-xs px-6 py-3"
             style={{ backgroundColor: '#FFFFFF', color: '#000000' }}>
-            EXPLORAR CATÁLOGO
+            EXPLORAR STOCK
           </a>
         </div>
       ) : (
@@ -36,6 +35,7 @@ export default async function FavoritosPage() {
           {favorites.map((fav: any) => {
             const release = fav.releases
             if (!release) return null
+            const isAvailable = release.status === 'active'
 
             return (
               <div key={fav.id} className="flex gap-4 p-4" style={{ border: '2px solid #FFFFFF' }}>
@@ -46,7 +46,7 @@ export default async function FavoritosPage() {
                     <div className="w-full h-full bg-black" />
                   )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="font-display text-sm" style={{ color: '#FFFFFF' }}>
                     {release.artists?.[0] || '—'}
                   </p>
@@ -57,14 +57,15 @@ export default async function FavoritosPage() {
                     {release.price?.toFixed(2)} €
                   </p>
                 </div>
-                <div className="flex flex-col items-end justify-between">
+                <div className="flex flex-col items-end justify-between gap-2">
                   <span className="font-meta text-xs px-2 py-1"
                     style={{
-                      border: release.status === 'active' ? '1px solid #22c55e' : '1px solid #ef4444',
-                      color: release.status === 'active' ? '#22c55e' : '#ef4444'
+                      border: isAvailable ? '1px solid #22c55e' : '1px solid #ef4444',
+                      color: isAvailable ? '#22c55e' : '#ef4444'
                     }}>
-                    {release.status === 'active' ? 'DISPONIBLE' : 'VENDIDO'}
+                    {isAvailable ? 'DISPONIBLE' : 'VENDIDO'}
                   </span>
+                  {isAvailable && <BuyButton release={release} />}
                   <RemoveFavorite favoriteId={fav.id} />
                 </div>
               </div>

@@ -8,17 +8,27 @@ export const dynamic = 'force-dynamic'
 
 async function getStats() {
   const supabase = createAdminClient()
-  const [activeRes, soldRes, reservedRes, lastJobRes] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const [activeRes, soldRes, reservedRes, ordersRes, todayOrdersRes, lastJobRes] = await Promise.all([
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'sold'),
     supabase.from('releases').select('*', { count: 'exact', head: true }).eq('status', 'reserved'),
+    supabase.from('orders').select('*', { count: 'exact', head: true }),
+    supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
     supabase.from('sync_jobs').select('*').order('started_at', { ascending: false }).limit(1).maybeSingle(),
   ])
-  return { active: activeRes.count ?? 0, sold: soldRes.count ?? 0, reserved: reservedRes.count ?? 0, lastJob: lastJobRes.data as SyncJob | null }
+  return {
+    active: activeRes.count ?? 0,
+    sold: soldRes.count ?? 0,
+    reserved: reservedRes.count ?? 0,
+    totalOrders: ordersRes.count ?? 0,
+    todayOrders: todayOrdersRes.count ?? 0,
+    lastJob: lastJobRes.data as SyncJob | null,
+  }
 }
 
 export default async function AdminDashboard() {
-  const { active, sold, reserved, lastJob } = await getStats()
+  const { active, sold, reserved, totalOrders, todayOrders, lastJob } = await getStats()
 
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto">
@@ -39,19 +49,10 @@ export default async function AdminDashboard() {
       {/* ── PEDIDOS ── */}
       <section className="mb-10">
         <p className="text-xs font-medium mb-5 tracking-widest" style={{ color: '#000000' }}>PEDIDOS</p>
-        <Link
-          href="/admin/orders"
-          className="flex items-center justify-between w-full sm:w-auto px-8 py-5 transition-all duration-200 hover:bg-black hover:text-white group"
-          style={{
-            border: '2px solid #000000',
-            backgroundColor: '#FFFFFF',
-            color: '#000000',
-            textDecoration: 'none',
-          }}
-        >
-          <span className="text-lg font-bold tracking-widest">PEDIDOS</span>
-          <span className="ml-6 text-3xl font-bold tabular-nums">→</span>
-        </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InventoryButton href="/admin/orders" label="HOY" count={todayOrders} />
+          <InventoryButton href="/admin/orders" label="TOTAL" count={totalOrders} />
+        </div>
       </section>
 
       <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2.5rem' }} />
@@ -79,6 +80,7 @@ export default async function AdminDashboard() {
           <QuickLink href="/admin/scan" label="ESCANEAR DISCO" />
           <QuickLink href="/admin/events" label="GESTIONAR AGENDA" />
           <QuickLink href="/admin/orders" label="VER PEDIDOS" />
+          <QuickLink href="/admin/barcodes" label="CÓDIGOS / ETIQUETAS" />
           <QuickLink href="/" label="VER TIENDA →" external />
         </div>
       </section>
@@ -93,7 +95,7 @@ function InventoryButton({ href, label, count }: { href: string; label: string; 
   return (
     <Link
       href={href}
-      className="flex flex-col items-center justify-center p-8 transition-all duration-200 hover:bg-black hover:text-white group"
+      className="flex flex-col items-center justify-center p-8 transition-colors duration-200"
       style={{
         border: '2px solid #000000',
         backgroundColor: '#FFFFFF',
@@ -101,8 +103,10 @@ function InventoryButton({ href, label, count }: { href: string; label: string; 
         textDecoration: 'none',
         minHeight: '140px',
       }}
+      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF' }}
+      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#000000' }}
     >
-      <span className="text-xs font-medium tracking-widest mb-3 opacity-70 group-hover:opacity-100">
+      <span className="text-xs font-medium tracking-widest mb-3 opacity-70">
         {label}
       </span>
       <span className="text-5xl font-bold tabular-nums">{count}</span>
@@ -118,12 +122,15 @@ function QuickLink({ href, label, external = false }: { href: string; label: str
     <Link
       href={href}
       target={external ? '_blank' : undefined}
-      className="text-xs px-6 py-3 text-center tracking-widest font-medium transition-all duration-200 hover:bg-black hover:text-white hover:border-black"
+      className="text-xs px-6 py-3 text-center tracking-widest font-medium transition-colors duration-200"
       style={{
         border: '1px solid #d1d5db',
         color: '#374151',
         textDecoration: 'none',
+        backgroundColor: '#FFFFFF',
       }}
+      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.borderColor = '#000000' }}
+      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#374151'; e.currentTarget.style.borderColor = '#d1d5db' }}
     >
       {label}
     </Link>

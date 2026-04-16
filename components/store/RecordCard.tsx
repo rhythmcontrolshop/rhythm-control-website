@@ -30,9 +30,6 @@ export default function RecordCard({ release, onSelect, theme = 'default', isNew
         <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
           style={{ backgroundColor: accentColor }} />
 
-        {/* Botón de favoritos (corazón) — sin badge de nuevo */}
-        <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
-
         {/* Default State */}
         <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
           {release.cover_image
@@ -58,39 +55,46 @@ export default function RecordCard({ release, onSelect, theme = 'default', isNew
         {/* Hover State */}
         <div className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 transition-opacity duration-[250ms] group-hover:opacity-100"
           style={{ backgroundColor: '#000000' }}>
+          
+          {/* Top section: Artist + Title + Info */}
           <div style={{ marginLeft: '6px' }}>
             <Marquee text={artist}        style={{ color: '#FFFFFF',   fontSize: '1.3rem', lineHeight: '1.1' }} />
             <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.3rem', lineHeight: '1.1' }} />
             <p className="font-display text-sm font-bold mt-1" style={{ color: '#FFFFFF' }}>{release.labels[0] ?? ''}</p>
             <p className="font-meta text-xs mt-1" style={{ color: '#FFFFFF' }}>{[release.year, release.format].filter(Boolean).join(' · ')}</p>
           </div>
-          <div className="flex gap-2" style={{ marginLeft: '6px' }}>
-            <button className="font-display text-xs px-4 py-2"
-              style={{ backgroundColor: accentColor, color: '#000000', cursor: 'pointer' }}
-              onClick={e => { e.stopPropagation(); onSelect(release) }}>
-              {t('btn.listen')}
-            </button>
-            {isAvailable ? (
-              <>
-                <button className="flex-1 flex items-center justify-center gap-1 font-display text-xs px-2 py-2"
-                  style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', cursor: 'pointer' }}
-                  onClick={e => { e.stopPropagation(); addItem(release) }}>
-                  <span style={{ fontWeight: 700 }}>
-                    {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                  </span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 01-8 0" />
-                  </svg>
-                </button>
-              </>
-            ) : (
-              <span className="flex-1 flex items-center justify-center font-display text-xs"
-                style={{ border: '1px solid #333', color: '#FFFFFF' }}>
-                {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
-              </span>
-            )}
+
+          {/* Bottom section: Heart above buttons */}
+          <div className="relative">
+            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} theme={theme} />
+            <div className="flex gap-2" style={{ marginLeft: '6px' }}>
+              <button className="font-display text-xs px-4 py-2"
+                style={{ backgroundColor: accentColor, color: '#000000', cursor: 'pointer' }}
+                onClick={e => { e.stopPropagation(); onSelect(release) }}>
+                {t('btn.listen')}
+              </button>
+              {isAvailable ? (
+                <>
+                  <button className="flex-1 flex items-center justify-center gap-1 font-display text-xs px-2 py-2"
+                    style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', cursor: 'pointer' }}
+                    onClick={e => { e.stopPropagation(); addItem(release) }}>
+                    <span style={{ fontWeight: 700 }}>
+                      {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    </span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M16 10a4 4 0 01-8 0" />
+                    </svg>
+                  </button>
+                </>
+              ) : (
+                <span className="flex-1 flex items-center justify-center font-display text-xs"
+                  style={{ border: '1px solid #333', color: '#FFFFFF' }}>
+                  {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </article>

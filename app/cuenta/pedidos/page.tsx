@@ -42,7 +42,7 @@ export default async function PedidosPage() {
           <Link href="/"
             className="font-display text-xs px-6 py-3"
             style={{ backgroundColor: '#FFF', color: '#000' }}>
-            EXPLORAR CATÁLOGO
+            EXPLORAR STOCK
           </Link>
         </div>
       ) : (

@@ -4,12 +4,14 @@ import type { Release } from '@/types'
 
 export interface CartItem extends Release {
   quantity: number
+  stock_quantity?: number  // max available units from releases.quantity
 }
 
 interface CartContextType {
   items: CartItem[]
   addItem: (release: Release) => void
   removeItem: (listingId: number) => void
+  updateQuantity: (listingId: number, quantity: number) => void
   clearCart: () => void
   totalItems: number
   totalPrice: number
@@ -25,14 +27,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
 
-  // Cargar del localStorage al iniciar
   useEffect(() => {
     const saved = localStorage.getItem('rhythm_cart')
     if (saved) setItems(JSON.parse(saved))
     setIsHydrated(true)
   }, [])
 
-  // Guardar en localStorage al cambiar
   useEffect(() => {
     if (isHydrated) {
       localStorage.setItem('rhythm_cart', JSON.stringify(items))
@@ -40,16 +40,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, isHydrated])
 
   const addItem = (release: Release) => {
+    const maxStock = (release as any).stock_quantity ?? (release as any).quantity ?? 999
     setItems(prev => {
       const exists = prev.find(i => i.discogs_listing_id === release.discogs_listing_id)
-      if (exists) return prev // No duplicar
-      return [...prev, { ...release, quantity: 1 }]
+      if (exists) {
+        // Increment quantity but cap at stock
+        const newQty = Math.min(exists.quantity + 1, maxStock)
+        return prev.map(i =>
+          i.discogs_listing_id === release.discogs_listing_id
+            ? { ...i, quantity: newQty }
+            : i
+        )
+      }
+      return [...prev, { ...release, quantity: 1, stock_quantity: maxStock } as CartItem]
     })
-    setIsOpen(true) // Abrir drawer al añadir
+    setIsOpen(true)
   }
 
   const removeItem = (listingId: number) => {
     setItems(prev => prev.filter(i => i.discogs_listing_id !== listingId))
+  }
+
+  const updateQuantity = (listingId: number, quantity: number) => {
+    if (quantity < 1) {
+      removeItem(listingId)
+      return
+    }
+    setItems(prev => prev.map(i =>
+      i.discogs_listing_id === listingId ? { ...i, quantity } : i
+    ))
   }
 
   const clearCart = () => setItems([])
@@ -59,7 +78,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider value={{
-      items, addItem, removeItem, clearCart,
+      items, addItem, removeItem, updateQuantity, clearCart,
       totalItems, totalPrice, isOpen,
       toggleCart: () => setIsOpen(!isOpen),
       openCart: () => setIsOpen(true)

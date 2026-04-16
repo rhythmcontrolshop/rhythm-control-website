@@ -5,10 +5,12 @@ const NAV_LINKS = [
   { href: '/admin/inventory',    label: 'Inventario' },
   { href: '/admin/pricing',      label: 'Precios'    },
   { href: '/admin/shipping',     label: 'Envíos'     },
-  { href: '/admin/reservations', label: 'Reservas'   },
+  { href: '/admin/reservations', label: 'Guardi'     },
   { href: '/admin/scan',         label: 'Escanear'   },
-  { href: '/admin/events',       label: 'Eventos'    },
+  { href: '/admin/barcodes',     label: 'Códigos'    },
+  { href: '/admin/events',       label: 'Agenda'     },
   { href: '/admin/orders',       label: 'Pedidos'    },
+  { href: '/admin/clientes',     label: 'Clientes'   },
 ]
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,14 +22,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           backgroundColor: '#FFFFFF',
           zIndex: 100,
         }}>
-        <Link href="/" className="flex items-center group relative" style={{ textDecoration: 'none' }}>
-          <span className="font-display text-sm" style={{ color: '#000000' }}>
+        <Link href="/" className="flex items-center group relative" style={{ textDecoration: 'none', height: '40px', overflow: 'visible' }}>
+          {/* Logo — se oculta en hover */}
+          <span className="transition-opacity duration-200 group-hover:opacity-0" style={{ color: '#000000', fontFamily: 'Arial, Helvetica, sans-serif', fontWeight: '900', fontSize: '0.875rem', letterSpacing: '0.05em' }}>
             RHYTHM CONTROL
           </span>
-          <span className="font-display text-sm" style={{ color: '#6b7280' }}>/ ADMIN</span>
-          {/* BARCELONA hover — Helvetica Black uppercase */}
-          <span className="absolute -bottom-5 left-0 font-display opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            style={{ color: '#000000', fontSize: '0.9rem', fontWeight: '900', letterSpacing: '-0.02em' }}>
+          <span className="transition-opacity duration-200 group-hover:opacity-0" style={{ color: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif', fontWeight: '400', fontSize: '0.75rem' }}>/ ADMIN</span>
+          {/* BARCELONA — HELVETICA BLACK UPPERCASE, same height as logo, centered */}
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
+            style={{ color: '#000000', fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '900', fontSize: '2rem', letterSpacing: '-0.02em', lineHeight: '1' }}>
             BARCELONA
           </span>
         </Link>
