@@ -3,7 +3,7 @@
 // tracklist, notas, imagen del dorso, styles, genres, artist profile
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getReleaseDetail, getArtistDetail } from './client'
+import { getReleaseDetail, getArtistDetail, type DiscogsAPIReleaseDetail } from './client'
 
 const RATE_LIMIT_MS = 1200
 

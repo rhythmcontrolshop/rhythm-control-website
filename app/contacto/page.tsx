@@ -16,19 +16,21 @@ const SCHEDULE = [
 export default function ContactoPage() {
   return (
     <>
-      <Navigation />
-      <main className="relative" style={{ backgroundColor: '#FFFFFF' }}>
+      <Navigation variant="green" />
+      <main className="relative" style={{ backgroundColor: '#77DD77' }}>
         
-        {/* IMAGEN COMPLETA ARRIBA */}
+        {/* IMAGEN COMPLETA ARRIBA — multiplicada sobre verde */}
         <div className="relative w-full border-b-2 border-black">
-          <Image 
-            src="/contact.jpg"
-            alt="Rhythm Control Store"
-            width={1620}
-            height={857}
-            className="w-full h-auto"
-            priority
-          />
+          <div className="relative w-full" style={{ mixBlendMode: 'multiply' }}>
+            <Image 
+              src="/contact.jpg"
+              alt="Rhythm Control Store"
+              width={1620}
+              height={857}
+              className="w-full h-auto"
+              priority
+            />
+          </div>
         </div>
 
         {/* CONTENIDO DEBAJO */}
@@ -49,15 +51,15 @@ export default function ContactoPage() {
             <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-black">
               <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>DIRECCIÓN</h2>
               <p className="font-mono text-xs leading-relaxed mb-4" style={{ color: '#000000' }}>
-                Rda. de Sant Pau, 19-21<br />
-                Local 28, Eixample<br />
-                08015 Barcelona
+                C/ de la Salut, 57<br />
+                Gràcia<br />
+                08024 Barcelona
               </p>
               <p className="font-display text-sm mb-4" style={{ color: '#000000' }}>
-                <a href="tel:+34696592106" className="hover:text-[#F0E040] transition-colors">696 59 21 06</a>
+                <a href="tel:+34696592106" className="hover:underline transition-colors">696 59 21 06</a>
               </p>
               <a 
-                href="https://maps.google.com/?q=Rda.+de+Sant+Pau+19+21+Barcelona" 
+                href="https://maps.google.com/?q=C+de+la+Salut+57+Barcelona" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors"
@@ -74,7 +76,7 @@ export default function ContactoPage() {
                 {SCHEDULE.map(({ day, hours }) => (
                   <div key={day} className="flex justify-between font-mono text-xs" style={{ color: '#000000' }}>
                     <span>{day}</span>
-                    <span className={hours === 'CERRADO' ? 'text-red-600' : ''}>{hours}</span>
+                    <span className={hours === 'CERRADO' ? 'text-red-700' : ''}>{hours}</span>
                   </div>
                 ))}
               </div>
@@ -101,14 +103,14 @@ export default function ContactoPage() {
 
           {/* Redes Sociales */}
           <div className="p-6 flex gap-4">
-            <a href="https://instagram.com/rhythmcontrol" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:text-[#F0E040] transition-colors" style={{ color: '#000000' }}>INSTAGRAM →</a>
-            <a href="https://mixcloud.com/rhythmcontrolshop" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:text-[#F0E040] transition-colors" style={{ color: '#000000' }}>MIXCLOUD →</a>
+            <a href="https://instagram.com/rhythmcontrol.bcn" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>INSTAGRAM →</a>
+            <a href="https://mixcloud.com/rhythmcontrolshop" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>MIXCLOUD →</a>
           </div>
 
         </div>
       </main>
       
-      <Footer />
+      <Footer variant="green" />
     </>
   )
 }

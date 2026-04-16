@@ -9,8 +9,7 @@ import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
   release: Release; onSelect: (release: Release) => void
-  onPlay: (track: PlayerTrack, clipIndex: number) => void; theme?: 'default' | 'magenta'
-  /** Marcar como novedad (muestra badge magenta) */
+  onPlay: (track: PlayerTrack, clipIndex: number) => void; theme?: 'default' | 'magenta' | 'green'
   isNew?: boolean
 }
 
@@ -18,31 +17,21 @@ export default function RecordCard({ release, onSelect, theme = 'default', isNew
   const { addItem } = useCart()
   const { t } = useLocale()
   const artist      = release.artists[0] ?? '—'
-  const accentColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
+  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : '#F0E040'
   const status      = (release as any).status ?? 'active'
   const isAvailable = status === 'active'
 
   return (
     <>
-      <article className="group relative overflow-hidden cursor-pointer"
-        style={{ aspectRatio: '1', backgroundColor: '#000000' }}
+      <article className="group relative overflow-hidden"
+        style={{ aspectRatio: '1', backgroundColor: '#000000', cursor: 'pointer' }}
         onClick={() => onSelect(release)}>
 
         <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
           style={{ backgroundColor: accentColor }} />
 
-        {/* Botón de favoritos (corazón amarillo) */}
+        {/* Botón de favoritos (corazón) — sin badge de nuevo */}
         <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
-
-        {/* Badge de novedad (magenta) */}
-        {isNew && (
-          <div className="absolute top-2 left-2 z-30">
-            <span className="text-[10px] font-bold px-2 py-1"
-              style={{ backgroundColor: '#FF00FF', color: '#FFFFFF', letterSpacing: '0.1em' }}>
-              {t('catalogue.new')}
-            </span>
-          </div>
-        )}
 
         {/* Default State */}
         <div className="absolute inset-0 transition-opacity duration-[250ms] group-hover:opacity-0">
@@ -77,14 +66,14 @@ export default function RecordCard({ release, onSelect, theme = 'default', isNew
           </div>
           <div className="flex gap-2" style={{ marginLeft: '6px' }}>
             <button className="font-display text-xs px-4 py-2"
-              style={{ backgroundColor: accentColor, color: '#000000' }}
+              style={{ backgroundColor: accentColor, color: '#000000', cursor: 'pointer' }}
               onClick={e => { e.stopPropagation(); onSelect(release) }}>
               {t('btn.listen')}
             </button>
             {isAvailable ? (
               <>
                 <button className="flex-1 flex items-center justify-center gap-1 font-display text-xs px-2 py-2"
-                  style={{ border: '2px solid #FFFFFF', color: '#FFFFFF' }}
+                  style={{ border: '2px solid #FFFFFF', color: '#FFFFFF', cursor: 'pointer' }}
                   onClick={e => { e.stopPropagation(); addItem(release) }}>
                   <span style={{ fontWeight: 700 }}>
                     {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
@@ -105,7 +94,6 @@ export default function RecordCard({ release, onSelect, theme = 'default', isNew
           </div>
         </div>
       </article>
-
     </>
   )
 }

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const DOT_SCALE = 1.2;
 const ROWS = [
@@ -50,7 +50,7 @@ export default function StrobeDots() {
     return () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  const circles: React.ReactElement[] = [];
+  const circles: React.JSX.Element[] = [];
   let y = 0;
 
   ROWS.forEach((row, i) => {

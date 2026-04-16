@@ -32,13 +32,12 @@ export default async function Home() {
         {/* Catalogue Heading */}
         <div className="flex items-center" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '16px 24px' }}>
           <h2 className="font-display" style={{ color: '#FFFFFF', fontSize: '3.5rem', lineHeight: '1' }}>
-            CATÁLOGO
+            STOCK
           </h2>
         </div>
 
         {/* Catalogue Content + Pagination */}
         <CatalogueView initialReleases={releases} initialTotal={100} genres={genres} /> 
-        {/* Forzamos initialTotal a 100 para simular paginación siempre */}
 
         {/* Animation Separator */}
         <StrobeDots />

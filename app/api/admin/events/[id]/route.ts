@@ -13,10 +13,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params
   const supabase = createAdminClient()
   const body = await req.json()
+
+  // Solo permitir campos válidos
   const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web']
   const filtered: Record<string, unknown> = {}
-  for (const key of allowed) { if (body[key] !== undefined) filtered[key] = body[key] }
-  if (Object.keys(filtered).length === 0) return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+  for (const key of allowed) {
+    if (body[key] !== undefined) filtered[key] = body[key]
+  }
+
+  if (Object.keys(filtered).length === 0) {
+    return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+  }
+
   const { data, error } = await supabase.from('events').update(filtered).eq('id', id).select()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data[0])

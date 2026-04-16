@@ -38,7 +38,8 @@ export async function createCheckoutSession({
   const coefficient = onlineChannel?.coefficient ?? 1.05
 
   // Construir line_items para Stripe
-  const lineItems = items.map(item => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lineItems: any[] = items.map(item => {
     const channelPrice = calculateChannelPrice(item.price, coefficient)
     // IVA incluido en el precio mostrado (reverse calculation)
     const priceWithoutVAT = Math.round(channelPrice / (1 + VAT_RATE) * 100) / 100
@@ -73,12 +74,7 @@ export async function createCheckoutSession({
         currency: 'eur',
         product_data: {
           name: `Envío: ${shippingRate.name}`,
-          description: shippingRate.description || '',
-          images: [] as string[],
-          metadata: {
-            release_id: 'shipping',
-            discogs_listing_id: '0',
-          },
+          ...(shippingRate.description ? { description: shippingRate.description } : {}),
         },
         unit_amount: Math.round(shippingRate.price * 100),
         tax_behavior: 'inclusive' as const,
@@ -164,8 +160,8 @@ export async function createCheckoutSession({
   await supabase.from('releases').update({ status: 'reserved' }).in('id', releaseIds)
 
   // Crear sesión de Stripe Checkout
-  const sessionParams: Record<string, any> = {
-    mode: 'payment',
+  const sessionParams = {
+    mode: 'payment' as const,
     line_items: lineItems,
     success_url: `${originUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${originUrl}/checkout/cancel?order=${orderNumber}`,
@@ -177,20 +173,18 @@ export async function createCheckoutSession({
       price_channel: channel,
     },
     payment_method_types: isStripeTestMode()
-      ? ['card'] // En test solo card
-      : ['card', 'ideal', 'bancontact'], // En prod más métodos
+      ? ['card' as const]
+      : ['card' as const, 'ideal' as const, 'bancontact' as const],
     allow_promotion_codes: false,
-    billing_address_collection: 'auto',
+    billing_address_collection: 'auto' as const,
     shipping_address_collection: shippingRate?.method !== 'click_collect'
       ? { allowed_countries: ['ES', 'PT', 'FR', 'DE', 'IT', 'GB', 'NL', 'BE'] }
       : undefined,
+    ...(customerEmail ? { customer_email: customerEmail } : {}),
   }
 
-  if (customerEmail) {
-    sessionParams.customer_email = customerEmail
-  }
-
-  const session = await stripe.checkout.sessions.create(sessionParams)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session = await stripe.checkout.sessions.create(sessionParams as any)
 
   // Actualizar orden con stripe_session_id
   await supabase

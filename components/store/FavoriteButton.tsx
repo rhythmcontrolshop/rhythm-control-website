@@ -1,20 +1,16 @@
 'use client'
 // components/store/FavoriteButton.tsx
-// Botón de favorito con corazón amarillo (#F0E040).
-// Se integra en RecordCard y RecordModal.
+// Corazón: solo perfilado blanco, se pone amarillo en hover/active.
+// Sin fondo gris semi-transparente. Posicionado a la izquierda encima del nombre del artista.
 
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 
 interface FavoriteButtonProps {
   releaseId: string
-  /** discogs_release_id del release (para buscar en wantlist) */
   discogsReleaseId?: number
-  /** Si ya sabemos que es favorito (ej: desde el servidor) */
   initialFavorited?: boolean
-  /** Tamaño del icono */
   size?: number
-  /** Variante: 'card' (esquina superior) o 'modal' (botón inline) */
   variant?: 'card' | 'modal'
 }
 
@@ -30,7 +26,6 @@ export default function FavoriteButton({
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState(initialFavorited)
 
-  // Comprobar estado al montar si no lo sabemos
   useEffect(() => {
     if (initialFavorited) return
     async function check() {
@@ -55,9 +50,7 @@ export default function FavoriteButton({
     e.stopPropagation()
     e.preventDefault()
     if (loading) return
-
     setLoading(true)
-
     try {
       if (favorited) {
         const res = await fetch('/api/cuenta/favoritos', {
@@ -77,18 +70,16 @@ export default function FavoriteButton({
     } catch {
       // silencioso
     }
-
     setLoading(false)
   }
 
-  // Corazón SVG
   const heartSvg = (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill={favorited ? '#F0E040' : 'none'}
-      stroke={favorited ? '#F0E040' : 'currentColor'}
+      stroke={favorited ? '#F0E040' : '#FFFFFF'}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -105,13 +96,15 @@ export default function FavoriteButton({
     return (
       <button
         onClick={toggle}
-        className="absolute top-2 right-2 z-30 p-1.5 transition-opacity hover:opacity-80"
+        className="absolute top-2 left-2 z-30 transition-opacity"
         style={{
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          borderRadius: '50%',
-          opacity: !checked ? 0 : favorited ? 1 : 0.5,
+          opacity: !checked ? 0 : 1,
           transition: 'opacity 0.2s ease',
+          cursor: 'pointer',
+          padding: '2px',
         }}
+        onMouseEnter={(e) => { if (!favorited) { e.currentTarget.querySelector('svg')?.setAttribute('fill', '#F0E040'); e.currentTarget.querySelector('svg')?.setAttribute('stroke', '#F0E040') } }}
+        onMouseLeave={(e) => { if (!favorited) { e.currentTarget.querySelector('svg')?.setAttribute('fill', 'none'); e.currentTarget.querySelector('svg')?.setAttribute('stroke', '#FFFFFF') } }}
         aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}
       >
         {heartSvg}
@@ -128,6 +121,7 @@ export default function FavoriteButton({
         border: favorited ? '2px solid #F0E040' : '2px solid #FFFFFF',
         color: favorited ? '#F0E040' : '#FFFFFF',
         backgroundColor: favorited ? 'rgba(240,224,64,0.1)' : 'transparent',
+        cursor: 'pointer',
       }}
       aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}
     >
