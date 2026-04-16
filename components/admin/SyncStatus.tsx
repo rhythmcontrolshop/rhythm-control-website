@@ -1,6 +1,7 @@
 'use client'
 // components/admin/SyncStatus.tsx
 // Muestra el estado del último sync y permite lanzar uno manualmente.
+// Tema admin B/N: blanco sobre negro invertido.
 
 import { useState }   from 'react'
 import { format }     from 'date-fns'
@@ -19,10 +20,10 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: 'var(--rc-color-accent)',
-  running:   'var(--rc-color-text)',
-  failed:    '#f87171',
-  pending:   'var(--rc-color-muted)',
+  completed: '#000000',
+  running:   '#374151',
+  failed:    '#ef4444',
+  pending:   '#6b7280',
 }
 
 export default function SyncStatus({ lastJob }: SyncStatusProps) {
@@ -50,19 +51,19 @@ export default function SyncStatus({ lastJob }: SyncStatusProps) {
   }
 
   return (
-    <div style={{ border: 'var(--rc-border-main)' }}>
+    <div style={{ border: '1px solid #d1d5db' }}>
 
       {/* Última sincronización */}
-      <div className="p-5" style={{ borderBottom: 'var(--rc-border-card)' }}>
+      <div className="p-5" style={{ borderBottom: '1px solid #e5e7eb' }}>
         {lastJob ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+              <span className="text-xs" style={{ color: '#6b7280' }}>
                 ÚLTIMO SYNC
               </span>
               <span
-                className="font-display text-xs"
-                style={{ color: STATUS_COLORS[lastJob.status] ?? 'var(--rc-color-muted)' }}
+                className="text-xs font-medium"
+                style={{ color: STATUS_COLORS[lastJob.status] ?? '#6b7280' }}
               >
                 {STATUS_LABELS[lastJob.status] ?? lastJob.status}
               </span>
@@ -80,11 +81,11 @@ export default function SyncStatus({ lastJob }: SyncStatusProps) {
             </div>
 
             {lastJob.error && (
-              <p className="font-meta text-xs text-red-400 mt-1">{lastJob.error}</p>
+              <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{lastJob.error}</p>
             )}
           </div>
         ) : (
-          <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+          <p className="text-xs" style={{ color: '#6b7280' }}>
             Sin sincronizaciones previas
           </p>
         )}
@@ -95,28 +96,28 @@ export default function SyncStatus({ lastJob }: SyncStatusProps) {
         <button
           onClick={handleSync}
           disabled={loading}
-          className="font-display text-sm py-3 transition-colors disabled:opacity-40"
+          className="text-sm py-3 transition-colors disabled:opacity-40"
           style={{
-            backgroundColor: loading ? 'transparent' : 'var(--rc-color-text)',
-            color:           loading ? 'var(--rc-color-text)' : 'var(--rc-color-bg)',
-            border:          loading ? 'var(--rc-border-main)' : 'none',
+            backgroundColor: loading ? '#FFFFFF' : '#000000',
+            color:           loading ? '#000000' : '#FFFFFF',
+            border:          loading ? '1px solid #d1d5db' : 'none',
           }}
         >
           {loading ? 'SINCRONIZANDO...' : 'SINCRONIZAR AHORA'}
         </button>
 
         {loading && (
-          <p className="font-meta text-xs text-center animate-pulse" style={{ color: 'var(--rc-color-muted)' }}>
+          <p className="text-xs text-center animate-pulse" style={{ color: '#6b7280' }}>
             Esto puede tardar varios minutos según el tamaño del inventario
           </p>
         )}
         {result && (
-          <p className="font-meta text-xs text-center" style={{ color: 'var(--rc-color-accent)' }}>
-            ✓ {result}
+          <p className="text-xs text-center" style={{ color: '#000000' }}>
+            {result}
           </p>
         )}
         {syncError && (
-          <p className="font-meta text-xs text-center text-red-400">{syncError}</p>
+          <p className="text-xs text-center" style={{ color: '#ef4444' }}>{syncError}</p>
         )}
       </div>
 
@@ -127,10 +128,10 @@ export default function SyncStatus({ lastJob }: SyncStatusProps) {
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="font-meta text-xs mb-0.5" style={{ color: 'var(--rc-color-muted)' }}>
+      <p className="text-xs mb-0.5" style={{ color: '#6b7280' }}>
         {label.toUpperCase()}
       </p>
-      <p className="font-meta text-sm" style={{ color: 'var(--rc-color-text)' }}>
+      <p className="text-sm" style={{ color: '#000000' }}>
         {value}
       </p>
     </div>

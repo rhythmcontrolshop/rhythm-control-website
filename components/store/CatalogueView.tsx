@@ -115,7 +115,7 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
       />
 
       {totalPages > 1 && !loading && (
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #1C1C1C' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #1C1C1C', marginTop: '16px' }}>
           <button
             className="font-display text-xs disabled:opacity-30 hover:opacity-60"
             style={{ color: '#FFFFFF' }}

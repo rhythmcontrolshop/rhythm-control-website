@@ -88,6 +88,19 @@ export interface DiscogsAPIRelease {
   cover_image?: string
 }
 
+export interface DiscogsAPITrack {
+  position: string
+  title: string
+  duration?: string
+  type?: string
+}
+
+export interface DiscogsAPIReleaseDetail extends DiscogsAPIRelease {
+  images?: DiscogsAPIImage[]
+  tracklist?: DiscogsAPITrack[]
+  notes?: string
+}
+
 export interface DiscogsAPIListing {
   id: number
   status: string
@@ -155,8 +168,8 @@ export async function searchByBarcode(
 
 export async function getReleaseDetail(
   releaseId: number
-): Promise<DiscogsAPIRelease> {
-  return request<DiscogsAPIRelease>(`/releases/${releaseId}`)
+): Promise<DiscogsAPIReleaseDetail> {
+  return request<DiscogsAPIReleaseDetail>(`/releases/${releaseId}`)
 }
 
 export interface DiscogsAPIImage {

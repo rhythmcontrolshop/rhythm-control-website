@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const DOT_SCALE = 1.2;
 const ROWS = [
@@ -12,11 +12,11 @@ const ROW_HEIGHTS = [18, 18, 26, 18];
 const HEIGHT = ROW_HEIGHTS.reduce((a, b) => a + b, 0);
 
 export default function StrobeDots() {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(320);
   const offsetsRef = useRef(ROWS.map(() => 0));
-  const lastTimeRef = useRef(null);
-  const rafRef = useRef(null);
+  const lastTimeRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
   const [, forceRender] = useState(0);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function StrobeDots() {
   }, []);
 
   useEffect(() => {
-    const animate = (timestamp) => {
+    const animate = (timestamp: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = timestamp;
       const dt = (timestamp - lastTimeRef.current) / 1000;
       lastTimeRef.current = timestamp;
@@ -47,10 +47,10 @@ export default function StrobeDots() {
     };
 
     rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => { if (rafRef.current != null) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  const circles = [];
+  const circles: React.JSX.Element[] = [];
   let y = 0;
 
   ROWS.forEach((row, i) => {

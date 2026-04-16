@@ -18,11 +18,15 @@ export default async function CuentaPage() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user!.id)
 
-  // Pedidos (mock por ahora)
-  const recentOrders = [
-    { id: 'RC-001', date: '2026-04-12', total: 85.00, status: 'Entregado' },
-    { id: 'RC-002', date: '2026-04-10', total: 120.00, status: 'En tránsito' },
-  ]
+  // Pedidos reales
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('id, order_number, total, status, created_at')
+    .eq('user_id', user!.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const ordersList = orders ?? []
 
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto">
@@ -35,12 +39,10 @@ export default async function CuentaPage() {
         </h1>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        <StatCard label="PEDIDOS" value={recentOrders.length} />
-        <StatCard label="FAVORITOS" value={favoritesCount ?? 0} />
-        <StatCard label="CIUDAD" value={profile?.city || '—'} />
-        <StatCard label="PAÍS" value={profile?.country || '—'} />
+      {/* Stats — sin Ciudad/País */}
+      <div className="grid grid-cols-2 gap-4 mb-10">
+        <StatCard label="PEDIDOS" value={ordersList.length} href="/cuenta/pedidos" />
+        <StatCard label="FAVORITOS" value={favoritesCount ?? 0} href="/cuenta/favoritos" />
       </div>
 
       <hr className="separator mb-10" />
@@ -54,21 +56,22 @@ export default async function CuentaPage() {
           </Link>
         </div>
 
-        {recentOrders.length === 0 ? (
+        {ordersList.length === 0 ? (
           <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>No tienes pedidos todavía.</p>
         ) : (
           <div className="space-y-2">
-            {recentOrders.map(order => (
-              <div key={order.id} className="flex items-center justify-between p-4" style={{ border: '2px solid #FFFFFF' }}>
-                <div>
-                  <p className="font-display text-sm" style={{ color: '#FFFFFF' }}>{order.id}</p>
-                  <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>{order.date}</p>
+            {ordersList.map((order: any) => (
+              <Link key={order.id} href="/cuenta/pedidos" className="block">
+                <div className="flex items-center justify-between p-4" style={{ border: '2px solid #FFFFFF' }}>
+                  <div>
+                    <p className="font-display text-sm" style={{ color: '#FFFFFF' }}>{order.order_number || order.id.slice(0, 8)}</p>
+                    <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>{new Date(order.created_at).toLocaleDateString('es-ES')}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-sm" style={{ color: '#FFFFFF' }}>{Number(order.total).toFixed(2)} €</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-display text-sm" style={{ color: '#FFFFFF' }}>{order.total.toFixed(2)} €</p>
-                  <p className="font-meta text-xs" style={{ color: '#F0E040' }}>{order.status}</p>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -80,7 +83,9 @@ export default async function CuentaPage() {
       <section>
         <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>ACCESOS RÁPIDOS</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <QuickLink href="/cuenta/favoritos" label="MI LISTA DE FAVORITOS" />
+          <QuickLink href="/cuenta/pedidos" label="MIS PEDIDOS" />
+          <QuickLink href="/cuenta/favoritos" label="MIS FAVORITOS" />
+          <QuickLink href="/cuenta/datos" label="MIS DATOS" />
           <QuickLink href="/" label="IR A LA TIENDA" external />
         </div>
       </section>
@@ -88,12 +93,13 @@ export default async function CuentaPage() {
   )
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({ label, value, href }: { label: string; value: string | number; href: string }) {
   return (
-    <div className="p-4" style={{ border: '2px solid #FFFFFF' }}>
+    <Link href={href} className="block p-4 transition-colors hover:bg-white"
+      style={{ border: '2px solid #FFFFFF' }}>
       <p className="font-meta text-xs mb-2" style={{ color: '#FFFFFF' }}>{label}</p>
       <p className="font-display text-2xl" style={{ color: '#F0E040' }}>{value}</p>
-    </div>
+    </Link>
   )
 }
 

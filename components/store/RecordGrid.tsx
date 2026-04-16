@@ -6,9 +6,11 @@ interface RecordGridProps {
   loading:   boolean
   onSelect:  (release: Release) => void
   onPlay:    (track: PlayerTrack, clipIndex: number) => void
+  /** Marcar todos como novedades */
+  isNew?: boolean
 }
 
-export default function RecordGrid({ releases, loading, onSelect, onPlay }: RecordGridProps) {
+export default function RecordGrid({ releases, loading, onSelect, onPlay, isNew = false }: RecordGridProps) {
   // Simular 4 filas de 6 columnas (24 items) rellenando con placeholders
   const totalSlots = 24; 
   const items = [...releases];
@@ -22,7 +24,7 @@ export default function RecordGrid({ releases, loading, onSelect, onPlay }: Reco
     <div className="grid grid-cols-2 md:grid-cols-6 gap-[2px]" style={{ backgroundColor: '#FFFFFF' }}>
       {items.map((release, i) => (
         release ? (
-          <RecordCard key={release.id} release={release} onSelect={onSelect} onPlay={onPlay} />
+          <RecordCard key={release.id} release={release} onSelect={onSelect} onPlay={onPlay} isNew={isNew} />
         ) : (
           // Placeholder para simular fila completa
           <div key={`placeholder-${i}`} style={{ aspectRatio: '1', backgroundColor: '#111' }} />

@@ -12,20 +12,20 @@ export default async function AdminResetPassword({
   return (
     <main
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: 'var(--rc-color-bg)' }}
+      style={{ backgroundColor: '#FFFFFF' }}
     >
       <div className="w-full max-w-xs">
 
         <div className="text-center mb-10">
-          <h1 className="font-display text-2xl" style={{ color: 'var(--rc-color-text)' }}>
+          <h1 className="text-2xl font-bold" style={{ color: '#000000' }}>
             RHYTHM CONTROL
           </h1>
-          <p className="font-meta text-xs mt-2" style={{ color: '#FFFFFF' }}>
+          <p className="text-xs mt-2" style={{ color: '#6b7280' }}>
             NUEVA CONTRASEÑA
           </p>
         </div>
 
-        <hr className="separator mb-8" />
+        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '2rem' }} />
 
         <form action={resetPassword} className="flex flex-col gap-5">
           <PasswordInput
@@ -46,15 +46,15 @@ export default async function AdminResetPassword({
           />
 
           {error && (
-            <p className="font-meta text-xs" style={{ color: '#ef4444' }}>
+            <p className="text-xs" style={{ color: '#ef4444' }}>
               {error === 'mismatch' ? 'Las contraseñas no coinciden' : 'Error al actualizar. El enlace puede haber expirado.'}
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full font-display text-sm py-3"
-            style={{ backgroundColor: 'var(--rc-color-text)', color: 'var(--rc-color-bg)' }}
+            className="w-full text-sm py-3 transition-colors hover:opacity-90"
+            style={{ backgroundColor: '#000000', color: '#FFFFFF' }}
           >
             GUARDAR NUEVA CONTRASEÑA
           </button>

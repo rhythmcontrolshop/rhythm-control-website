@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Mono } from 'next/font/google'
 import './globals.css'
 import { CartProvider } from '@/context/CartContext'
+import { LocaleProvider } from '@/context/LocaleContext'
 import CartDrawer from '@/components/cart/CartDrawer'
 
 const spaceMono = Space_Mono({
@@ -23,10 +24,12 @@ export default function RootLayout({
   return (
     <html lang="es" className={spaceMono.variable}>
       <body style={{ backgroundColor: '#000000' }}>
-        <CartProvider>
-          {children}
-          <CartDrawer />
-        </CartProvider>
+        <LocaleProvider>
+          <CartProvider>
+            {children}
+            <CartDrawer />
+          </CartProvider>
+        </LocaleProvider>
       </body>
     </html>
   )

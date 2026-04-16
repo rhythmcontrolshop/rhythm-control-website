@@ -7,7 +7,7 @@ export default function LogoutButton() {
       <button
         type="submit"
         className="font-meta text-xs transition-colors"
-        style={{ color: 'var(--rc-color-muted)' }}
+        style={{ color: '#6b7280' }}
       >
         SALIR
       </button>

@@ -4,7 +4,6 @@ import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
 import { Marquee }     from '@/components/ui/Marquee'
 import { createClient } from '@/lib/supabase/server'
 
-// SVG de fondo: Líneas finas 50/50 (3px Magenta, 3px Negro)
 const MagentaStripes = () => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
@@ -22,7 +21,6 @@ const MagentaStripes = () => (
         height="6"
         patternTransform="rotate(45)"
       >
-        {/* Línea Magenta de 3px (el otro 3px es el fondo negro visible) */}
         <rect width="3" height="6" fill="#FF00FF"/>
       </pattern>
     </defs>
@@ -32,12 +30,18 @@ const MagentaStripes = () => (
 
 export default async function NovedadesPage() {
   const supabase = await createClient()
+  
+  // Filtrar discos de los últimos 30 días naturales
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const cutoff = thirtyDaysAgo.toISOString()
+  
   const { data: releases } = await supabase
     .from('releases')
     .select('*')
     .eq('status', 'active')
+    .gte('created_at', cutoff)
     .order('created_at', { ascending: false })
-    .limit(16)
 
   return (
     <>
@@ -52,14 +56,14 @@ export default async function NovedadesPage() {
         {/* Content Layer */}
         <div className="relative z-10">
           
-          {/* Header: Título flotando sin fondo, alineado al grid */}
+          {/* Header: Título centrado gigante */}
           <header className="border-b-2 border-black">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
                 
                 {/* Margen izq */}
                 <div className="hidden md:block" />
 
-                {/* Título centrado en las 4 columnas, SIN fondo */}
+                {/* Título centrado */}
                 <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
                    <h1 className="font-display w-full text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
                       NOVEDADES
@@ -77,7 +81,7 @@ export default async function NovedadesPage() {
             </div>
           </header>
 
-          {/* Grid: 4x4 con márgenes laterales */}
+          {/* Grid */}
           <section className="p-4 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-0 max-w-7xl mx-auto">
               

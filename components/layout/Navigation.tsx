@@ -1,30 +1,30 @@
 'use client'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
+import { useLocale } from '@/context/LocaleContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
-const NAV_LINKS = [
-  { href: '/novedades', label: 'NOVEDADES' },
-  { href: '/',          label: 'CATÁLOGO'  },
-  { href: '/contacto',  label: 'CONTACTO'  },
-]
-
-interface NavigationProps {
-  variant?: 'default' | 'magenta'
-}
-
-export default function Navigation({ variant = 'default' }: NavigationProps) {
+export default function Navigation({ variant = 'default' }: { variant?: 'default' | 'magenta' | 'green' }) {
   const isMagenta = variant === 'magenta'
-  const bgColor = isMagenta ? '#FF00FF' : '#000000'
-  const textColor = isMagenta ? '#000000' : '#FFFFFF'
-  const logoColor = isMagenta ? '#000000' : '#F0E040'
+  const isGreen = variant === 'green'
+  const bgColor = isMagenta ? '#FF00FF' : isGreen ? '#77DD77' : '#000000'
+  const textColor = (isMagenta || isGreen) ? '#000000' : '#FFFFFF'
+  const logoColor = (isMagenta || isGreen) ? '#000000' : '#F0E040'
   const borderColor = '#000000'
   const { totalItems, toggleCart } = useCart()
+  const { t } = useLocale()
+
+  const NAV_LINKS = [
+    { href: '/novedades', label: t('nav.novedades') },
+    { href: '/',          label: 'STOCK' },
+    { href: '/contacto',  label: t('nav.contact')  },
+  ]
 
   return (
     <header style={{ backgroundColor: bgColor, borderBottom: `2px solid ${borderColor}` }}>
       {/* Desktop */}
       <div className="hidden md:flex items-center justify-between" style={{ height: '120px', padding: '0 24px' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center' }} className="group relative">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 627.27 49.85" style={{ height: '60px', width: 'auto' }} fill={logoColor}>
             <g>
               <path d="M0,1.13h27.93c8.33,0,15.53,4.6,15.53,13.6,0,4.93-2.27,10.13-7.13,11.93,4,1.53,6.46,5.93,7,11.86.2,2.33.27,8,1.6,10.2h-14.66c-.73-2.4-1-4.87-1.2-7.33-.4-4.53-.8-9.26-6.6-9.26h-7.8v16.6H0V1.13ZM14.66,21.93h7.67c2.73,0,6.46-.47,6.46-4.73,0-3-1.67-4.73-7.26-4.73h-6.86v9.46Z"/>
@@ -42,6 +42,11 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
               <path d="M591.55,1.13h14.66v35.39h21.06v12.2h-35.72V1.13Z"/>
             </g>
           </svg>
+          {/* BARCELONA hover label */}
+          <span className="absolute -bottom-6 left-0 font-display opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            style={{ color: textColor, fontSize: '3.5rem', lineHeight: '1', fontWeight: '900', letterSpacing: '-0.02em' }}>
+            BARCELONA
+          </span>
         </Link>
         <nav className="flex items-center gap-8">
           {NAV_LINKS.map(({ href, label }) => (
@@ -49,7 +54,7 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
               {label}
             </Link>
           ))}
-          <button onClick={toggleCart} className="flex items-center gap-2 font-display text-xs transition-opacity hover:opacity-60" style={{ color: textColor }}>
+          <button onClick={toggleCart} className="flex items-center gap-2 font-display text-xs transition-opacity hover:opacity-60" style={{ color: textColor, cursor: 'pointer' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
@@ -58,8 +63,9 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
             CARRITO ({totalItems})
           </button>
           <Link href="/cuenta" className="font-display text-xs transition-opacity hover:opacity-60" style={{ color: textColor }}>
-            CUENTA
+            {t('nav.account')}
           </Link>
+          <LanguageSwitcher />
         </nav>
       </div>
       
@@ -85,12 +91,16 @@ export default function Navigation({ variant = 'default' }: NavigationProps) {
               </g>
             </svg>
           </Link>
-          <button onClick={toggleCart} className="font-display text-xs" style={{ color: textColor }}>CARRITO ({totalItems})</button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <button onClick={toggleCart} className="font-display text-xs" style={{ color: textColor, cursor: 'pointer' }}>CARRITO ({totalItems})</button>
+          </div>
         </div>
         <nav className="flex items-center justify-center gap-6 border-t border-gray-800" style={{ padding: '10px 16px' }}>
           {NAV_LINKS.map(({ href, label }) => (
             <Link key={href} href={href} className="font-display text-xs" style={{ color: textColor }}>{label}</Link>
           ))}
+          <Link href="/cuenta" className="font-display text-xs" style={{ color: textColor }}>{t('nav.account')}</Link>
         </nav>
       </div>
     </header>
