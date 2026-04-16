@@ -6,27 +6,41 @@ BRANCH="recovery/avances"
 cd "$PROJECT"
 
 echo "═══════════════════════════════════════"
-echo "  LOTE 5 — PUSH · PULL · DEPLOY"
+echo "  LOTE 6 — PUSH · PULL · DEPLOY"
 echo "═══════════════════════════════════════"
 
-# 1. Apply LOTE 5 files
+# Find apply-lote6.sh
+APPLY=""
+for dir in "$PROJECT" "$HOME/Downloads" "$HOME/downloads" "$(pwd)"; do
+  if [ -f "$dir/apply-lote6.sh" ]; then
+    APPLY="$dir/apply-lote6.sh"
+    break
+  fi
+done
+
+if [ -z "$APPLY" ]; then
+  echo ""
+  echo "❌ No encuentro apply-lote6.sh"
+  echo "   Mueve apply-lote6.sh al proyecto y repite:"
+  echo "     mv ~/Downloads/apply-lote6.sh $PROJECT/"
+  echo "     bash push-lote6.sh"
+  exit 1
+fi
+
+# 1. Apply LOTE 6 files
 echo ""
-echo "▶ Aplicando apply-lote5.sh ..."
-bash "$PROJECT/apply-lote5.sh"
+echo "▶ Aplicando LOTE 6 desde: $APPLY"
+bash "$APPLY"
 
 # 2. Git add + commit + push
 echo ""
 echo "▶ Git add + commit + push ..."
 git add -A
 git status --short
-git commit -m "LOTE 5: 11 fixes — Guardi API, Admin Dashboard/Pedidos, Nav BARCELONA hover, Favorites COMPRAR, Cart stock limit, RecordCard heart" || echo "  (nada nuevo para commitear)"
+git commit -m "LOTE 6: AdminShell (nav hide on login), Events redirect, Discogs page+nav, Inventory inline qty input" || echo "  (nada nuevo para commitear)"
 git push origin "$BRANCH"
 
-# 3. Pull on Vercel — Vercel auto-deploys from push, but if you need manual pull:
-echo ""
-echo "▶ Vercel despliega automáticamente al detectar el push."
-echo "  Si usas servidor propio, haz:  git pull origin $BRANCH"
 echo ""
 echo "═══════════════════════════════════════"
-echo "  LOTE 5 DEPLOYADO ✓"
+echo "  LOTE 6 DEPLOYADO ✓"
 echo "═══════════════════════════════════════"

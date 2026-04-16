@@ -1,12 +1,9 @@
 import Navigation    from '@/components/layout/Navigation'
-import Hero          from '@/components/home/Hero'
 import CatalogueView from '@/components/store/CatalogueView'
 import StrobeDots    from '@/components/ui/StrobeDots'
 import Footer        from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
-
-export const dynamic = 'force-dynamic'
 
 async function getInitialData(): Promise<{ releases: Release[]; total: number; genres: string[] }> {
   try {
@@ -25,26 +22,16 @@ export default async function Home() {
     <>
       <Navigation />
       <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
-        
-        {/* Hero Section */}
-        <Hero releases={releases} />
-        
-        {/* Catalogue Heading */}
-        <div className="flex items-center" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '16px 24px' }}>
-          <h2 className="font-display" style={{ color: '#FFFFFF', fontSize: '3.5rem', lineHeight: '1' }}>
+        {/* STOCK Title - centered, big, like Novedades */}
+        <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '24px' }}>
+          <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
             STOCK
           </h2>
         </div>
-
-        {/* Catalogue Content + Pagination */}
-        <CatalogueView initialReleases={releases} initialTotal={100} genres={genres} /> 
-
-        {/* Animation Separator */}
+        <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
+        <div style={{ height: '48px' }} />
         <StrobeDots />
-
       </main>
-      
-      {/* Footer */}
       <Footer />
     </>
   )

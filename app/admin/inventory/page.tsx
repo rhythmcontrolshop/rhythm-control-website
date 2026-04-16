@@ -25,9 +25,10 @@ interface ReleaseRow {
   discogs_listing_id: number
   format: string
   year: number | null
+  weight_grams: number | null
 }
 
-type SortField = 'artist' | 'title' | 'price' | 'condition' | 'year' | 'status'
+type SortField = 'artist' | 'title' | 'price' | 'condition' | 'year' | 'status' | 'quantity' | 'format'
 type SortDir = 'asc' | 'desc'
 
 export default function InventoryPage() {
@@ -36,6 +37,8 @@ export default function InventoryPage() {
   const [sortField, setSortField] = useState<SortField>('artist')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [error, setError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<string>('all')
+  const [savingQty, setSavingQty] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/catalogue?limit=500')
@@ -59,7 +62,24 @@ export default function InventoryPage() {
     }
   }
 
-  const sorted = [...releases].sort((a, b) => {
+  async function updateQuantity(releaseId: string, newQty: number) {
+    setSavingQty(releaseId)
+    await fetch(`/api/admin/releases/${releaseId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity: newQty }),
+    })
+    setReleases(prev => prev.map(r => r.id === releaseId ? { ...r, quantity: newQty } : r))
+    setSavingQty(null)
+  }
+
+  const filtered = filter === 'all' ? releases :
+    filter === 'active' ? releases.filter(r => r.status === 'active') :
+    filter === 'sold' ? releases.filter(r => r.status === 'sold') :
+    filter === 'reserved' ? releases.filter(r => r.status === 'reserved') :
+    releases
+
+  const sorted = [...filtered].sort((a, b) => {
     let cmp = 0
     switch (sortField) {
       case 'artist': cmp = (a.artists?.[0] ?? '').localeCompare(b.artists?.[0] ?? ''); break
@@ -68,6 +88,8 @@ export default function InventoryPage() {
       case 'condition': cmp = (a.condition ?? '').localeCompare(b.condition ?? ''); break
       case 'year': cmp = (a.year ?? 0) - (b.year ?? 0); break
       case 'status': cmp = (a.status ?? '').localeCompare(b.status ?? ''); break
+      case 'quantity': cmp = (a.quantity ?? 1) - (b.quantity ?? 1); break
+      case 'format': cmp = (a.format ?? '').localeCompare(b.format ?? ''); break
     }
     return sortDir === 'asc' ? cmp : -cmp
   })
@@ -77,9 +99,20 @@ export default function InventoryPage() {
   const withBarcode = releases.filter(r => r.barcode).length
   const totalUnits = releases.reduce((sum, r) => sum + (r.quantity || 1), 0)
 
-  function SortArrow({ field }: { field: SortField }) {
-    if (sortField !== field) return <span style={{ marginLeft: 4, opacity: 0.3 }}>↕</span>
-    return <span style={{ marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+  function SortHeader({ field, label }: { field: SortField; label: string }) {
+    const isActive = sortField === field
+    return (
+      <th className="text-xs font-medium px-3 py-3 cursor-pointer select-none"
+        style={{ color: isActive ? '#000000' : '#6b7280' }}
+        onClick={() => toggleSort(field)}>
+        <span className="inline-flex items-center gap-1">
+          {label}
+          <span style={{ fontSize: '10px', opacity: isActive ? 1 : 0.3 }}>
+            {isActive ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+          </span>
+        </span>
+      </th>
+    )
   }
 
   if (loading) return <div className="p-6"><p className="text-sm" style={{ color: '#6b7280' }}>Cargando inventario...</p></div>
@@ -103,33 +136,40 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      <div className="flex gap-2 mb-4">
+        {[
+          { key: 'all', label: 'TODOS' },
+          { key: 'active', label: 'EN VENTA' },
+          { key: 'sold', label: 'VENDIDOS' },
+          { key: 'reserved', label: 'GUARDI' },
+        ].map(f => (
+          <button key={f.key} onClick={() => setFilter(f.key)}
+            className="text-xs px-4 py-2 transition-colors duration-150"
+            style={{
+              backgroundColor: filter === f.key ? '#000000' : '#FFFFFF',
+              color: filter === f.key ? '#FFFFFF' : '#374151',
+              border: '1px solid ' + (filter === f.key ? '#000000' : '#d1d5db'),
+              cursor: 'pointer',
+            }}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr style={{ borderBottom: '2px solid #000000' }}>
               <th className="text-xs font-medium px-3 py-3 w-12" style={{ color: '#6b7280' }}></th>
-              {([
-                ['artist', 'ARTISTA'],
-                ['title', 'TÍTULO'],
-                ['condition', 'COND.'],
-                ['year', 'AÑO'],
-                ['price', 'PRECIO'],
-              ] as [SortField, string][]).map(([field, label]) => (
-                <th key={field} className="text-xs font-medium px-3 py-3 cursor-pointer select-none hover:text-black"
-                  style={{ color: '#6b7280' }}
-                  onClick={() => toggleSort(field)}>
-                  {label}<SortArrow field={field} />
-                </th>
-              ))}
+              <SortHeader field="artist" label="ARTISTA" />
+              <SortHeader field="title" label="TÍTULO" />
+              <SortHeader field="condition" label="COND." />
+              <SortHeader field="format" label="FORMATO" />
+              <SortHeader field="quantity" label="UDS." />
+              <SortHeader field="price" label="PRECIO" />
               <th className="text-xs font-medium px-3 py-3" style={{ color: '#6b7280' }}>BARCODE</th>
-              <th className="text-xs font-medium px-3 py-3" style={{ color: '#6b7280' }}>UBICACIÓN</th>
-              {([['status', 'ESTADO']] as [SortField, string][]).map(([field, label]) => (
-                <th key={field} className="text-xs font-medium px-3 py-3 cursor-pointer select-none hover:text-black"
-                  style={{ color: '#6b7280' }}
-                  onClick={() => toggleSort(field)}>
-                  {label}<SortArrow field={field} />
-                </th>
-              ))}
+              <th className="text-xs font-medium px-3 py-3" style={{ color: '#6b7280' }}>UBIC.</th>
+              <SortHeader field="status" label="ESTADO" />
               <th className="text-xs font-medium px-3 py-3" style={{ color: '#6b7280' }}></th>
             </tr>
           </thead>
@@ -146,7 +186,33 @@ export default function InventoryPage() {
                   <td className="px-3 py-3 text-sm font-bold" style={{ color: '#000000' }}>{r.artists?.[0] ?? '—'}</td>
                   <td className="px-3 py-3 text-sm" style={{ color: '#374151' }}>{r.title}</td>
                   <td className="px-3 py-3 text-sm" style={{ color: '#000000' }}>{r.condition ?? '—'}</td>
-                  <td className="px-3 py-3 text-sm" style={{ color: '#000000' }}>{r.year ?? '—'}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: '#374151' }}>{r.format ?? '—'}</td>
+                  <td className="px-3 py-3">
+                    <input
+                      type="number"
+                      min={0}
+                      defaultValue={r.quantity ?? 1}
+                      disabled={savingQty === r.id}
+                      className="w-14 text-sm font-bold text-center focus:outline-none"
+                      style={{
+                        border: savingQty === r.id ? '1px solid #f59e0b' : '1px solid #d1d5db',
+                        color: r.quantity > 1 ? '#000000' : '#9ca3af',
+                        padding: '2px 4px',
+                        backgroundColor: '#FFFFFF',
+                      }}
+                      onBlur={async (e) => {
+                        const newQty = parseInt(e.target.value) || 0
+                        if (newQty !== (r.quantity ?? 1)) {
+                          await updateQuantity(r.id, newQty)
+                        }
+                      }}
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter') {
+                          (e.target as HTMLInputElement).blur()
+                        }
+                      }}
+                    />
+                  </td>
                   <td className="px-3 py-3 text-sm font-bold" style={{ color: '#000000' }}>
                     {r.price?.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }) ?? '—'}
                   </td>
@@ -187,6 +253,30 @@ export default function InventoryPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-10 pt-8" style={{ borderTop: '2px solid #000000' }}>
+        <h2 className="text-lg font-bold mb-4" style={{ color: '#000000' }}>PERFILES DE PESO / PRECIO</h2>
+        <p className="text-xs mb-4" style={{ color: '#6b7280' }}>
+          Configura perfiles de peso para calcular automáticamente los costes de envío.
+          Los perfiles se asocian al formato del disco.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { format: 'LP', weight: '180–230g', desc: 'Álbum estándar 12"' },
+            { format: 'Doble LP', weight: '360–460g', desc: 'Álbum doble 12"' },
+            { format: '7"', weight: '40–60g', desc: 'Sencillo 7 pulgadas' },
+          ].map(profile => (
+            <div key={profile.format} className="p-4" style={{ border: '1px solid #d1d5db' }}>
+              <p className="text-sm font-bold" style={{ color: '#000000' }}>{profile.format}</p>
+              <p className="text-xs mt-1" style={{ color: '#6b7280' }}>{profile.desc}</p>
+              <p className="text-xs mt-2 font-mono" style={{ color: '#000000' }}>Peso: {profile.weight}</p>
+              <a href="/admin/pricing" className="text-xs mt-2 inline-block" style={{ color: '#3b82f6' }}>
+                Configurar precios →
+              </a>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
