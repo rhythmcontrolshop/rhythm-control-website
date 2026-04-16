@@ -1,38 +1,54 @@
 // app/api/checkout/sessions/route.ts
 // POST — Crear sesión de Stripe Checkout
 
+import { z } from 'zod'
 import { createCheckoutSession } from '@/lib/stripe-utils'
 import { createClient } from '@/lib/supabase/server'
 import type { CartItem } from '@/context/CartContext'
 import type { ShippingRate } from '@/types'
 
+const CartItemSchema = z.object({
+  id: z.string().uuid(),
+  discogs_listing_id: z.number().int(),
+  title: z.string().min(1).max(500),
+  artists: z.array(z.string()).min(1),
+  price: z.number().positive(),        // sobreescrito con precio de DB en stripe-utils
+  condition: z.string().optional(),
+  format: z.string().optional(),
+  labels: z.array(z.string()).optional(),
+  cover_image: z.string().optional(),
+  quantity: z.number().int().positive(),
+})
+
+const CheckoutBodySchema = z.object({
+  items: z.array(CartItemSchema).min(1).max(20),
+  shippingRateId: z.string().uuid().nullable().optional(),
+  channel: z.enum(['online', 'physical', 'discogs']).default('online'),
+})
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { items, shippingRateId, channel } = body
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return Response.json({ error: 'Carrito vacío' }, { status: 400 })
+    const raw = await request.json()
+    const parsed = CheckoutBodySchema.safeParse(raw)
+    if (!parsed.success) {
+      return Response.json({ error: 'Datos del carrito inválidos' }, { status: 400 })
     }
 
-    // Verificar stock disponible
+    const { items, shippingRateId, channel } = parsed.data
     const supabase = await createClient()
-    const releaseIds = items.map((i: CartItem) => i.id)
+
+    // Obtener precios autoritativos desde DB (evita price tampering del cliente)
     const { data: releases } = await supabase
       .from('releases')
-      .select('id, status, quantity')
-      .in('id', releaseIds)
+      .select('id, price')
+      .in('id', items.map(i => i.id))
 
-    for (const item of items) {
-      const release = releases?.find((r: any) => r.id === item.id)
-      if (!release || release.status !== 'active') {
-        return Response.json({
-          error: `"${item.artists[0]} — ${item.title}" ya no está disponible`,
-        }, { status: 409 })
-      }
-    }
+    const trustedItems: CartItem[] = items.map(item => {
+      const db = releases?.find(r => r.id === item.id)
+      return { ...item, price: db?.price ?? item.price } as CartItem
+    })
 
-    // Obtener tarifa de envío si se proporciona
+    // Verificar tarifa de envío
     let shippingRate: ShippingRate | null = null
     if (shippingRateId) {
       const { data: rate } = await supabase
@@ -44,30 +60,26 @@ export async function POST(request: Request) {
       shippingRate = rate as ShippingRate | null
     }
 
-    // Obtener usuario si está autenticado
     const { data: { user } } = await supabase.auth.getUser()
-
-    // URL de origen para las URLs de Stripe
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    const origin = request.headers.get('origin') ?? siteUrl ?? 'http://localhost:3000'
 
     const result = await createCheckoutSession({
-      items: items as CartItem[],
+      items: trustedItems,
       shippingRate,
-      customerEmail: user?.email || undefined,
+      customerEmail: user?.email,
       userId: user?.id,
-      channel: channel || 'online',
+      channel,
       originUrl: origin,
     })
 
-    return Response.json({
-      sessionId: result.sessionId,
-      url: result.url,
-    })
+    return Response.json({ sessionId: result.sessionId, url: result.url })
   } catch (err: any) {
     console.error('Checkout session error:', err)
-    return Response.json(
-      { error: err.message || 'Error al crear la sesión de checkout' },
-      { status: 500 }
-    )
+    const status = err.status === 409 ? 409 : 500
+    const message = err.status === 409
+      ? err.message
+      : 'Error al crear la sesión de checkout'
+    return Response.json({ error: message }, { status })
   }
 }

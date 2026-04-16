@@ -1,29 +1,30 @@
 // app/api/admin/price-channels/route.ts
 // CRUD para canales de precio — admin only
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 import { invalidatePriceCache } from '@/lib/pricing'
 
 export async function GET() {
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+
+  const { data, error } = await check.admin
     .from('price_channels')
     .select('*')
     .order('sort_order')
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 500 })
-  }
+  if (error) return Response.json({ error: error.message }, { status: 500 })
   return Response.json({ data })
 }
 
 export async function PATCH(request: Request) {
-  // Actualizar coeficiente de un canal
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+
   const body = await request.json().catch(() => null)
   if (!body) return Response.json({ error: 'Payload inválido' }, { status: 400 })
 
   const { id, coefficient, is_active, name, sort_order } = body
-
   if (!id) return Response.json({ error: 'ID requerido' }, { status: 400 })
 
   const updates: Record<string, any> = {}
@@ -41,20 +42,15 @@ export async function PATCH(request: Request) {
     return Response.json({ error: 'Nada que actualizar' }, { status: 400 })
   }
 
-  const supabase = createAdminClient()
-  const { data, error } = await supabase
+  const { data, error } = await check.admin
     .from('price_channels')
     .update(updates)
     .eq('id', id)
     .select()
     .single()
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 500 })
-  }
+  if (error) return Response.json({ error: error.message }, { status: 500 })
 
-  // Invalidar cache de precios
   invalidatePriceCache()
-
   return Response.json({ data })
 }

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 
 export async function GET(request: NextRequest) {
-  const supabase = createAdminClient()
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+
   const { searchParams } = new URL(request.url)
   const query = searchParams.get('q')
   const releaseId = searchParams.get('releaseId')
@@ -13,7 +15,6 @@ export async function GET(request: NextRequest) {
   }
 
   const apiKey = process.env.YOUTUBE_API_KEY
-
   if (!apiKey) {
     return NextResponse.json({ error: 'YouTube API key not configured' }, { status: 500 })
   }
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     // 1. Check Supabase cache first
     if (releaseId && trackPosition) {
-      const { data: release } = await supabase
+      const { data: release } = await check.admin
         .from('releases')
         .select('youtube_track_ids')
         .eq('id', releaseId)
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Cache result in Supabase
     if (videoId && releaseId && trackPosition) {
-      const { data: release } = await supabase
+      const { data: release } = await check.admin
         .from('releases')
         .select('youtube_track_ids')
         .eq('id', releaseId)
@@ -57,11 +58,9 @@ export async function GET(request: NextRequest) {
 
       const currentCache = (release?.youtube_track_ids as Record<string, string>) || {}
 
-      await supabase
+      await check.admin
         .from('releases')
-        .update({
-          youtube_track_ids: { ...currentCache, [trackPosition]: videoId },
-        })
+        .update({ youtube_track_ids: { ...currentCache, [trackPosition]: videoId } })
         .eq('id', releaseId)
     }
 

@@ -3,7 +3,7 @@
 // Los coeficientes se almacenan en price_channels (Supabase) y son ajustables desde admin.
 // Canales: physical (x0.95), online (x1.05), discogs (x1.10)
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { PriceChannel } from '@/types'
 
 // Cache en memoria para no consultar Supabase en cada request
@@ -11,11 +11,19 @@ let channelsCache: PriceChannel[] | null = null
 let cacheExpiry = 0
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutos
 
+// Usa anon key — price_channels tiene RLS de lectura pública para registros activos
+function getAnonClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
 export async function getPriceChannels(): Promise<PriceChannel[]> {
   const now = Date.now()
   if (channelsCache && now < cacheExpiry) return channelsCache
 
-  const supabase = createAdminClient()
+  const supabase = getAnonClient()
   const { data, error } = await supabase
     .from('price_channels')
     .select('*')

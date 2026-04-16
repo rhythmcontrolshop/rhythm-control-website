@@ -12,8 +12,13 @@ export async function recoverPassword(formData: FormData) {
     redirect('/admin/recover?error=missing-email')
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) {
+    redirect('/admin/recover?error=misconfigured')
+  }
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/admin/reset-password`,
+    redirectTo: `${siteUrl}/admin/reset-password`,
   })
 
   if (error) {

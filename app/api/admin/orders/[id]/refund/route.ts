@@ -1,26 +1,22 @@
 // app/api/admin/orders/[id]/refund/route.ts
 // POST — Reembolsar un pedido via Stripe + actualizar estado
 
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
-import { getStripe }          from '@/lib/stripe'
-import { NextRequest }        from 'next/server'
+import { requireAdmin } from '@/lib/supabase/require-admin'
+import { getStripe } from '@/lib/stripe'
+import { NextRequest } from 'next/server'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'No autorizado' }, { status: 401 })
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
 
   const { id } = await params
-  const admin = createAdminClient()
 
-  // Obtener el pedido
-  const { data: order, error: orderError } = await admin
+  const { data: order, error: orderError } = await check.admin
     .from('orders')
-    .select('id, status, payment_status, stripe_payment_intent, order_items(release_id)')
+    .select('id, status, payment_status, stripe_payment_intent, order_items(release_id, quantity)')
     .eq('id', id)
     .single()
 
@@ -29,41 +25,29 @@ export async function POST(
   }
 
   if (order.payment_status !== 'paid') {
-    return Response.json({ error: 'El pedido no esta pagado' }, { status: 400 })
+    return Response.json({ error: 'El pedido no está pagado' }, { status: 400 })
   }
 
   if (!order.stripe_payment_intent) {
     return Response.json({ error: 'No hay Payment Intent de Stripe' }, { status: 400 })
   }
 
-  // Procesar reembolso via Stripe
   try {
-    const stripe = getStripe()
-    await stripe.refunds.create({
+    await getStripe().refunds.create({
       payment_intent: order.stripe_payment_intent,
       reason: 'requested_by_customer',
     })
   } catch (err: any) {
     console.error('Stripe refund error:', err.message)
-    return Response.json({ error: `Error de Stripe: ${err.message}` }, { status: 500 })
+    return Response.json({ error: 'Error al procesar el reembolso en Stripe' }, { status: 500 })
   }
 
-  // Actualizar estado del pedido
-  await admin
+  // El webhook charge.refunded actualizará el estado final y restaurará stock.
+  // Marcamos como refunded aquí para feedback inmediato en el admin.
+  await check.admin
     .from('orders')
-    .update({
-      status: 'refunded',
-      payment_status: 'refunded',
-      updated_at: new Date().toISOString(),
-    })
+    .update({ payment_status: 'refunded', status: 'cancelled' })
     .eq('id', id)
-
-  // Devolver releases al inventario
-  const items = order.order_items as any[]
-  if (items?.length) {
-    const releaseIds = items.map((i: any) => i.release_id).filter(Boolean)
-    await admin.from('releases').update({ status: 'active' }).in('id', releaseIds)
-  }
 
   return Response.json({ ok: true, message: 'Reembolso procesado' })
 }

@@ -1,40 +1,15 @@
 // app/api/admin/sync/route.ts
 // Trigger Discogs inventory sync — admin only
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 import { syncDiscogsInventory } from '@/lib/discogs/sync'
-import type { SyncJob } from '@/types'
 
-export async function POST(request: Request) {
-  // Verificar admin via cookie rc_admin
-  const cookieHeader = request.headers.get('cookie') || ''
-  const adminCookie = cookieHeader
-    .split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith('rc_admin='))
-
-  if (!adminCookie) {
-    return Response.json({ error: 'No autorizado' }, { status: 401 })
-  }
-
-  const token = adminCookie.split('=')[1]
-  const expectedHash = process.env.ADMIN_SECRET
-    ? await crypto.subtle.digest('SHA-256', new TextEncoder().encode(process.env.ADMIN_SECRET))
-      .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''))
-    : ''
-
-  if (token !== expectedHash) {
-    // Also check if user has admin role in profiles via Supabase auth
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return Response.json({ error: 'No autorizado' }, { status: 401 })
-    }
-  }
+export async function POST() {
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
 
   try {
-    // Check if there's already a running sync
-    const supabase = createAdminClient()
-    const { data: runningJob } = await supabase
+    const { data: runningJob } = await check.admin
       .from('sync_jobs')
       .select('id, status')
       .eq('status', 'running')
@@ -49,8 +24,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Run sync in background — don't await to avoid timeout
-    // The sync job itself tracks progress in sync_jobs table
     const result = await syncDiscogsInventory()
 
     return Response.json({
@@ -68,10 +41,11 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
-  // Get last sync status
-  const supabase = createAdminClient()
-  const { data: lastJob } = await supabase
+export async function GET() {
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+
+  const { data: lastJob } = await check.admin
     .from('sync_jobs')
     .select('*')
     .order('started_at', { ascending: false })

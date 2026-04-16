@@ -12,7 +12,10 @@ export async function registerCustomer(formData: FormData) {
   const username = ((formData.get('username') as string) ?? '').trim() || null
 
   if (!email || !password) redirect('/registro?error=campos-requeridos')
-  if (password.length < 6) redirect('/registro?error=password-corto')
+  if (password.length < 8) redirect('/registro?error=password-corto')
+  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+    redirect('/registro?error=password-debil')
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,

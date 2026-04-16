@@ -2,7 +2,37 @@
 import { createServerClient }            from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Rate limiting en memoria — protege dentro de cada instancia edge.
+// Para protección multi-instancia en producción, sustituir por Upstash Redis.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_MAX = 10       // intentos por ventana
+const RATE_LIMIT_WINDOW = 60_000 // 1 minuto
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+
+  entry.count++
+  if (entry.count > RATE_LIMIT_MAX) return true
+  return false
+}
+
+const AUTH_PATHS = ['/login', '/admin/login', '/registro']
+
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  // Rate limiting para rutas de autenticación
+  if (AUTH_PATHS.some(p => request.nextUrl.pathname === p) && request.method === 'POST') {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    if (isRateLimited(ip)) {
+      return new NextResponse('Too Many Requests', { status: 429 })
+    }
+  }
+
   let response = NextResponse.next({ request })
   let user: any = null
 
@@ -17,7 +47,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
             cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
             response = NextResponse.next({ request })
             cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
+              response.cookies.set(name, value, {
+                ...options,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+              })
             )
           },
         },
@@ -47,16 +82,14 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
         return redirectToLogin(request, 'sin-permisos')
       }
     }
-  } catch (err) {
+  } catch {
     const isProtectedAdmin =
       request.nextUrl.pathname.startsWith('/admin') &&
       !request.nextUrl.pathname.startsWith('/admin/login') &&
       !request.nextUrl.pathname.startsWith('/admin/recover') &&
       !request.nextUrl.pathname.startsWith('/admin/reset-password')
 
-    if (isProtectedAdmin) {
-      return redirectToLogin(request, 'session-error')
-    }
+    if (isProtectedAdmin) return redirectToLogin(request, 'session-error')
   }
 
   return response
