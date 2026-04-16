@@ -13,7 +13,8 @@ function getHeaders(): HeadersInit {
 
 async function request<T>(
   path: string,
-  params?: Record<string, string | number>
+  params?: Record<string, string | number>,
+  retries = 1
 ): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`)
 
@@ -28,10 +29,10 @@ async function request<T>(
     next: { revalidate: 0 },
   })
 
-  // Rate limit — reintentar tras 2s
-  if (res.status === 429) {
+  // Rate limit — reintentar una sola vez tras 2s
+  if (res.status === 429 && retries > 0) {
     await new Promise(r => setTimeout(r, 2000))
-    return request<T>(path, params)
+    return request<T>(path, params, retries - 1)
   }
 
   if (!res.ok) {

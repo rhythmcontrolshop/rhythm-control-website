@@ -24,17 +24,30 @@ export async function GET() {
 export async function PATCH(request: Request) {
   if (!await requireAdmin()) return Response.json({ error: 'No autorizado' }, { status: 401 })
   const { id, action } = await request.json().catch(() => ({}))
-  if (!id || !['confirm', 'cancel'].includes(action))
-    return Response.json({ error: 'Parámetros inválidos' }, { status: 400 })
+  if (!id || !['confirm', 'collect', 'cancel'].includes(action))
+    return Response.json({ error: 'Parámetros inválidos (usar: confirm, collect, cancel)' }, { status: 400 })
   const admin = createAdminClient()
   const { data: r } = await admin.from('reservations').select('release_id, status').eq('id', id).single()
-  if (!r || r.status !== 'pending')
-    return Response.json({ error: 'Reserva no encontrada o ya procesada' }, { status: 404 })
+  if (!r) return Response.json({ error: 'Reserva no encontrada' }, { status: 404 })
+
+  // Validar que la acción corresponda al estado actual
+  if (action === 'confirm' && r.status !== 'pending')
+    return Response.json({ error: 'Solo se pueden confirmar reservas pendientes' }, { status: 409 })
+  if (action === 'collect' && r.status !== 'confirmed')
+    return Response.json({ error: 'Solo se pueden marcar como recogidas las reservas confirmadas' }, { status: 409 })
+  if (action === 'cancel' && r.status !== 'pending' && r.status !== 'confirmed')
+    return Response.json({ error: 'Solo se pueden cancelar reservas pendientes o confirmadas' }, { status: 409 })
+
   const now = new Date().toISOString()
+
   if (action === 'confirm') {
     await admin.from('reservations').update({ status: 'confirmed', confirmed_at: now }).eq('id', id)
     await admin.from('releases').update({ status: 'sold' }).eq('id', r.release_id)
+  } else if (action === 'collect') {
+    await admin.from('reservations').update({ status: 'collected', collected_at: now }).eq('id', id)
+    // El release ya está 'sold' desde el confirm, no hace falta cambiarlo
   } else {
+    // cancel
     await admin.from('reservations').update({ status: 'cancelled', cancelled_at: now }).eq('id', id)
     await admin.from('releases').update({ status: 'active' }).eq('id', r.release_id)
   }

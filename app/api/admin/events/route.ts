@@ -1,14 +1,15 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient }      from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-function isAuthorized(req: Request): boolean {
-  const auth = req.headers.get('Authorization')
-  const token = auth?.replace('Bearer ', '')
-  return token === process.env.ADMIN_SECRET
+async function requireAdmin() {
+  const s = await createClient()
+  const { data: { user } } = await s.auth.getUser()
+  return user
 }
 
-export async function GET(req: Request) {
-  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function GET() {
+  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const supabase = createAdminClient()
   const { data, error } = await supabase.from('events').select('*').order('date', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -16,10 +17,18 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const supabase = createAdminClient()
   const body = await req.json()
-  const { data, error } = await supabase.from('events').insert([body]).select()
+
+  // Solo permitir campos válidos
+  const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web']
+  const filtered: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (body[key] !== undefined) filtered[key] = body[key]
+  }
+
+  const { data, error } = await supabase.from('events').insert([filtered]).select()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data[0])
 }

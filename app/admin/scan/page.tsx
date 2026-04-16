@@ -31,20 +31,47 @@ export default function ScanPage() {
   const [key,     setKey]     = useState('')
   const [saving,  setSaving]  = useState(false)
   const [saved,   setSaved]   = useState(false)
+  const [lastBarcode, setLastBarcode] = useState('')
 
   async function handleScan(barcode: string) {
+    // Evitar búsquedas duplicadas del mismo código
+    if (barcode === lastBarcode && state === 'loading') return
+    setLastBarcode(barcode)
     setState('loading')
+    setErrorMsg('')
 
-    const res  = await fetch(`/api/discogs/lookup?barcode=${encodeURIComponent(barcode)}`)
-    const data = await res.json()
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000) // 15s timeout
 
-    if (res.ok) {
-      setResult(data)
-      setBpm(String(data.inventory?.bpm ?? ''))
-      setKey(data.inventory?.key ?? '')
-      setState('result')
-    } else {
-      setErrorMsg(data.error ?? 'Error al buscar el disco')
+      const res = await fetch(`/api/discogs/lookup?barcode=${encodeURIComponent(barcode)}`, {
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult(data)
+        setBpm(String(data.inventory?.bpm ?? ''))
+        setKey(data.inventory?.key ?? '')
+        setState('result')
+      } else if (res.status === 429) {
+        setErrorMsg('Límite de peticiones a Discogs alcanzado. Espera unos segundos e inténtalo de nuevo.')
+        setState('error')
+      } else if (res.status === 503) {
+        setErrorMsg(data.error || 'Servicio de Discogs no disponible')
+        setState('error')
+      } else {
+        setErrorMsg(data.error ?? 'Error al buscar el disco')
+        setState('error')
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setErrorMsg('La búsqueda ha tardado demasiado. Inténtalo de nuevo.')
+      } else {
+        setErrorMsg('Error de conexión con el servidor')
+      }
       setState('error')
     }
   }
@@ -55,6 +82,7 @@ export default function ScanPage() {
     setBpm('')
     setKey('')
     setSaved(false)
+    setLastBarcode('')
     setState('scanning')
   }
 
@@ -62,26 +90,34 @@ export default function ScanPage() {
     if (!result?.inventory?.id) return
     setSaving(true)
 
-    const res = await fetch(`/api/admin/release/${result.inventory.id}/bpm-key`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        bpm: bpm ? parseInt(bpm, 10) : null,
-        key: key || null,
-      }),
-    })
-
-    setSaved(res.ok)
-    setSaving(false)
+    try {
+      const res = await fetch(`/api/admin/release/${result.inventory.id}/bpm-key`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          bpm: bpm ? parseInt(bpm, 10) : null,
+          key: key || null,
+        }),
+      })
+      setSaved(res.ok)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Error al guardar' }))
+        alert(data.error || 'Error al guardar BPM/Key')
+      }
+    } catch {
+      alert('Error de conexión al guardar')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="p-6 md:p-10 max-w-2xl mx-auto">
 
-      <h1 className="font-display text-3xl mb-2" style={{ color: 'var(--rc-color-text)' }}>
+      <h1 className="text-2xl font-bold mb-2" style={{ color: '#000000' }}>
         ESCANEAR
       </h1>
-      <p className="font-meta text-xs mb-8" style={{ color: 'var(--rc-color-muted)' }}>
+      <p className="text-xs mb-8" style={{ color: '#6b7280' }}>
         Apunta la cámara al código de barras del disco o introdúcelo manualmente
       </p>
 
@@ -93,23 +129,30 @@ export default function ScanPage() {
       {/* Cargando */}
       {state === 'loading' && (
         <div
-          className="flex items-center justify-center py-20"
-          style={{ border: 'var(--rc-border-main)' }}
+          className="flex flex-col items-center justify-center py-20 gap-3"
+          style={{ border: '1px solid #d1d5db' }}
         >
-          <p className="font-meta text-xs animate-pulse" style={{ color: 'var(--rc-color-muted)' }}>
+          <p className="text-xs animate-pulse" style={{ color: '#6b7280' }}>
             BUSCANDO EN DISCOGS...
           </p>
+          <button
+            onClick={handleReset}
+            className="text-xs px-4 py-2 transition-colors hover:bg-gray-100"
+            style={{ border: '1px solid #d1d5db', color: '#6b7280' }}
+          >
+            CANCELAR
+          </button>
         </div>
       )}
 
       {/* Error */}
       {state === 'error' && (
         <div className="py-10 text-center">
-          <p className="font-meta text-sm text-red-400 mb-6">{errorMsg}</p>
+          <p className="text-sm mb-6" style={{ color: '#ef4444' }}>{errorMsg}</p>
           <button
             onClick={handleReset}
-            className="font-display text-xs px-6 py-3 transition-colors hover:bg-white hover:text-black"
-            style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}
+            className="text-xs px-6 py-3 transition-colors hover:bg-black hover:text-white"
+            style={{ border: '1px solid #d1d5db', color: '#374151' }}
           >
             VOLVER A ESCANEAR
           </button>
@@ -123,15 +166,15 @@ export default function ScanPage() {
 
           {/* Editar BPM/Key si está en inventario */}
           {result.inventory && (
-            <div style={{ border: 'var(--rc-border-main)' }}>
-              <div className="p-4" style={{ borderBottom: 'var(--rc-border-card)' }}>
-                <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+            <div style={{ border: '1px solid #d1d5db' }}>
+              <div className="p-4" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <p className="text-xs font-medium" style={{ color: '#000000' }}>
                   DATOS TÉCNICOS
                 </p>
               </div>
               <div className="p-4 flex gap-4">
                 <div className="flex-1">
-                  <label className="font-meta text-xs block mb-2" style={{ color: 'var(--rc-color-muted)' }}>
+                  <label className="text-xs block mb-2" style={{ color: '#6b7280' }}>
                     BPM
                   </label>
                   <input
@@ -139,12 +182,12 @@ export default function ScanPage() {
                     value={bpm}
                     onChange={e => setBpm(e.target.value)}
                     placeholder="ej. 128"
-                    className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                    style={{ border: 'var(--rc-border-card)', color: 'var(--rc-color-text)' }}
+                    className="w-full text-sm px-3 py-2 focus:outline-none"
+                    style={{ border: '1px solid #d1d5db', color: '#000000' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="font-meta text-xs block mb-2" style={{ color: 'var(--rc-color-muted)' }}>
+                  <label className="text-xs block mb-2" style={{ color: '#6b7280' }}>
                     KEY
                   </label>
                   <input
@@ -152,18 +195,18 @@ export default function ScanPage() {
                     value={key}
                     onChange={e => setKey(e.target.value)}
                     placeholder="ej. 4A / Am"
-                    className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                    style={{ border: 'var(--rc-border-card)', color: 'var(--rc-color-text)' }}
+                    className="w-full text-sm px-3 py-2 focus:outline-none"
+                    style={{ border: '1px solid #d1d5db', color: '#000000' }}
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="items-end">
                   <button
                     onClick={handleSaveBpmKey}
                     disabled={saving || saved}
-                    className="font-display text-xs px-4 py-2 transition-colors disabled:opacity-40"
+                    className="text-xs px-4 py-2 transition-colors disabled:opacity-40"
                     style={{
-                      backgroundColor: saved ? 'var(--rc-color-accent)' : 'var(--rc-color-text)',
-                      color: 'var(--rc-color-bg)',
+                      backgroundColor: saved ? '#22c55e' : '#000000',
+                      color: '#FFFFFF',
                     }}
                   >
                     {saving ? '...' : saved ? 'GUARDADO' : 'GUARDAR'}
@@ -176,8 +219,8 @@ export default function ScanPage() {
           {/* Acción: escanear otro */}
           <button
             onClick={handleReset}
-            className="w-full font-display text-xs py-3 transition-colors hover:bg-white hover:text-black"
-            style={{ border: 'var(--rc-border-main)', color: 'var(--rc-color-text)' }}
+            className="w-full text-xs py-3 transition-colors hover:bg-black hover:text-white"
+            style={{ border: '1px solid #d1d5db', color: '#374151' }}
           >
             ESCANEAR OTRO
           </button>
@@ -193,11 +236,11 @@ function ScannerPlaceholder() {
     <div
       className="flex items-center justify-center"
       style={{
-        border:      'var(--rc-border-main)',
+        border:      '1px solid #d1d5db',
         aspectRatio: '4/3',
       }}
     >
-      <p className="font-meta text-xs" style={{ color: 'var(--rc-color-muted)' }}>
+      <p className="text-xs" style={{ color: '#6b7280' }}>
         CARGANDO ESCÁNER...
       </p>
     </div>
