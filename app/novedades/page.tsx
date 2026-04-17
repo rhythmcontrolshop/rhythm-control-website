@@ -77,7 +77,7 @@ export default async function NovedadesPage() {
             
             {/* Marquee con fondo negro */}
             <div className="border-t-2 border-black bg-black py-2">
-              <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#FFFFFF', fontSize: '1.2rem', lineHeight: '1.2' }} />
+              <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품 · NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#FFFFFF', fontSize: '1.2rem', lineHeight: '1.2' }} />
             </div>
           </header>
 
