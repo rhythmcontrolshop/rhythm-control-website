@@ -96,7 +96,7 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
 
           if (item.type === 'lang') {
             return (
-              <div key="lang" style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+              <div key="lang" style={cellStyle}>
                 <LanguageSwitcher />
               </div>
             )
@@ -138,7 +138,7 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
 
           if (item.type === 'lang') {
             return (
-              <div key="lang-m" style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+              <div key="lang-m" style={cellStyle}>
                 <LanguageSwitcher />
               </div>
             )

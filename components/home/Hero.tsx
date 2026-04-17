@@ -124,7 +124,7 @@ export default function Hero({ releases }: HeroProps) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-6" style={{ borderBottom: '2px solid #FFFFFF' }}>
-        <div className="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-3">
+        <div className="col-span-2 md:col-span-3 grid grid-cols-3">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} className="font-display text-xs" style={{ backgroundColor: tab === t.id ? '#F0E040' : '#000000', color: tab === t.id ? '#000000' : '#FFFFFF', borderRight: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '14px 20px', cursor: 'pointer', transition: 'background-color 0.15s, color 0.15s' }}
               onMouseEnter={(e) => { if(tab !== t.id) { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000'; } }} onMouseLeave={(e) => { if(tab !== t.id) { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF'; } }}>{t.label}</button>

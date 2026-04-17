@@ -25,7 +25,7 @@ export default async function StockPage() {
       <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
 
         {/* STOCK Title — centered, big */}
-        <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '24px' }}>
+        <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
           <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
             STOCK
           </h2>

@@ -1,6 +1,4 @@
 'use client'
-// components/layout/LanguageSwitcher.tsx
-// Selector de idioma minimalista para la navegación
 
 import { useLocale } from '@/context/LocaleContext'
 
@@ -12,13 +10,13 @@ export default function LanguageSwitcher() {
       {locales.map((l, i) => (
         <span key={l} className="flex items-center">
           {i > 0 && (
-            <span className="text-xs mx-0.5" style={{ color: '#666' }}>/</span>
+            <span className="text-xs mx-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>/</span>
           )}
           <button
             onClick={() => setLocale(l)}
-            className="text-xs transition-colors uppercase"
+            className="font-display text-xs uppercase transition-colors"
             style={{
-              color: locale === l ? '#F0E040' : '#999',
+              color: locale === l ? '#F0E040' : '#FFFFFF',
               fontWeight: locale === l ? 700 : 400,
             }}
           >

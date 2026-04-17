@@ -29,7 +29,7 @@ export default async function Home() {
         <Hero releases={releases} />
 
         {/* Spacer matching hero-tabs row height */}
-        <div style={{ height: '48px', borderBottom: '2px solid #333333', backgroundColor: '#000000' }} />
+        <div style={{ height: '48px', backgroundColor: '#000000' }} />
 
         {/* Catalogue Content + Pagination */}
         <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />

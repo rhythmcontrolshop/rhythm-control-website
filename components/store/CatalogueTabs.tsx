@@ -44,7 +44,7 @@ export default function CatalogueTabs({
   const labelLabel = activeLabel ?? 'SELLO'
 
   return (
-    <div ref={ref} className="flex" style={{ height: '48px', borderBottom: '2px solid #FFFFFF' }}>
+    <div ref={ref} className="flex" style={{ height: '48px', borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
       <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight>
         {SORT_OPTIONS.map(opt => (
           <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} />
