@@ -1,31 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export default function AdminResetPassword() {
   const router = useRouter()
+  const supabaseRef = useRef<SupabaseClient | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
+    supabaseRef.current = supabase
 
-    // Supabase processes the hash automatically and fires PASSWORD_RECOVERY
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setReady(true)
       }
     })
 
-    // Fallback: if session already exists (token was auto-processed before mount)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true)
-    })
-
-    // Timeout: if no event after 8s, the link is invalid/expired
     const timeout = setTimeout(() => {
       setReady(prev => {
         if (!prev) setError('Enlace inválido o expirado.')
@@ -51,8 +47,10 @@ export default function AdminResetPassword() {
       return
     }
 
+    const supabase = supabaseRef.current
+    if (!supabase) { setError('Error interno. Recarga la página.'); return }
+
     setLoading(true)
-    const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
     if (error) {
       setError('Error al actualizar: ' + error.message)
