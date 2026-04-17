@@ -23,7 +23,7 @@ export default async function Home() {
   return (
     <>
       <Navigation />
-      <main style={{ minHeight: '100vh', backgroundColor: '#000000', overflowX: 'hidden' }}>
+      <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
 
         {/* Hero Section — TOP / MIX / AGENDA */}
         <Hero releases={releases} />

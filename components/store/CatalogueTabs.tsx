@@ -31,11 +31,11 @@ export default function CatalogueTabs({
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function onOutside(e: MouseEvent) {
+    function onOutside(e: PointerEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null)
     }
-    document.addEventListener('mousedown', onOutside)
-    return () => document.removeEventListener('mousedown', onOutside)
+    document.addEventListener('pointerdown', onOutside)
+    return () => document.removeEventListener('pointerdown', onOutside)
   }, [])
 
   const toggle = (name: typeof open) => setOpen(prev => prev === name ? null : name)
@@ -62,15 +62,22 @@ export default function CatalogueTabs({
   )
 }
 
-function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: { label: string; isOpen: boolean; onToggle: () => void; isActive: boolean; borderRight: boolean; children: React.ReactNode }) {
+function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: {
+  label: string; isOpen: boolean; onToggle: () => void
+  isActive: boolean; borderRight: boolean; children: React.ReactNode
+}) {
   return (
     <div style={{ flex: 1, position: 'relative', height: '48px', borderRight: borderRight ? '2px solid #FFFFFF' : 'none' }}>
       <button
         onClick={onToggle}
-        className="font-display text-xs w-full h-full flex items-center justify-between"
-        style={{ color: isActive || isOpen ? '#F0E040' : '#FFFFFF', padding: '0 16px', transition: 'background-color 0.15s, color 0.15s' }}
+        className="font-display text-xs w-full h-full flex items-center justify-between active:bg-[#F0E040] active:text-black"
+        style={{
+          color: isActive || isOpen ? '#F0E040' : '#FFFFFF',
+          padding: '0 16px',
+          transition: 'background-color 0.15s, color 0.15s',
+        }}
         onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
-        onMouseLeave={e => { if(!isOpen && !isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' } }}
+        onMouseLeave={e => { if (!isOpen && !isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' } }}
       >
         <span>{label}</span>
         <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▼</span>
@@ -88,10 +95,16 @@ function DropItem({ label, isSelected, onClick }: { label: string; isSelected: b
   return (
     <button
       onClick={onClick}
-      className="font-display text-xs block w-full text-left"
-      style={{ color: isSelected ? '#F0E040' : '#FFFFFF', backgroundColor: isSelected ? 'rgba(240,224,64,0.08)' : '#000000', padding: '10px 16px', borderBottom: '1px solid #1C1C1C' }}
+      className="font-display text-xs block w-full text-left active:bg-[#F0E040] active:text-black"
+      style={{
+        color: isSelected ? '#F0E040' : '#FFFFFF',
+        backgroundColor: isSelected ? 'rgba(240,224,64,0.08)' : '#000000',
+        padding: '12px 16px',
+        borderBottom: '1px solid #1C1C1C',
+        minHeight: '44px',
+      }}
       onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
-      onMouseLeave={e => { if(!isSelected) { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF' } }}
+      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF' } }}
     >
       {label}
     </button>

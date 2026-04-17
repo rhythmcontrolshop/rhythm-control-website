@@ -57,15 +57,27 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
     { key: 'label', label: `${t('catalogue.moreFrom')} ${release.labels[0]?.toUpperCase()}`, available: false },
   ]
 
+  // iOS-safe scroll lock
   useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowLeft' && prevRelease) onSelect(prevRelease)
       if (e.key === 'ArrowRight' && nextRelease) onSelect(nextRelease)
     }
     document.addEventListener('keydown', handleKey)
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', handleKey); document.body.style.overflow = '' }
+
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
   }, [onClose, prevRelease, nextRelease, onSelect])
 
   const availableTabs = tabs.filter(t_item => t_item.available)
@@ -77,24 +89,45 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
 
   return (
     <>
-      <div ref={backdropRef} className="fixed inset-0 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 200 }} onClick={e => { if (e.target === backdropRef.current) onClose() }}>
-        {prevRelease && <button className="absolute left-4 top-1/2 -translate-y-1/2 font-display text-2xl z-10 hover:opacity-60" style={{ color: '#FFFFFF' }} onClick={() => onSelect(prevRelease)}>←</button>}
+      <div ref={backdropRef} className="fixed inset-0 flex items-center justify-center p-2 md:p-4"
+        style={{ backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 200 }}
+        onClick={e => { if (e.target === backdropRef.current) onClose() }}>
 
-        <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row" style={{ backgroundColor: '#000000', border: '2px solid #FFFFFF' }}>
-          <button className="absolute top-4 right-4 font-display text-xs z-10 hover:opacity-60" style={{ color: '#FFFFFF' }} onClick={onClose}>✕</button>
+        {/* Prev button — large touch target */}
+        {prevRelease && (
+          <button
+            className="absolute left-0 top-1/2 -translate-y-1/2 font-display text-xl z-10 flex items-center justify-center"
+            style={{ width: '44px', height: '88px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#FFFFFF' }}
+            onClick={() => onSelect(prevRelease)}>←</button>
+        )}
 
-          {/* Images */}
-          <div className="flex flex-col shrink-0 w-full md:w-[300px] md:border-r-2 md:border-b-0 border-b-2 border-white">
-            <div className="relative w-full" style={{ aspectRatio: '1' }}>
-               {release.cover_image ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="300px" unoptimized /> : <div className="w-full h-full bg-black" />}
+        <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto flex flex-col md:flex-row"
+          style={{ backgroundColor: '#000000', border: '2px solid #FFFFFF' }}>
+
+          {/* Close button — 44×44 touch target */}
+          <button
+            className="absolute top-0 right-0 z-10 flex items-center justify-center font-display text-xs"
+            style={{ width: '44px', height: '44px', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.8)' }}
+            onClick={onClose}>✕</button>
+
+          {/* Images — side by side on mobile, stacked in sidebar on desktop */}
+          <div className="flex flex-row md:flex-col shrink-0 w-full md:w-[300px] md:border-r-2 md:border-b-0 border-b-2 border-white">
+            <div className="relative w-1/2 md:w-full" style={{ aspectRatio: '1' }}>
+              {release.cover_image
+                ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 300px" />
+                : <div className="w-full h-full bg-black" />}
             </div>
-            <div className="relative w-full border-t-2 border-white" style={{ aspectRatio: '1' }}>
-               {release.back_cover_image ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="300px" unoptimized /> : <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#111' }}><span className="font-display text-xs" style={{ color: '#333' }}>{t('catalogue.noBack')}</span></div>}
+            <div className="relative w-1/2 md:w-full border-l-2 md:border-l-0 md:border-t-2 border-white" style={{ aspectRatio: '1' }}>
+              {release.back_cover_image
+                ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 300px" />
+                : <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#111' }}>
+                    <span className="font-display text-xs" style={{ color: '#333' }}>{t('catalogue.noBack')}</span>
+                  </div>}
             </div>
           </div>
 
           {/* Info */}
-          <div className="flex-1 p-6 lg:p-8 min-w-0 flex flex-col overflow-y-auto">
+          <div className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 flex flex-col overflow-y-auto">
             <p className="font-display" style={{ color: '#FFFFFF', fontSize: '1.8rem', lineHeight: '1.1' }}>{release.artists.join(', ') || '—'}</p>
             <p className="font-display mt-1" style={{ color: accentColor, fontSize: '1.8rem', lineHeight: '1.1' }}>{release.title}</p>
             <p className="font-display text-base font-bold mt-2" style={{ color: '#FFFFFF' }}>{release.labels[0]} {release.catno && `· ${release.catno}`}</p>
@@ -109,19 +142,23 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
 
             <div className="flex items-center justify-between mt-6 pt-6" style={{ borderTop: '1px solid #1C1C1C' }}>
               <div className="flex items-center gap-3">
-                <span className="font-display text-sm px-3 py-1" style={isAccentCondition ? { backgroundColor: accentColor, color: '#000000' } : { border: '1px solid #FFFFFF', color: '#FFFFFF' }}>{release.condition}</span>
+                <span className="font-display text-sm px-3 py-1"
+                  style={isAccentCondition ? { backgroundColor: accentColor, color: '#000000' } : { border: '1px solid #FFFFFF', color: '#FFFFFF' }}>
+                  {release.condition}
+                </span>
               </div>
-              <span className="font-display text-xl" style={{ color: '#FFFFFF' }}>{release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+              <span className="font-display text-xl" style={{ color: '#FFFFFF' }}>
+                {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+              </span>
             </div>
 
-            {/* ACCIONES: Carrito + Click & Collect + Favorito */}
+            {/* Actions */}
             {isAvailable ? (
               <div className="flex gap-2 mt-4 flex-wrap">
                 <button
-                  className="flex-1 font-display text-sm py-3 transition-colors hover:opacity-80 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                  onClick={handleAddToCart}
-                >
+                  className="flex-1 font-display text-sm transition-colors hover:opacity-80 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: '#FFFFFF', color: '#000000', minHeight: '44px' }}
+                  onClick={handleAddToCart}>
                   {t('btn.addToCart')}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -129,18 +166,17 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                   </svg>
                 </button>
                 <button
-                  className="font-display text-sm py-3 px-4 transition-colors hover:opacity-80"
-                  style={{ border: '2px solid #F0E040', color: '#F0E040', backgroundColor: 'transparent' }}
-                  onClick={() => setShowReserve(true)}
-                >
+                  className="font-display text-sm px-4 transition-colors hover:opacity-80"
+                  style={{ border: '2px solid #F0E040', color: '#F0E040', backgroundColor: 'transparent', minHeight: '44px' }}
+                  onClick={() => setShowReserve(true)}>
                   {t('btn.pickup')}
                 </button>
                 <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
               </div>
             ) : (
               <div className="flex gap-2 mt-4">
-                <div className="flex-1 py-3 text-center font-display text-sm"
-                  style={{ border: '1px solid #333', color: '#666' }}>
+                <div className="flex-1 text-center font-display text-sm flex items-center justify-center"
+                  style={{ border: '1px solid #333', color: '#666', minHeight: '44px' }}>
                   {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
                 </div>
                 <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
@@ -151,7 +187,9 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
               <div className="mt-6 pt-6" style={{ borderTop: '1px solid #1C1C1C' }}>
                 <div className="flex flex-wrap gap-1 mb-4">
                   {availableTabs.map(tab => (
-                    <button key={tab.key} className="font-display text-xs px-3 py-2" style={{ backgroundColor: activeTab === tab.key ? accentColor : 'transparent', color: activeTab === tab.key ? '#000000' : '#FFFFFF', border: activeTab === tab.key ? 'none' : '1px solid #FFFFFF' }} onClick={() => setActiveTab(tab.key)}>
+                    <button key={tab.key} className="font-display text-xs px-3 py-2"
+                      style={{ backgroundColor: activeTab === tab.key ? accentColor : 'transparent', color: activeTab === tab.key ? '#000000' : '#FFFFFF', border: activeTab === tab.key ? 'none' : '1px solid #FFFFFF', minHeight: '44px' }}
+                      onClick={() => setActiveTab(tab.key)}>
                       {tab.label}
                     </button>
                   ))}
@@ -165,16 +203,17 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
           </div>
         </div>
 
-        {nextRelease && <button className="absolute right-4 top-1/2 -translate-y-1/2 font-display text-2xl z-10 hover:opacity-60" style={{ color: '#FFFFFF' }} onClick={() => onSelect(nextRelease)}>→</button>}
+        {/* Next button — large touch target */}
+        {nextRelease && (
+          <button
+            className="absolute right-0 top-1/2 -translate-y-1/2 font-display text-xl z-10 flex items-center justify-center"
+            style={{ width: '44px', height: '88px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#FFFFFF' }}
+            onClick={() => onSelect(nextRelease)}>→</button>
+        )}
       </div>
 
-      {/* Click & Collect Modal */}
       {showReserve && isAvailable && (
-        <ReserveModal
-          release={release}
-          onClose={() => setShowReserve(false)}
-          onSuccess={() => setShowReserve(false)}
-        />
+        <ReserveModal release={release} onClose={() => setShowReserve(false)} onSuccess={() => setShowReserve(false)} />
       )}
     </>
   )

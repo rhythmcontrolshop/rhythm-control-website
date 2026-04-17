@@ -129,8 +129,11 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
             ...TAB_CELL,
             borderRight: isLastCol ? 'none' : '2px solid #FFFFFF',
             borderBottom: isFirstRow ? '2px solid #FFFFFF' : 'none',
-            padding: '12px 0',
-            fontSize: '0.6rem',
+            padding: '14px 4px',
+            fontSize: '0.65rem',
+            lineHeight: '1.2',
+            wordBreak: 'break-word',
+            minHeight: '44px',
           }
 
           if (item.type === 'lang') {

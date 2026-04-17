@@ -24,45 +24,28 @@ export default function ReserveModal({ release, onClose, onSuccess }: Props) {
     setError('')
 
     const form = new FormData(e.currentTarget)
-    const name = (form.get('customer_name') as string ?? '').trim()
+    const name  = (form.get('customer_name')  as string ?? '').trim()
     const phone = (form.get('customer_phone') as string ?? '').trim()
     const email = (form.get('customer_email') as string ?? '').trim()
 
-    if (!name) { setError(t('pickup.nameRequired')); setLoading(false); return }
+    if (!name)  { setError(t('pickup.nameRequired'));  setLoading(false); return }
     if (!phone) { setError(t('pickup.phoneRequired')); setLoading(false); return }
     if (!email) { setError(t('pickup.emailRequired')); setLoading(false); return }
 
-    // Validar teléfono español
     const phoneClean = phone.replace(/[\s\-\.]/g, '')
-    const isSpanish = /^(\+34|0034)?[67]\d{8}$/.test(phoneClean)
-    if (!isSpanish) { setError(t('pickup.phoneInvalid')); setLoading(false); return }
-
-    // Validar email básico
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) { setError(t('pickup.emailInvalid')); setLoading(false); return }
+    if (!/^(\+34|0034)?[67]\d{8}$/.test(phoneClean)) { setError(t('pickup.phoneInvalid')); setLoading(false); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))   { setError(t('pickup.emailInvalid')); setLoading(false); return }
 
     try {
       const res = await fetch('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          release_id: release.id,
-          customer_name: name,
-          customer_phone: phone,
-          customer_email: email,
-        }),
+        body: JSON.stringify({ release_id: release.id, customer_name: name, customer_phone: phone, customer_email: email }),
       })
-
       const data = await res.json()
-
-      if (res.ok) {
-        setPickupCode(data.pickup_code || '')
-        setDone(true)
-        onSuccess()
-      } else {
-        setError(data.error ?? 'Error al crear la reserva')
-      }
-    } catch (err) {
+      if (res.ok) { setPickupCode(data.pickup_code || ''); setDone(true); onSuccess() }
+      else        { setError(data.error ?? 'Error al crear la reserva') }
+    } catch {
       setError('Error de conexión. Inténtalo de nuevo.')
     } finally {
       setLoading(false)
@@ -74,13 +57,15 @@ export default function ReserveModal({ release, onClose, onSuccess }: Props) {
       style={{ backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 300 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="w-full max-w-sm p-6" style={{ backgroundColor: '#000', border: '2px solid #FFF' }}>
+
         <div className="flex items-start justify-between mb-6">
           <div>
             <p className="font-display text-xs mb-1" style={{ color: '#F0E040' }}>CLICK & COLLECT</p>
             <p className="font-display text-sm" style={{ color: '#FFF' }}>{artist}</p>
             <p className="font-display text-sm" style={{ color: '#F0E040' }}>{release.title}</p>
           </div>
-          <button onClick={onClose} className="font-display text-sm ml-4" style={{ color: '#FFF' }}>✕</button>
+          <button onClick={onClose} className="font-display text-sm ml-4 flex items-center justify-center"
+            style={{ color: '#FFF', minWidth: '44px', minHeight: '44px' }}>✕</button>
         </div>
 
         {done ? (
@@ -89,50 +74,51 @@ export default function ReserveModal({ release, onClose, onSuccess }: Props) {
             {pickupCode && (
               <div className="mb-4 p-4" style={{ border: '2px solid #F0E040', backgroundColor: 'rgba(240, 224, 64, 0.08)' }}>
                 <p className="font-meta text-xs mb-1" style={{ color: '#FFF' }}>{t('pickup.yourCode')}</p>
-                <p className="font-display text-2xl" style={{ color: '#F0E040', letterSpacing: '0.15em' }}>
-                  {pickupCode}
-                </p>
+                <p className="font-display text-2xl" style={{ color: '#F0E040', letterSpacing: '0.15em' }}>{pickupCode}</p>
               </div>
             )}
-            <p className="font-meta text-xs leading-relaxed mb-2" style={{ color: '#FFFFFF' }}>
-              {t('pickup.emailSent')}
-            </p>
-            <p className="font-meta text-xs leading-relaxed" style={{ color: '#999999' }}>
-              {t('pickup.expiresIn')}
-            </p>
-            <button onClick={onClose} className="w-full font-display text-xs py-3 mt-6"
-              style={{ backgroundColor: '#FFF', color: '#000' }}>{t('btn.close')}</button>
+            <p className="font-meta text-xs leading-relaxed mb-2" style={{ color: '#FFFFFF' }}>{t('pickup.emailSent')}</p>
+            <p className="font-meta text-xs leading-relaxed" style={{ color: '#999999' }}>{t('pickup.expiresIn')}</p>
+            <button onClick={onClose} className="w-full font-display text-xs mt-6"
+              style={{ backgroundColor: '#FFF', color: '#000', minHeight: '44px' }}>{t('btn.close')}</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <p className="font-meta text-xs" style={{ color: '#999999' }}>
-              {t('pickup.description')}
-            </p>
+            <p className="font-meta text-xs" style={{ color: '#999999' }}>{t('pickup.description')}</p>
+
             <div>
               <label className="font-meta text-xs block mb-1" style={{ color: '#FFFFFF' }}>{t('pickup.name')} *</label>
               <input name="customer_name" required
-                className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                style={{ border: '1px solid #333', color: '#FFF' }} placeholder="Tu nombre completo" />
+                autoComplete="name" inputMode="text"
+                className="w-full bg-transparent font-meta text-sm focus:outline-none"
+                style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                placeholder="Tu nombre completo" />
             </div>
+
             <div>
               <label className="font-meta text-xs block mb-1" style={{ color: '#FFFFFF' }}>{t('pickup.phone')} *</label>
               <input name="customer_phone" type="tel" required
-                className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                style={{ border: '1px solid #333', color: '#FFF' }} placeholder="+34 6XX XXX XXX" />
+                autoComplete="tel" inputMode="tel"
+                className="w-full bg-transparent font-meta text-sm focus:outline-none"
+                style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                placeholder="+34 6XX XXX XXX" />
             </div>
+
             <div>
               <label className="font-meta text-xs block mb-1" style={{ color: '#FFFFFF' }}>{t('pickup.email')} *</label>
               <input name="customer_email" type="email" required
-                className="w-full bg-transparent font-meta text-sm px-3 py-2 focus:outline-none"
-                style={{ border: '1px solid #333', color: '#FFF' }} placeholder="tu@email.com" />
-              <p className="font-meta text-xs mt-1" style={{ color: '#666' }}>
-                {t('pickup.sendCode')}
-              </p>
+                autoComplete="email" inputMode="email"
+                className="w-full bg-transparent font-meta text-sm focus:outline-none"
+                style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                placeholder="tu@email.com" />
+              <p className="font-meta text-xs mt-1" style={{ color: '#666' }}>{t('pickup.sendCode')}</p>
             </div>
+
             {error && <p className="font-meta text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+
             <button type="submit" disabled={loading}
-              className="w-full font-display text-sm py-3 mt-1 transition-colors"
-              style={{ backgroundColor: '#F0E040', color: '#000', opacity: loading ? 0.6 : 1 }}>
+              className="w-full font-display text-sm mt-1 transition-colors"
+              style={{ backgroundColor: '#F0E040', color: '#000', opacity: loading ? 0.6 : 1, minHeight: '44px' }}>
               {loading ? t('pickup.submitting') : t('pickup.submit')}
             </button>
           </form>

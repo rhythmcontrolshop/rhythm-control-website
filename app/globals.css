@@ -32,7 +32,7 @@
 *,
 *::before,
 *::after {
-  border-radius: 0 !important;
+  border-radius: 0;
   box-sizing: border-box;
 }
 
@@ -44,6 +44,7 @@ html {
 }
 
 body {
+  overflow-x: hidden;
   background-color: var(--rc-color-bg);
   color: var(--rc-color-text);
   font-family: var(--rc-font-mono);
