@@ -1,17 +1,11 @@
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 import { NextResponse } from 'next/server'
 
-async function requireAdmin() {
-  const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  return user
-}
-
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  const check = await requireAdmin()
+  if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const { id } = await params
-  const supabase = createAdminClient()
+  const supabase = check.admin
   const body = await req.json()
 
   // Solo permitir campos válidos
@@ -31,9 +25,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  const check = await requireAdmin()
+  if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const { id } = await params
-  const supabase = createAdminClient()
+  const supabase = check.admin
   const { error } = await supabase.from('events').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })

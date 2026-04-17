@@ -1,16 +1,13 @@
 // app/api/admin/orders/route.ts
 // Listado de pedidos con búsqueda, filtros y paginación — admin only
 
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
-import { NextRequest }        from 'next/server'
+import { requireAdmin } from '@/lib/supabase/require-admin'
+import { NextRequest }   from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'No autorizado' }, { status: 401 })
-
-  const admin = createAdminClient()
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+  const admin = check.admin
   const { searchParams } = new URL(request.url)
 
   // Parámetros de paginación

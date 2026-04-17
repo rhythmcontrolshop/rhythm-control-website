@@ -16,22 +16,38 @@ export default function AdminResetPassword() {
     const supabase = createClient()
     supabaseRef.current = supabase
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true)
-      }
-    })
+    // @supabase/ssr no procesa el hash automáticamente — hay que hacerlo a mano
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const accessToken  = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    const type         = params.get('type')
 
-    const timeout = setTimeout(() => {
-      setReady(prev => {
-        if (!prev) setError('Enlace inválido o expirado.')
-        return prev
+    if (type === 'recovery' && accessToken && refreshToken) {
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) {
+            setError('Enlace inválido o expirado.')
+          } else {
+            setReady(true)
+            // Limpiar el hash de la URL sin recargar
+            window.history.replaceState(null, '', window.location.pathname)
+          }
+        })
+    } else {
+      // Fallback: escuchar el evento por si el cliente lo procesa solo
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') setReady(true)
       })
-    }, 8000)
 
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timeout)
+      const timeout = setTimeout(() => {
+        setError('Enlace inválido o expirado.')
+      }, 6000)
+
+      return () => {
+        subscription.unsubscribe()
+        clearTimeout(timeout)
+      }
     }
   }, [])
 

@@ -62,7 +62,14 @@ export async function POST(request: Request) {
 
     const { data: { user } } = await supabase.auth.getUser()
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-    const origin = request.headers.get('origin') ?? siteUrl ?? 'http://localhost:3000'
+    const origin = request.headers.get('origin') ?? siteUrl
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return Response.json({ error: 'NEXT_PUBLIC_SITE_URL no configurado' }, { status: 500 })
+      }
+      // dev fallback only
+    }
+    const resolvedOrigin = origin ?? 'http://localhost:3000'
 
     const result = await createCheckoutSession({
       items: trustedItems,
@@ -70,7 +77,7 @@ export async function POST(request: Request) {
       customerEmail: user?.email,
       userId: user?.id,
       channel,
-      originUrl: origin,
+      originUrl: resolvedOrigin,
     })
 
     return Response.json({ sessionId: result.sessionId, url: result.url })

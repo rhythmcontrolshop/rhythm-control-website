@@ -25,6 +25,11 @@ function isRateLimited(ip: string): boolean {
 const AUTH_PATHS = ['/login', '/admin/login', '/registro']
 
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  // Si faltan las env vars de Supabase, dejar pasar sin hacer nada
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return NextResponse.next({ request })
+  }
+
   // Rate limiting para rutas de autenticación
   if (AUTH_PATHS.some(p => request.nextUrl.pathname === p) && request.method === 'POST') {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'

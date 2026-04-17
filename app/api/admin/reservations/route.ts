@@ -1,13 +1,8 @@
-import { createClient }      from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-async function requireAdmin() {
-  const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  return user
-}
+import { requireAdmin } from '@/lib/supabase/require-admin'
 export async function GET() {
-  if (!await requireAdmin()) return Response.json({ error: 'No autorizado' }, { status: 401 })
-  const admin = createAdminClient(); const now = new Date().toISOString()
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
+  const admin = check.admin; const now = new Date().toISOString()
   // Try to expire old reservations
   try {
     const { data: expired } = await admin.from('reservations')
@@ -27,11 +22,12 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  if (!await requireAdmin()) return Response.json({ error: 'No autorizado' }, { status: 401 })
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
   const { id, action } = await request.json().catch(() => ({}))
   if (!id || !['confirm', 'collect', 'cancel'].includes(action))
     return Response.json({ error: 'Parámetros inválidos (usar: confirm, collect, cancel)' }, { status: 400 })
-  const admin = createAdminClient()
+  const admin = check.admin
   const { data: r } = await admin.from('reservations').select('release_id, status').eq('id', id).single()
   if (!r) return Response.json({ error: 'Reserva no encontrada' }, { status: 404 })
 
@@ -44,7 +40,7 @@ export async function PATCH(request: Request) {
 
   // Helper: try update with timestamp column, fallback without if column missing
   async function safeUpdate(table: string, data: Record<string, unknown>, timestampField: string | null, id: string) {
-    const adminClient = createAdminClient()
+    const adminClient = admin
     if (timestampField) {
       const withTs = { ...data, [timestampField]: new Date().toISOString() }
       const { error } = await adminClient.from(table).update(withTs).eq('id', id)

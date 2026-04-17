@@ -1,5 +1,4 @@
-import { createClient }      from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 
 const ALLOWED_STATUS = ['active', 'sold', 'reserved', 'hidden', 'gifted']
 const ALLOWED_FIELDS = ['status', 'quantity', 'barcode', 'location']
@@ -21,9 +20,8 @@ function generateEAN13(): string {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'No autorizado' }, { status: 401 })
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
 
   const { id } = await params
   const body = await request.json().catch(() => ({}))
@@ -57,7 +55,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   updates.updated_at = new Date().toISOString()
 
-  const { error } = await createAdminClient()
+  const { error } = await check.admin
     .from('releases').update(updates).eq('id', id)
 
   if (error) return Response.json({ error: 'Error al actualizar' }, { status: 500 })

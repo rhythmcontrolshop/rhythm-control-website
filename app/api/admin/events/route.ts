@@ -1,24 +1,19 @@
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/require-admin'
 import { NextResponse } from 'next/server'
 
-async function requireAdmin() {
-  const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  return user
-}
-
 export async function GET() {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  const supabase = createAdminClient()
+  const check = await requireAdmin()
+  if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
+  const supabase = check.admin
   const { data, error } = await supabase.from('events').select('*').order('date', { ascending: true })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
 }
 
 export async function POST(req: Request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  const supabase = createAdminClient()
+  const check = await requireAdmin()
+  if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
+  const supabase = check.admin
   const body = await req.json()
 
   // Solo permitir campos válidos

@@ -2,20 +2,17 @@
 // GET — Detalle de pedido con items
 // PATCH — Actualizar estado, tracking, notas
 
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
-import { NextRequest }        from 'next/server'
+import { requireAdmin } from '@/lib/supabase/require-admin'
+import { NextRequest }   from 'next/server'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'No autorizado' }, { status: 401 })
-
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
   const { id } = await params
-  const admin = createAdminClient()
+  const admin = check.admin
 
   const { data: order, error } = await admin
     .from('orders')
@@ -41,13 +38,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'No autorizado' }, { status: 401 })
-
+  const check = await requireAdmin()
+  if (!check.ok) return check.response
   const { id } = await params
   const body = await request.json()
-  const admin = createAdminClient()
+  const admin = check.admin
 
   const ALLOWED_STATUS = ['created', 'pending', 'paid', 'confirmed', 'processing', 'shipped', 'delivered', 'collected', 'cancelled', 'refunded']
   const updates: Record<string, any> = { updated_at: new Date().toISOString() }
