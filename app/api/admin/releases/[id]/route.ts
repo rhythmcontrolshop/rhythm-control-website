@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 
 const ALLOWED_STATUS = ['active', 'sold', 'reserved', 'hidden', 'gifted']
 const ALLOWED_FIELDS = ['status', 'quantity', 'barcode', 'location']
@@ -20,7 +20,7 @@ function generateEAN13(): string {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { id } = await params

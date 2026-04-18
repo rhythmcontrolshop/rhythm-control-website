@@ -28,13 +28,25 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json()
   const { section, ...fields } = body
 
+  // E1-9: Lista explícita de campos permitidos por sección (exclusion por defecto)
+  // Esto evita que campos como "role", "id", "email" se inyecten accidentalmente
+  const ALLOWED_PERSONAL_FIELDS = ['username', 'first_name', 'last_name', 'nif'] as const
+  const ALLOWED_SHIPPING_FIELDS = ['phone', 'address', 'postal_code', 'city', 'province', 'country_code'] as const
+
   const updateData: Record<string, any> = {}
 
   if (section === 'personal') {
-    if (fields.username !== undefined) updateData.username = fields.username?.trim() || null
-    if (fields.first_name !== undefined) updateData.first_name = fields.first_name?.trim() || null
-    if (fields.last_name !== undefined) updateData.last_name = fields.last_name?.trim() || null
-    if (fields.nif !== undefined) updateData.tax_id = fields.nif?.trim().toUpperCase() || null
+    // Solo procesar campos explícitamente permitidos
+    for (const key of ALLOWED_PERSONAL_FIELDS) {
+      if (fields[key] !== undefined) {
+        const value = fields[key]?.trim() || null
+        if (key === 'nif') {
+          updateData.tax_id = value?.toUpperCase() || null
+        } else {
+          updateData[key] = value
+        }
+      }
+    }
 
     if (fields.first_name || fields.last_name) {
       const parts = [fields.first_name, fields.last_name].filter(Boolean)

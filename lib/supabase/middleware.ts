@@ -1,26 +1,7 @@
 // lib/supabase/middleware.ts
 import { createServerClient }            from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-// Rate limiting en memoria — protege dentro de cada instancia edge.
-// Para protección multi-instancia en producción, sustituir por Upstash Redis.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 10       // intentos por ventana
-const RATE_LIMIT_WINDOW = 60_000 // 1 minuto
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
-    return false
-  }
-
-  entry.count++
-  if (entry.count > RATE_LIMIT_MAX) return true
-  return false
-}
+import { checkAuthRateLimit }            from '@/lib/rate-limit'
 
 const AUTH_PATHS = ['/login', '/admin/login', '/registro']
 
@@ -30,10 +11,11 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return NextResponse.next({ request })
   }
 
-  // Rate limiting para rutas de autenticación
+  // Rate limiting para rutas de autenticación (con soporte Upstash Redis)
   if (AUTH_PATHS.some(p => request.nextUrl.pathname === p) && request.method === 'POST') {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-    if (isRateLimited(ip)) {
+    const rateCheck = await checkAuthRateLimit(ip)
+    if (!rateCheck.allowed) {
       return new NextResponse('Too Many Requests', { status: 429 })
     }
   }
@@ -51,14 +33,18 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
             response = NextResponse.next({ request })
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Detectar si es cookie de admin (contiene auth token y estamos en /admin)
+              const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
+              const isAdminCookie = name.includes('auth-token')
+
               response.cookies.set(name, value, {
                 ...options,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                sameSite: isAdminPath && isAdminCookie ? 'strict' : 'lax',
               })
-            )
+            })
           },
         },
       }
@@ -96,6 +82,10 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
     if (isProtectedAdmin) return redirectToLogin(request, 'session-error')
   }
+
+  // E1-7: Añadir X-Request-ID para trazabilidad
+  const requestId = crypto.randomUUID()
+  response.headers.set('X-Request-ID', requestId)
 
   return response
 }

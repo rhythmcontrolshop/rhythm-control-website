@@ -2,14 +2,14 @@
 // GET — Detalle de pedido con items
 // PATCH — Actualizar estado, tracking, notas
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { NextRequest }   from 'next/server'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
   const { id } = await params
   const admin = check.admin
@@ -38,7 +38,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
   const { id } = await params
   const body = await request.json()

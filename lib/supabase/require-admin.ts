@@ -1,11 +1,12 @@
 // lib/supabase/require-admin.ts
 // Helper para rutas admin: verifica sesión activa + rol admin en profiles.
-// Devuelve { user, admin } si OK, o { error, status } si no.
+// E1-13: Devuelve userId sin crear adminClient automáticamente.
+// El llamador decide si necesita admin client o no.
 
 import { createClient } from './server'
 import { createAdminClient } from './admin'
 
-type AdminCheckOk = { ok: true; userId: string; admin: ReturnType<typeof createAdminClient> }
+type AdminCheckOk = { ok: true; userId: string }
 type AdminCheckFail = { ok: false; response: Response }
 
 export async function requireAdmin(): Promise<AdminCheckOk | AdminCheckFail> {
@@ -32,5 +33,19 @@ export async function requireAdmin(): Promise<AdminCheckOk | AdminCheckFail> {
     }
   }
 
-  return { ok: true, userId: user.id, admin: createAdminClient() }
+  return { ok: true, userId: user.id }
+}
+
+/**
+ * Helper que incluye admin client para rutas que realmente necesitan bypass de RLS.
+ * Solo usar cuando sea estrictamente necesario: webhooks, reservas, bulk operations.
+ */
+export async function requireAdminWithClient(): Promise<
+  | { ok: true; userId: string; admin: ReturnType<typeof createAdminClient> }
+  | { ok: false; response: Response }
+> {
+  const result = await requireAdmin()
+  if (!result.ok) return result
+
+  return { ok: true, userId: result.userId, admin: createAdminClient() }
 }

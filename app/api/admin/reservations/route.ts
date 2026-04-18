@@ -1,75 +1,79 @@
-import { requireAdmin } from '@/lib/supabase/require-admin'
-export async function GET() {
-  const check = await requireAdmin()
-  if (!check.ok) return check.response
-  const admin = check.admin; const now = new Date().toISOString()
-  // Try to expire old reservations
-  try {
-    const { data: expired } = await admin.from('reservations')
-      .update({ status: 'cancelled', cancelled_at: now })
-      .eq('status', 'pending').lt('expires_at', now).select('release_id')
-    if (expired?.length) {
-      const ids = (expired as any[]).map(r => r.release_id).filter(Boolean)
-      if (ids.length) await admin.from('releases').update({ status: 'active' }).in('id', ids)
-    }
-  } catch { /* ignore if cancelled_at column doesn't exist yet */ }
+// app/api/admin/reservations/route.ts
+// Admin CRUD for reservations — confirm, collect, cancel
 
-  const { data, error } = await admin.from('reservations')
-    .select('id, status, customer_name, customer_phone, customer_email, expires_at, created_at, releases(id, title, artists, price, thumb)')
-    .order('created_at', { ascending: false })
-  if (error) return Response.json({ error: 'Error al obtener reservas' }, { status: 500 })
-  return Response.json(data)
-}
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 
 export async function PATCH(request: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
-  const { id, action } = await request.json().catch(() => ({}))
-  if (!id || !['confirm', 'collect', 'cancel'].includes(action))
-    return Response.json({ error: 'Parámetros inválidos (usar: confirm, collect, cancel)' }, { status: 400 })
+
+  const body = await request.json().catch(() => null)
+  if (!body) return Response.json({ error: 'Payload inválido' }, { status: 400 })
+
+  const { id, action } = body
+  if (!id || !action) return Response.json({ error: 'ID y acción requeridos' }, { status: 400 })
+
   const admin = check.admin
-  const { data: r } = await admin.from('reservations').select('release_id, status').eq('id', id).single()
-  if (!r) return Response.json({ error: 'Reserva no encontrada' }, { status: 404 })
+  const now = new Date().toISOString()
 
-  if (action === 'confirm' && r.status !== 'pending')
-    return Response.json({ error: 'Solo se pueden confirmar reservas pendientes' }, { status: 409 })
-  if (action === 'collect' && r.status !== 'confirmed')
-    return Response.json({ error: 'Solo se pueden marcar como recogidas las reservas confirmadas' }, { status: 409 })
-  if (action === 'cancel' && r.status !== 'pending' && r.status !== 'confirmed')
-    return Response.json({ error: 'Solo se pueden cancelar reservas pendientes o confirmadas' }, { status: 409 })
+  // Get the reservation first
+  const { data: reservation, error: fetchError } = await admin
+    .from('reservations')
+    .select('id, status, release_id')
+    .eq('id', id)
+    .single()
 
-  // Helper: try update with timestamp column, fallback without if column missing
-  async function safeUpdate(table: string, data: Record<string, unknown>, timestampField: string | null, id: string) {
-    const adminClient = admin
-    if (timestampField) {
-      const withTs = { ...data, [timestampField]: new Date().toISOString() }
-      const { error } = await adminClient.from(table).update(withTs).eq('id', id)
-      if (!error) return true
-      // Column might not exist — retry without timestamp
-      console.warn(`Column ${timestampField} may not exist, retrying without it:`, error.message)
-    }
-    const { error } = await adminClient.from(table).update(data).eq('id', id)
-    if (error) {
-      console.error(`Update ${table} error:`, error.message)
-      return false
-    }
-    return true
+  if (fetchError || !reservation) {
+    return Response.json({ error: 'Reserva no encontrada' }, { status: 404 })
   }
 
   if (action === 'confirm') {
-    const ok = await safeUpdate('reservations', { status: 'confirmed' }, 'confirmed_at', id)
-    if (!ok) return Response.json({ error: 'Error al confirmar la reserva' }, { status: 500 })
-    await admin.from('releases').update({ status: 'sold' }).eq('id', r.release_id)
-  } else if (action === 'collect') {
-    const ok = await safeUpdate('reservations', { status: 'collected' }, 'collected_at', id)
-    if (!ok) return Response.json({ error: 'Error al marcar como recogida' }, { status: 500 })
-    // Release stays 'sold' after collection
-  } else {
-    // cancel
-    const ok = await safeUpdate('reservations', { status: 'cancelled' }, 'cancelled_at', id)
-    if (!ok) return Response.json({ error: 'Error al cancelar la reserva' }, { status: 500 })
-    await admin.from('releases').update({ status: 'active' }).eq('id', r.release_id)
+    const { error } = await admin
+      .from('reservations')
+      .update({ status: 'confirmed', updated_at: now })
+      .eq('id', id)
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    return Response.json({ ok: true, status: 'confirmed' })
   }
 
-  return Response.json({ ok: true })
+  if (action === 'collect') {
+    const { error } = await admin
+      .from('reservations')
+      .update({ status: 'collected', updated_at: now })
+      .eq('id', id)
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    // Mark release as sold
+    if (reservation.release_id) {
+      await admin.from('releases').update({ status: 'sold' }).eq('id', reservation.release_id)
+    }
+    return Response.json({ ok: true, status: 'collected' })
+  }
+
+  if (action === 'cancel') {
+    const { error } = await admin
+      .from('reservations')
+      .update({ status: 'cancelled', cancelled_at: now, updated_at: now })
+      .eq('id', id)
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    // Return release to active
+    if (reservation.release_id) {
+      await admin.from('releases').update({ status: 'active' }).eq('id', reservation.release_id)
+    }
+    return Response.json({ ok: true, status: 'cancelled' })
+  }
+
+  return Response.json({ error: 'Acción no reconocida' }, { status: 400 })
+}
+
+export async function GET() {
+  const check = await requireAdminWithClient()
+  if (!check.ok) return check.response
+
+  const { data, error } = await check.admin
+    .from('reservations')
+    .select('id, status, customer_name, customer_phone, customer_email, expires_at, pickup_code, created_at, releases(id, title, artists, thumb)')
+    .order('created_at', { ascending: false })
+
+  if (error) return Response.json({ error: error.message }, { status: 500 })
+  return Response.json({ data })
 }

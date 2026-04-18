@@ -1,8 +1,8 @@
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { NextResponse } from 'next/server'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const { id } = await params
   const supabase = check.admin
@@ -25,7 +25,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const { id } = await params
   const supabase = check.admin

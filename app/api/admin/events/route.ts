@@ -1,8 +1,8 @@
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const supabase = check.admin
   const { data, error } = await supabase.from('events').select('*').order('date', { ascending: true })
@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return NextResponse.json(await check.response.json(), { status: check.response.status })
   const supabase = check.admin
   const body = await req.json()

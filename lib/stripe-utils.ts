@@ -178,6 +178,9 @@ export async function createCheckoutSession({
       payment_method_types: isStripeTestMode()
         ? ['card']
         : ['card', 'ideal', 'bancontact'],
+      // E1-12: Expirar sesión después de 30 minutos en vez del default de 24h
+      // Esto libera el stock reservado mucho antes
+      expires_at: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutos
       allow_promotion_codes: false,
       billing_address_collection: 'auto',
       shipping_address_collection: !isClickCollect

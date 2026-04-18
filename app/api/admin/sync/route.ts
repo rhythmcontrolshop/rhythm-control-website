@@ -1,11 +1,11 @@
 // app/api/admin/sync/route.ts
 // Trigger Discogs inventory sync — admin only
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { syncDiscogsInventory } from '@/lib/discogs/sync'
 
 export async function POST() {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   try {
@@ -42,7 +42,7 @@ export async function POST() {
 }
 
 export async function GET() {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { data: lastJob } = await check.admin

@@ -1,11 +1,11 @@
 // app/api/admin/orders/route.ts
 // Listado de pedidos con búsqueda, filtros y paginación — admin only
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { NextRequest }   from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
   const admin = check.admin
   const { searchParams } = new URL(request.url)

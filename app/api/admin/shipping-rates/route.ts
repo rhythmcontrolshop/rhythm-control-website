@@ -1,10 +1,10 @@
 // app/api/admin/shipping-rates/route.ts
 // CRUD para tarifas de envío — admin only
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 
 export async function GET() {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { data, error } = await check.admin
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const body = await request.json().catch(() => null)
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const body = await request.json().catch(() => null)
@@ -81,7 +81,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { searchParams } = new URL(request.url)

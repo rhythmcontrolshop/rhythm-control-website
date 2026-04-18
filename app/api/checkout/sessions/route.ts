@@ -40,13 +40,41 @@ export async function POST(request: Request) {
     // Obtener precios autoritativos desde DB (evita price tampering del cliente)
     const { data: releases } = await supabase
       .from('releases')
-      .select('id, price')
+      .select('id, price, status')
       .in('id', items.map(i => i.id))
 
-    const trustedItems: CartItem[] = items.map(item => {
+    // E1-14: Rechazar items cuyo precio no existe en DB o no están activos
+    const rejectedItems: string[] = []
+    const trustedItems: CartItem[] = []
+
+    for (const item of items) {
       const db = releases?.find(r => r.id === item.id)
-      return { ...item, price: db?.price ?? item.price } as CartItem
-    })
+
+      if (!db || db.price === null || db.price === undefined) {
+        // Item no encontrado en DB o sin precio → rechazar
+        rejectedItems.push(item.title || item.id)
+        continue
+      }
+
+      if (db.status !== 'active') {
+        rejectedItems.push(item.title || item.id)
+        continue
+      }
+
+      trustedItems.push({ ...item, price: db.price } as CartItem)
+    }
+
+    if (trustedItems.length === 0) {
+      return Response.json({
+        error: 'Ninguno de los artículos del carrito está disponible',
+        rejected: rejectedItems,
+      }, { status: 400 })
+    }
+
+    if (rejectedItems.length > 0) {
+      // Permitir checkout con items disponibles pero informar de rechazados
+      // El frontend debería filtrar estos items del carrito
+    }
 
     // Verificar tarifa de envío
     let shippingRate: ShippingRate | null = null

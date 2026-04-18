@@ -1,11 +1,11 @@
 // app/api/admin/price-channels/route.ts
 // CRUD para canales de precio — admin only
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { invalidatePriceCache } from '@/lib/pricing'
 
 export async function GET() {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { data, error } = await check.admin
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const body = await request.json().catch(() => null)

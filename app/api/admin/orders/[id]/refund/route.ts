@@ -1,7 +1,7 @@
 // app/api/admin/orders/[id]/refund/route.ts
 // POST — Reembolsar un pedido via Stripe + actualizar estado
 
-import { requireAdmin } from '@/lib/supabase/require-admin'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { getStripe } from '@/lib/stripe'
 import { NextRequest } from 'next/server'
 
@@ -9,7 +9,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const check = await requireAdmin()
+  const check = await requireAdminWithClient()
   if (!check.ok) return check.response
 
   const { id } = await params

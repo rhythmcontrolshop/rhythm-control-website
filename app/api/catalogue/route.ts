@@ -1,9 +1,17 @@
 // app/api/catalogue/route.ts
 // GET /api/catalogue — releases activos con filtros, paginación y precios por canal.
+// E1-8: Usa proyección de columnas en vez de select(*) para reducir payload y evitar exponer datos innecesarios.
 
 import { createClient } from '@/lib/supabase/server'
 import { getPriceChannels, calculateChannelPrice } from '@/lib/pricing'
 import type { NextRequest } from 'next/server'
+
+// Solo proyectar las columnas que la vista de tarjeta necesita
+const CATALOGUE_COLUMNS = [
+  'id', 'title', 'artists', 'price', 'cover_image', 'condition',
+  'format', 'genres', 'styles', 'labels', 'year', 'country',
+  'status', 'created_at',
+].join(',')
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -12,14 +20,14 @@ export async function GET(request: NextRequest) {
   const label   = searchParams.get('label')
   const sort    = searchParams.get('sort') ?? 'newest'
   const page    = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
-  const channel = searchParams.get('channel') ?? 'online' // canal de precio para la web
+  const channel = searchParams.get('channel') ?? 'online'
   const perPage = 24
 
   const supabase = await createClient()
 
   let query = supabase
     .from('releases')
-    .select('*', { count: 'exact' })
+    .select(CATALOGUE_COLUMNS, { count: 'exact' })
     .eq('status', 'active')
 
   if (genre && genre !== 'all') {
@@ -48,8 +56,7 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 
-  // Obtener coeficientes de precio para el canal solicitado
-  let priceCoefficient = 1.05 // default online
+  let priceCoefficient = 1.05
   try {
     const channels = await getPriceChannels()
     const ch = channels.find(c => c.slug === channel)
@@ -58,8 +65,7 @@ export async function GET(request: NextRequest) {
     // Si falla, usar default
   }
 
-  // Aplicar coeficiente de precio a cada release
-  const releasesWithPricing = (data ?? []).map(release => ({
+  const releasesWithPricing = (data ?? []).map((release: Record<string, any>) => ({
     ...release,
     price: calculateChannelPrice(release.price, priceCoefficient),
   }))
