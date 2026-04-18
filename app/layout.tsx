@@ -3,12 +3,14 @@ import { Space_Mono } from 'next/font/google'
 import './globals.css'
 import { CartProvider } from '@/context/CartContext'
 import { LocaleProvider } from '@/context/LocaleContext'
+import { FavoritesProvider } from '@/context/FavoritesContext'
 import CartDrawer from '@/components/cart/CartDrawer'
 
 const spaceMono = Space_Mono({
   variable: '--font-space-mono',
   subsets: ['latin'],
   weight: ['400', '700'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -26,8 +28,10 @@ export default function RootLayout({
       <body style={{ backgroundColor: '#000000' }}>
         <LocaleProvider>
           <CartProvider>
-            {children}
-            <CartDrawer />
+            <FavoritesProvider>
+              {children}
+              <CartDrawer />
+            </FavoritesProvider>
           </CartProvider>
         </LocaleProvider>
       </body>

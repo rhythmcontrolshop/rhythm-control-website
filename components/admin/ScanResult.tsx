@@ -39,7 +39,7 @@ export default function ScanResult({ data }: ScanResultProps) {
               alt={discogs.title}
               fill
               className="object-cover"
-              unoptimized
+              sizes="200px"
             />
           </div>
         )}

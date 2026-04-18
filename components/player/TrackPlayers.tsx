@@ -155,6 +155,7 @@ function TrackPlayer({ track, artist, releaseId }: { track: Track; artist: strin
     if (!window.YT) {
       const tag = document.createElement('script')
       tag.src = 'https://www.youtube.com/iframe_api'
+      tag.async = true
       document.body.appendChild(tag)
       window.onYouTubeIframeAPIReady = () => createPlayer()
     } else if (window.YT.Player) {

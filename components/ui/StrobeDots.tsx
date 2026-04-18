@@ -1,106 +1,91 @@
 'use client'
-import React, { useEffect, useRef, useState } from "react";
+// E4-5: Migrado de rAF a CSS @keyframes.
+// Antes: 60 re-renderizados/segundo via requestAnimationFrame.
+// Ahora: renderizado único, animación via CSS transform (GPU-composited).
+// Respeta prefers-reduced-motion via globals.css.
 
-const DOT_SCALE = 1.2;
+import React, { useRef, useEffect, useState } from 'react'
+
 const ROWS = [
-  { dotSize: 8,  gap: 5,  speed:  60,  scale: DOT_SCALE       },
-  { dotSize: 13, gap: 7,  speed:  28,  scale: DOT_SCALE       },
-  { dotSize: 18, gap: 7,  speed:   0,  scale: DOT_SCALE * 0.7 },
-  { dotSize: 13, gap: 9,  speed: -28,  scale: DOT_SCALE       },
-];
-const ROW_HEIGHTS = [18, 18, 26, 18];
-const HEIGHT = ROW_HEIGHTS.reduce((a, b) => a + b, 0);
+  { dotSize: 8,  gap: 5,  speed: 60,  scale: 1.2 },
+  { dotSize: 13, gap: 7,  speed: 28,  scale: 1.2 },
+  { dotSize: 18, gap: 7,  speed: 0,   scale: 1.2 * 0.7 },
+  { dotSize: 13, gap: 9,  speed: -28, scale: 1.2 },
+]
+const ROW_HEIGHTS = [18, 18, 26, 18]
+const HEIGHT = ROW_HEIGHTS.reduce((a, b) => a + b, 0)
 
 export default function StrobeDots() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(320);
-  const offsetsRef  = useRef(ROWS.map(() => 0));
-  const lastTimeRef = useRef<number | null>(null);
-  const rafRef      = useRef<number | null>(null);
-  const activeRef   = useRef(false);
-  const [, forceRender] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(320)
 
-  // ResizeObserver — update width
   useEffect(() => {
     const ro = new ResizeObserver((entries) => {
-      setWidth(entries[0].contentRect.width);
-    });
+      setWidth(entries[0].contentRect.width)
+    })
     if (containerRef.current) {
-      ro.observe(containerRef.current);
-      setWidth(containerRef.current.offsetWidth);
+      ro.observe(containerRef.current)
+      setWidth(containerRef.current.offsetWidth)
     }
-    return () => ro.disconnect();
-  }, []);
+    return () => ro.disconnect()
+  }, [])
 
-  // IntersectionObserver — pause rAF when off-screen
-  useEffect(() => {
-    const start = () => {
-      if (activeRef.current) return;
-      activeRef.current = true;
-      lastTimeRef.current = null;
-
-      const animate = (timestamp: number) => {
-        if (!activeRef.current) return;
-        if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-        const dt = (timestamp - lastTimeRef.current) / 1000;
-        lastTimeRef.current = timestamp;
-
-        ROWS.forEach((row, i) => {
-          const unit = row.dotSize + row.gap;
-          offsetsRef.current[i] = (offsetsRef.current[i] + row.speed * dt) % unit;
-          if (offsetsRef.current[i] < 0) offsetsRef.current[i] += unit;
-        });
-
-        forceRender(t => t + 1);
-        rafRef.current = requestAnimationFrame(animate);
-      };
-
-      rafRef.current = requestAnimationFrame(animate);
-    };
-
-    const stop = () => {
-      activeRef.current = false;
-      if (rafRef.current != null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-
-    const io = new IntersectionObserver(
-      ([entry]) => { entry.isIntersecting ? start() : stop() },
-      { threshold: 0 }
-    );
-
-    if (containerRef.current) io.observe(containerRef.current);
-
-    return () => { io.disconnect(); stop(); };
-  }, []);
-
-  const circles: React.JSX.Element[] = [];
-  let y = 0;
+  // Generar filas de dots como SVG, con CSS animation inline
+  let y = 0
+  const rowElements: React.JSX.Element[] = []
 
   ROWS.forEach((row, i) => {
-    const unit  = row.dotSize + row.gap;
-    const r     = (row.dotSize / 2) * row.scale;
-    const cy    = y + ROW_HEIGHTS[i] / 2;
-    const offset  = offsetsRef.current[i];
-    const startX  = (offset % unit) - unit;
+    const unit = row.dotSize + row.gap
+    const r = (row.dotSize / 2) * row.scale
+    const cy = y + ROW_HEIGHTS[i] / 2
 
-    for (let x = startX; x < width + unit; x += unit) {
-      const cx = x + row.dotSize / 2;
-      if (cx + r < 0 || cx - r > width) continue;
-      circles.push(
-        <circle key={`${i}-${Math.round(x)}`} cx={cx} cy={cy} r={r} fill="white" />
-      );
+    // Calcular cuántos dots necesitamos para cubrir el ancho + 2x para loop seamless
+    const dotsPerUnit = 1
+    const totalDots = Math.ceil(width / unit) + dotsPerUnit + 2
+
+    // Generar dots para esta fila
+    const dots: React.JSX.Element[] = []
+    for (let j = -1; j < totalDots; j++) {
+      const cx = j * unit + row.dotSize / 2
+      dots.push(
+        <circle key={j} cx={cx} cy={cy} r={r} fill="white" />
+      )
     }
-    y += ROW_HEIGHTS[i];
-  });
+
+    // Duración de la animación basada en velocidad
+    // speed = pixels/segundo, unit = ancho de un ciclo
+    // duration = unit / speed segundos para un ciclo completo
+    const duration = row.speed !== 0 ? Math.abs(unit / row.speed) : Infinity
+    const direction = row.speed < 0 ? 'reverse' : 'normal'
+
+    // Grupo animado: duplicamos los dots para loop seamless
+    // translateX(0) → translateX(-unit) o translateX(unit) según dirección
+    const animationStyle: React.CSSProperties = row.speed !== 0
+      ? {
+          animation: `strobe-row-${i} ${duration}s linear infinite`,
+          animationDirection: direction,
+          willChange: 'transform',
+        }
+      : {}
+
+    rowElements.push(
+      <g key={i} style={animationStyle}>
+        {dots}
+        {/* Duplicado para seamless loop */}
+        <g transform={`translate(${totalDots * unit}, 0)`}>
+          {dots.map((d, j) => React.cloneElement(d, { key: `dup-${j}` }))}
+        </g>
+      </g>
+    )
+
+    y += ROW_HEIGHTS[i]
+  })
 
   return (
     <div
       ref={containerRef}
       style={{
-        width: "100%",
+        width: '100%',
         backgroundColor: '#000000',
         overflow: 'hidden',
         display: 'flex',
@@ -110,10 +95,17 @@ export default function StrobeDots() {
         borderTop: '2px solid #FFFFFF',
       }}
     >
-      <svg width={width} height={HEIGHT} style={{ display: "block", overflow: "hidden" }}>
+      {/* Scoped @keyframes para cada fila */}
+      <style>{`
+        @keyframes strobe-row-0 { 0% { transform: translateX(0); } 100% { transform: translateX(-${ROWS[0].dotSize + ROWS[0].gap}px); } }
+        @keyframes strobe-row-1 { 0% { transform: translateX(0); } 100% { transform: translateX(-${ROWS[1].dotSize + ROWS[1].gap}px); } }
+        @keyframes strobe-row-3 { 0% { transform: translateX(0); } 100% { transform: translateX(${ROWS[3].dotSize + ROWS[3].gap}px); } }
+      `}</style>
+
+      <svg width={width} height={HEIGHT} style={{ display: 'block', overflow: 'hidden' }}>
         <rect width={width} height={HEIGHT} fill="black" />
-        {circles}
+        {rowElements}
       </svg>
     </div>
-  );
+  )
 }

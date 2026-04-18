@@ -1,7 +1,9 @@
 'use client'
 // components/ui/Marquee.tsx
-// Solo hace scroll si el texto excede el ancho del contenedor.
-// Si cabe, muestra texto estático sin animación.
+// E4-6: Refactorizado para usar CSS custom properties.
+// Antes: @keyframes únicos por instancia (24+ tarjetas = 48+ bloques CSS).
+// Ahora: una sola @keyframes global, parametrizada con --mq-unit y --mq-duration.
+// Respeta prefers-reduced-motion via globals.css.
 
 import { useRef, useEffect, useState } from 'react'
 
@@ -17,7 +19,6 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const measureRef   = useRef<HTMLSpanElement>(null)
   const [overflows, setOverflows] = useState(false)
-  const [repeats, setRepeats]   = useState(4)
   const [unitPx, setUnitPx]     = useState(200)
   const [duration, setDuration] = useState(4)
 
@@ -31,15 +32,10 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
     setOverflows(doesOverflow)
 
     if (doesOverflow) {
-      const minTotal = containerW * 2 + textW
-      const reps = Math.max(4, Math.ceil(minTotal / textW))
-      setRepeats(reps)
       setUnitPx(textW)
       setDuration(textW / PX_PER_SECOND)
     }
   }, [text])
-
-  const animName = `mq${text.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'x'}`
 
   // Si no desborda: texto estático con ellipsis
   if (!overflows) {
@@ -65,7 +61,8 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
     )
   }
 
-  // Si desborda: animación de scroll
+  // Si desborda: animación de scroll con CSS custom properties
+  // Solo 2 repeticiones son necesarias (origen + duplicado) para seamless loop
   return (
     <div
       ref={containerRef}
@@ -79,23 +76,20 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
         {text}&nbsp;·&nbsp;
       </span>
 
-      <style>{`
-        @keyframes ${animName} {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-${unitPx}px); }
-        }
-      `}</style>
-
       <span
         className={`inline-block font-display ${className}`}
         style={{
-          animation:  `${animName} ${duration}s linear infinite`,
+          // E4-6: CSS custom properties parametrizan la animación global
+          '--mq-unit': `${unitPx}px`,
+          '--mq-duration': `${duration}s`,
+          animation: 'mq-scroll var(--mq-duration) linear infinite',
+          willChange: 'transform',
           whiteSpace: 'nowrap',
-        }}
+        } as React.CSSProperties}
       >
-        {Array.from({ length: repeats }).map((_, i) => (
-          <span key={i}>{text}&nbsp;·&nbsp;</span>
-        ))}
+        {/* Solo 2 copias: original + duplicado para seamless loop */}
+        <span>{text}&nbsp;·&nbsp;</span>
+        <span>{text}&nbsp;·&nbsp;</span>
       </span>
     </div>
   )

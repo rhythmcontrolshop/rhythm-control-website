@@ -1,11 +1,12 @@
 'use client'
 // components/store/FavoriteButton.tsx
-// Corazón: posicionado encima del texto/botón en cards (NO en la esquina superior).
-// Solo perfilado blanco, se pone amarillo en hover/active (magenta en tema magenta).
-// Sin fondo gris semi-transparente.
+// E4-3: Usa FavoritesContext para evitar N+1 API calls.
+// Si el contexto está disponible (páginas con grid), lo usa.
+// Si no (página individual), hace fetch propio como fallback.
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
+import { useFavorites } from '@/context/FavoritesContext'
 
 interface FavoriteButtonProps {
   releaseId: string
@@ -25,35 +26,35 @@ export default function FavoriteButton({
   theme = 'default',
 }: FavoriteButtonProps) {
   const { t } = useLocale()
-  const [favorited, setFavorited] = useState(initialFavorited)
+  const favCtx = useFavorites()
+
+  // Si hay contexto, usar su estado (batch). Si no, estado local + fetch propio.
+  const isFavoritedFromCtx = favCtx && discogsReleaseId
+    ? favCtx.favorites.has(discogsReleaseId)
+    : null  // null = no hay contexto, usar local
+
+  const [localFavorited, setLocalFavorited] = useState(initialFavorited)
   const [loading, setLoading] = useState(false)
-  const [checked, setChecked] = useState(initialFavorited)
   const [hovering, setHovering] = useState(false)
 
+  const favorited = isFavoritedFromCtx !== null ? isFavoritedFromCtx : localFavorited
   const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : '#F0E040'
-
-  useEffect(() => {
-    if (initialFavorited) return
-    async function check() {
-      try {
-        const res = await fetch('/api/cuenta/favoritos')
-        if (res.ok) {
-          const data = await res.json()
-          if (discogsReleaseId) {
-            const isFav = data.favorites?.some((f: any) => f.discogs_release_id === discogsReleaseId)
-            setFavorited(!!isFav)
-          }
-        }
-      } catch { /* silencioso */ }
-      setChecked(true)
-    }
-    check()
-  }, [discogsReleaseId, initialFavorited])
 
   async function toggle(e: React.MouseEvent) {
     e.stopPropagation()
     e.preventDefault()
     if (loading) return
+
+    // Si hay contexto, delegar al batch toggle
+    if (favCtx && discogsReleaseId) {
+      setLoading(true)
+      const result = await favCtx.toggle(releaseId, discogsReleaseId, favorited)
+      // El contexto ya actualizó favorites Set, así que re-renderiza automáticamente
+      setLoading(false)
+      return
+    }
+
+    // Fallback sin contexto: fetch propio
     setLoading(true)
     try {
       if (favorited) {
@@ -62,14 +63,14 @@ export default function FavoriteButton({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ release_id: releaseId }),
         })
-        if (res.ok) setFavorited(false)
+        if (res.ok) setLocalFavorited(false)
       } else {
         const res = await fetch('/api/cuenta/favoritos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ release_id: releaseId }),
         })
-        if (res.ok) setFavorited(true)
+        if (res.ok) setLocalFavorited(true)
       }
     } catch { /* silencioso */ }
     setLoading(false)
@@ -106,11 +107,10 @@ export default function FavoriteButton({
         onMouseLeave={() => setHovering(false)}
         className="absolute left-0 z-30 transition-opacity"
         style={{
-          opacity: !checked ? 0 : 1,
+          opacity: favCtx && !favCtx.loaded ? 0 : 1,
           transition: 'opacity 0.2s ease',
           cursor: 'pointer',
           padding: '2px',
-          // Position just above the buttons row
           top: '-22px',
         }}
         aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}
