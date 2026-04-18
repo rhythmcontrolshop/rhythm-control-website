@@ -19,7 +19,12 @@ export default function AgendaManager() {
     setLoading(true)
     setErrorMsg(null)
     try {
-      const res = await fetch('/api/admin/events')
+      const res = await fetch('/api/admin/events', { credentials: 'same-origin' })
+      if (res.status === 401) {
+        setErrorMsg('Sesión expirada. Recarga la página para volver a iniciar sesión.')
+        setLoading(false)
+        return
+      }
       const data = await res.json()
       if (res.ok) {
         setEvents(data || [])
@@ -65,7 +70,8 @@ export default function AgendaManager() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        credentials: 'same-origin'
       })
       const data = await res.json()
 
@@ -99,7 +105,7 @@ export default function AgendaManager() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar este evento?')) return
     try {
-      const res = await fetch(`/api/admin/events/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/events/${id}`, { method: 'DELETE', credentials: 'same-origin' })
       if (res.ok) {
         fetchEvents()
       } else {

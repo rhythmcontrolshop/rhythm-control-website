@@ -1,7 +1,5 @@
-import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient }      from '@/lib/supabase/server'
-import { redirect }          from 'next/navigation'
-import ShippingActions       from './ShippingActions'
+import { requireAdminWithClient } from '@/lib/supabase/require-admin'
+import ShippingActions from './ShippingActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,12 +35,18 @@ const ZONE_LABELS: Record<string, string> = {
 }
 
 export default async function ShippingPage() {
-  // Verificar autenticación
-  const supabaseServer = await createClient()
-  const { data: { user } } = await supabaseServer.auth.getUser()
-  if (!user) redirect('/admin/login')
+  const authCheck = await requireAdminWithClient()
+  if (!authCheck.ok) {
+    return (
+      <div className="p-6">
+        <div className="p-4" style={{ border: '1px solid #ef4444', backgroundColor: '#fef2f2' }}>
+          <p className="text-sm" style={{ color: '#ef4444' }}>No autorizado. Inicia sesión como administrador.</p>
+        </div>
+      </div>
+    )
+  }
 
-  const supabase = createAdminClient()
+  const supabase = authCheck.admin
 
   let rates: ShippingRateRow[] | null = null
   let fetchError: string | null = null

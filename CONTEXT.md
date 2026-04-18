@@ -1,8 +1,9 @@
 # RHYTHM CONTROL — Project Context
 
 > Prompt de arranque para nuevas sesiones.
-> Última actualización: fase UI completada (marquee, events, mix, placeholder).
-> Próxima fase: entorno de shop — Medusa vs Shopify, migración Vercel → Coolify/Hetzner.
+> Última actualización: 18 abril 2026 — Auditoría integral completada (E0-E5 + DM).
+> Rama activa: `fix/lotes-1-3`
+> Progreso: 87/93 items completados (E0✅ E1✅ E2✅ E3✅ E4✅ E5✅ DM pendiente)
 
 ---
 
@@ -17,14 +18,15 @@ Tienda de vinilos en Barcelona. Vende discos de segunda mano (house, techno, jaz
 | Capa | Tecnología |
 |---|---|
 | Framework | Next.js 16 App Router, TypeScript |
-| Estilos | Tailwind v4 + inline styles (sistema de diseño propio) |
+| Estilos | Tailwind v4 + CSS variables (`--rc-*`) + inline styles (migración en progreso) |
 | Build | Turbopack |
 | Base de datos | Supabase (PostgreSQL + RLS) |
-| E-commerce | Shopify headless (en evaluación → posible reemplazo por Medusa) |
-| Hosting | Vercel (en migración → Coolify en Hetzner) |
+| E-commerce | Stripe Checkout (reemplazó Shopify) |
+| Hosting | Vercel |
 | Inventario | Discogs API (listings propios) |
-| Audio | YouTube IFrame API + YouTube Data API v3 |
-| Branch activo | `claude/create-website-project-upZgC` |
+| Audio | YouTube IFrame API + YouTube Data API v3 + Spotify previews |
+| Auth | Supabase Auth (PKCE flow) |
+| Pagos | Stripe Checkout Sessions + Webhooks |
 | Repo | `rhythmcontrolshop/rhythm-control-website` |
 
 ---
@@ -233,29 +235,23 @@ MEDUSA_PUBLISHABLE_KEY=
 
 ## Tareas pendientes
 
-### UI (siguientes pasos)
-- [ ] Paginación del catálogo (página, filtros, URL params)
-- [ ] Footer (links, redes, info tienda)
-- [ ] Subir primer mix a Mixcloud → actualizar `MIX.embed`
-- [ ] Ejecutar `/api/admin/enrich` cuando renueve cuota YouTube
-
-### Shop (próxima fase)
-- [ ] Decisión final Shopify vs Medusa
-- [ ] Si Medusa: setup backend Docker, Stripe, admin UI, impuestos ES
-- [ ] Carrito funcional (añadir/quitar, persistencia local)
-- [ ] Checkout completo (dirección, pago, confirmación de pedido)
-- [ ] Webhook "sold" → marcar release como vendido en Supabase
-
-### Infraestructura
-- [ ] Decisión final Vercel vs Coolify/Hetzner
-- [ ] Si Coolify: Dockerfile Next.js, secrets, dominio, SSL, preview deployments
-- [ ] GitHub Actions → deploy automático en push a main
+### Verificación en producción (Deep Mobile)
+- [ ] Medir LCP/CLS/INP con Lighthouse
+- [ ] Test safe areas en iPhone 14+ (Simulador Xcode)
+- [ ] Test scroll lock en iOS 16/17
+- [ ] Medir payload en 3G (Chrome DevTools throttle)
+- [ ] Test en iPhone SE, Pixel 7, iPad Air
+- [ ] Verificar touch targets con Accessibility Inspector
 
 ### Contenido / datos
-- [ ] Tabla `events` en Supabase con datos reales
-- [ ] Mix mensual gestionado desde Supabase (no hardcoded en Hero.tsx)
-- [ ] Sync automático Discogs → Supabase
+- [ ] Tabla `mixes` en Supabase (reemplazar MIX hardcoded en Hero)
 - [ ] Foto DJ real para sección Mix
+- [ ] Sync automático Discogs → Supabase
+
+### Próxima fase
+- [ ] Tests unitarios mínimos (auth flow, checkout flow)
+- [ ] Migración completa inline styles → CSS variables
+- [ ] Estandarizar auth en todas las rutas admin (docs)
 
 ---
 

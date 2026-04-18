@@ -22,12 +22,17 @@ export default function DiscogsPage() {
 
   const fetchLastSync = async () => {
     try {
-      const res = await fetch('/api/admin/sync')
+      const res = await fetch('/api/admin/sync', { credentials: 'same-origin' })
       if (res.ok) {
         const data = await res.json()
         setLastSync(data.lastJob || data)
+      } else {
+        // Auth error or other — don't crash, just show no data
+        console.warn('Sync GET failed:', res.status)
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.warn('Sync GET error:', err)
+    }
     setLoading(false)
   }
 
@@ -36,7 +41,7 @@ export default function DiscogsPage() {
     setError(null)
     setMsg(null)
     try {
-      const res = await fetch('/api/admin/sync', { method: 'POST' })
+      const res = await fetch('/api/admin/sync', { method: 'POST', credentials: 'same-origin' })
       const data = await res.json()
       if (res.ok) {
         setMsg('Sincronización iniciada')
@@ -44,7 +49,7 @@ export default function DiscogsPage() {
       } else {
         setError(data.error || 'Error al iniciar sincronización')
       }
-    } catch {
+    } catch (err) {
       setError('Error de conexión')
     }
     setSyncing(false)
@@ -104,6 +109,10 @@ export default function DiscogsPage() {
           La sincronización con Discogs importa los discos disponibles en tu cuenta de Discogs
           y los añade al inventario de Rhythm Control. Los discos nuevos se marcan como activos
           y los que ya no están disponibles se actualizan automáticamente.
+        </p>
+        <p className="text-xs mt-3 leading-relaxed" style={{ color: '#6b7280' }}>
+          Necesitas configurar las variables de entorno DISCOGS_TOKEN y DISCOGS_USERNAME en Vercel
+          para que la sincronización funcione correctamente.
         </p>
       </div>
     </div>
