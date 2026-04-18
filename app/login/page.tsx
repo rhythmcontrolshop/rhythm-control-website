@@ -17,7 +17,7 @@ export default async function CustomerLogin({
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-4"
+      className="min-h-[100dvh] flex items-center justify-center px-4"
       style={{ backgroundColor: '#000000' }}
     >
       <div className="w-full max-w-xs">
@@ -43,7 +43,7 @@ export default async function CustomerLogin({
             </label>
             <input
               id="email" name="email" type="email"
-              required autoFocus autoComplete="email"
+              required autoFocus autoComplete="email" inputMode="email"
               className="w-full bg-transparent font-meta text-sm px-4 py-3 focus:outline-none"
               style={{ border: '2px solid #FFFFFF', color: '#FFFFFF',
                        letterSpacing: 'var(--rc-tracking-mono)' }}

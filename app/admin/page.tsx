@@ -67,8 +67,8 @@ export default async function AdminDashboard() {
       <section className="mb-10">
         <p className="text-xs font-medium mb-5 tracking-widest" style={{ color: '#000000' }}>PEDIDOS</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InventoryButton href="/admin/orders" label="HOY" count={todayOrders} />
-          <InventoryButton href="/admin/orders" label="TOTAL" count={totalOrders} />
+          <InventoryButton href="/admin/pedidos" label="HOY" count={todayOrders} />
+          <InventoryButton href="/admin/pedidos" label="TOTAL" count={totalOrders} />
         </div>
       </section>
 
@@ -90,11 +90,11 @@ export default async function AdminDashboard() {
         <p className="text-xs font-medium mb-5 tracking-widest" style={{ color: '#000000' }}>ACCIONES RÁPIDAS</p>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           <QuickLink href="/admin/inventory" label="VER INVENTARIO" />
-          <QuickLink href="/admin/reservations" label="GESTIONAR GUARDI" />
+          <QuickLink href="/admin/guardi" label="GESTIONAR GUARDI" />
           <QuickLink href="/admin/scan" label="ESCANEAR DISCO" />
           <QuickLink href="/admin/events" label="GESTIONAR AGENDA" />
-          <QuickLink href="/admin/orders" label="VER PEDIDOS" />
-          <QuickLink href="/admin/barcodes" label="CÓDIGOS / ETIQUETAS" />
+          <QuickLink href="/admin/pedidos" label="VER PEDIDOS" />
+          <QuickLink href="/admin/codigos" label="CÓDIGOS / ETIQUETAS" />
           <QuickLink href="/" label="VER TIENDA →" external />
         </div>
       </section>
@@ -103,12 +103,11 @@ export default async function AdminDashboard() {
 }
 
 function InventoryButton({ href, label, count }: { href: string; label: string; count: number }) {
+  // E3-16: CSS hover instead of onMouseEnter/onMouseLeave
   return (
     <Link href={href}
-      className="flex flex-col items-center justify-center p-8 transition-colors duration-200"
-      style={{ border: '2px solid #000000', backgroundColor: '#FFFFFF', color: '#000000', textDecoration: 'none', minHeight: '140px' }}
-      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF' }}
-      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#000000' }}>
+      className="flex flex-col items-center justify-center p-8 transition-colors duration-200 hover:bg-black hover:text-white hover:border-white"
+      style={{ border: '2px solid #000000', backgroundColor: '#FFFFFF', color: '#000000', textDecoration: 'none', minHeight: '140px' }}>
       <span className="text-xs font-medium tracking-widest mb-3 opacity-70">{label}</span>
       <span className="text-5xl font-bold tabular-nums">{count}</span>
     </Link>
@@ -116,12 +115,11 @@ function InventoryButton({ href, label, count }: { href: string; label: string; 
 }
 
 function QuickLink({ href, label, external = false }: { href: string; label: string; external?: boolean }) {
+  // E3-16: CSS hover instead of onMouseEnter/onMouseLeave
   return (
     <Link href={href} target={external ? '_blank' : undefined}
-      className="text-xs px-6 py-3 text-center tracking-widest font-medium transition-colors duration-200"
-      style={{ border: '1px solid #d1d5db', color: '#374151', textDecoration: 'none', backgroundColor: '#FFFFFF' }}
-      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.borderColor = '#000000' }}
-      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF'; e.currentTarget.style.color = '#374151'; e.currentTarget.style.borderColor = '#d1d5db' }}>
+      className="text-xs px-6 py-3 text-center tracking-widest font-medium transition-colors duration-200 hover:bg-black hover:text-white hover:border-black"
+      style={{ border: '1px solid #d1d5db', color: '#374151', textDecoration: 'none', backgroundColor: '#FFFFFF' }}>
       {label}
     </Link>
   )

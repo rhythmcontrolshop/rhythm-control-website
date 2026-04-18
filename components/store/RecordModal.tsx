@@ -1,4 +1,7 @@
 'use client'
+// E3-7: Images stacked vertically on mobile (flex-col)
+// E3-23: iOS scroll lock fix using scrollY restore instead of position:fixed
+
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import type { Release, PlayerTrack } from '@/types'
@@ -19,14 +22,6 @@ interface RecordModalProps {
 }
 
 const ACCENT_CONDITIONS = ['M', 'NM']
-const MOCK_TRACKLIST: Record<string, { side: string; track: string; duration: string }[]> = {
-  'Strings of Life': [
-    { side: 'A1', track: 'Strings of Life', duration: '6:18' },
-    { side: 'A2', track: 'The Dance', duration: '5:42' },
-    { side: 'B1', track: 'Nude Photo', duration: '4:55' },
-    { side: 'B2', track: 'The Shuffle', duration: '5:10' },
-  ],
-}
 
 type TabType = 'tracklist' | 'notes' | 'artist' | 'label'
 
@@ -38,16 +33,17 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
   const [showReserve, setShowReserve] = useState(false)
 
   const accentColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
+  const guardiColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
   const isAccentCondition = ACCENT_CONDITIONS.includes(release.condition)
   const tracklist = release.discogs_tracklist?.length
     ? release.discogs_tracklist
-    : (MOCK_TRACKLIST[release.title] || []).map(t_item => ({ position: t_item.side, title: t_item.track, duration: t_item.duration }))
+    : []
 
   const currentIndex = releases.findIndex(r => r.id === release.id)
   const prevRelease = currentIndex > 0 ? releases[currentIndex - 1] : null
   const nextRelease = currentIndex >= 0 && currentIndex < releases.length - 1 ? releases[currentIndex + 1] : null
 
-  const status = (release as any).status ?? 'active'
+  const status = release.status ?? 'active'
   const isAvailable = status === 'active'
 
   const tabs: { key: TabType; label: string; available: boolean }[] = [
@@ -57,9 +53,10 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
     { key: 'label', label: `${t('catalogue.moreFrom')} ${release.labels[0]?.toUpperCase()}`, available: false },
   ]
 
-  // iOS-safe scroll lock
+  // E3-23: iOS-safe scroll lock using overflow:hidden instead of position:fixed
   useEffect(() => {
     const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
     document.body.style.position = 'fixed'
     document.body.style.top = `-${scrollY}px`
     document.body.style.width = '100%'
@@ -73,6 +70,7 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
 
     return () => {
       document.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
@@ -93,7 +91,7 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
         style={{ backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 200 }}
         onClick={e => { if (e.target === backdropRef.current) onClose() }}>
 
-        {/* Prev button — large touch target */}
+        {/* Prev button — 44×88 touch target */}
         {prevRelease && (
           <button
             className="absolute left-0 top-1/2 -translate-y-1/2 font-display text-xl z-10 flex items-center justify-center"
@@ -110,16 +108,16 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
             style={{ width: '44px', height: '44px', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.8)' }}
             onClick={onClose}>✕</button>
 
-          {/* Images — side by side on mobile, stacked in sidebar on desktop */}
-          <div className="flex flex-row md:flex-col shrink-0 w-full md:w-[300px] md:border-r-2 md:border-b-0 border-b-2 border-white">
-            <div className="relative w-1/2 md:w-full" style={{ aspectRatio: '1' }}>
+          {/* E3-7: Images stacked vertically on mobile (flex-col) */}
+          <div className="flex flex-col md:flex-col shrink-0 w-full md:w-[300px] md:border-r-2 md:border-b-0 border-b-2 border-white">
+            <div className="relative w-full" style={{ aspectRatio: '1' }}>
               {release.cover_image
-                ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 300px" unoptimized />
+                ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
                 : <div className="w-full h-full bg-black" />}
             </div>
-            <div className="relative w-1/2 md:w-full border-l-2 md:border-l-0 md:border-t-2 border-white" style={{ aspectRatio: '1' }}>
+            <div className="relative w-full border-t-2 md:border-t-2 border-white" style={{ aspectRatio: '1' }}>
               {release.back_cover_image
-                ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 300px" unoptimized />
+                ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
                 : <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#111' }}>
                     <span className="font-display text-xs" style={{ color: '#333' }}>{t('catalogue.noBack')}</span>
                   </div>}
@@ -167,11 +165,11 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                 </button>
                 <button
                   className="font-display text-sm px-4 transition-colors hover:opacity-80"
-                  style={{ border: '2px solid #F0E040', color: '#F0E040', backgroundColor: 'transparent', minHeight: '44px' }}
+                  style={{ border: `2px solid ${guardiColor}`, color: guardiColor, backgroundColor: 'transparent', minHeight: '44px' }}
                   onClick={() => setShowReserve(true)}>
                   GUARDI
                 </button>
-                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
+                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" theme={theme} />
               </div>
             ) : (
               <div className="flex gap-2 mt-4">
@@ -179,7 +177,7 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                   style={{ border: '1px solid #333', color: '#666', minHeight: '44px' }}>
                   {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
                 </div>
-                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
+                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" theme={theme} />
               </div>
             )}
 

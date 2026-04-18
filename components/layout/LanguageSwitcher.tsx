@@ -1,4 +1,5 @@
 'use client'
+// E3-13: Touch padding for language buttons (min 44px touch target)
 
 import { useLocale } from '@/context/LocaleContext'
 
@@ -12,12 +13,16 @@ export default function LanguageSwitcher() {
           {i > 0 && (
             <span className="text-xs mx-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>/</span>
           )}
+          {/* E3-13: min 44px touch target via py-2 px-1 */}
           <button
             onClick={() => setLocale(l)}
-            className="font-display text-xs uppercase transition-colors"
+            className="font-display text-xs uppercase transition-colors py-2 px-1"
             style={{
               color: locale === l ? '#F0E040' : '#FFFFFF',
               fontWeight: locale === l ? 700 : 400,
+              minHeight: '44px',
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
             {l}

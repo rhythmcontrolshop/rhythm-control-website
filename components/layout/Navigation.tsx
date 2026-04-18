@@ -1,65 +1,29 @@
 'use client'
-import type { CSSProperties } from 'react'
+// E3-2: onMouseEnter/Leave → CSS :hover/:active
+// E3-8: Navigation móvil legible (fontSize 0.75rem mínimo)
+// E3-15: BARCELONA visible en móvil (no hover-only)
+
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
 import LanguageSwitcher from './LanguageSwitcher'
-
-const LOGO_PATHS = (
-  <g>
-    <path d="M0,1.13h27.93c8.33,0,15.53,4.6,15.53,13.6,0,4.93-2.27,10.13-7.13,11.93,4,1.53,6.46,5.93,7,11.86.2,2.33.27,8,1.6,10.2h-14.66c-.73-2.4-1-4.87-1.2-7.33-.4-4.53-.8-9.26-6.6-9.26h-7.8v16.6H0V1.13ZM14.66,21.93h7.67c2.73,0,6.46-.47,6.46-4.73,0-3-1.67-4.73-7.26-4.73h-6.86v9.46Z"/>
-    <path d="M46.75,1.13h14.66v16.53h13.73V1.13h14.66v47.59h-14.66v-18.86h-13.73v18.86h-14.66V1.13Z"/>
-    <path d="M105.62,31.19L88.89,1.13h16.2l7.93,17.53L121.29,1.13h16.06l-17.06,30.06v17.53h-14.66v-17.53Z"/>
-    <path d="M147.63,13.33h-13.33V1.13h41.32v12.2h-13.33v35.39h-14.66V13.33Z"/>
-    <path d="M178.38,1.13h14.66v16.53h13.73V1.13h14.66v47.59h-14.66v-18.86h-13.73v18.86h-14.66V1.13Z"/>
-    <path d="M226.26,1.13h20.86l6.8,27.99h.13l6.8-27.99h20.86v47.59h-13.87v-30.53h-.13l-8.26,30.53h-10.93l-8.26-30.53h-.14v30.53h-13.86V1.13Z"/>
-    <path d="M336.2,18.86c-.27-1.73-1.6-7-7.66-7-6.86,0-9.07,6.66-9.07,13.06s2.2,13.06,9.07,13.06c4.93,0,6.86-3.46,7.73-7.93h14.39c0,9.59-7.8,19.79-21.73,19.79-15.4,0-24.13-10.86-24.13-24.93,0-14.99,9.46-24.93,24.13-24.93,13.06.07,20.26,6.93,21.53,18.86h-14.26Z"/>
-    <path d="M376.88,0c14.46,0,24.12,10.4,24.12,24.93s-9.66,24.93-24.12,24.93-24.13-10.4-24.13-24.93S362.42,0,376.88,0ZM376.88,37.99c3.73,0,9.46-2.46,9.46-13.06s-5.73-13.06-9.46-13.06-9.46,2.47-9.46,13.06,5.73,13.06,9.46,13.06Z"/>
-    <path d="M404.64,1.13h14.99l13.86,25.46h.13V1.13h13.86v47.59h-14.26l-14.6-25.99h-.13v25.99h-13.86V1.13Z"/>
-    <path d="M463.64,13.33h-13.33V1.13h41.32v12.2h-13.33v35.39h-14.66V13.33Z"/>
-    <path d="M494.39,1.13h27.93c8.33,0,15.53,4.6,15.53,13.6,0,4.93-2.27,10.13-7.13,11.93,4,1.53,6.46,5.93,7,11.86.2,2.33.27,8,1.6,10.2h-14.66c-.73-2.4-1-4.87-1.2-7.33-.4-4.53-.8-9.26-6.6-9.26h-7.8v16.6h-14.66V1.13ZM509.05,21.93h7.66c2.74,0,6.47-.47,6.47-4.73,0-3-1.67-4.73-7.26-4.73h-6.86v9.46Z"/>
-    <path d="M563.87,0c14.46,0,24.13,10.4,24.13,24.93s-9.67,24.93-24.13,24.93-24.13-10.4-24.13-24.93,9.67-24.93,24.13-24.93ZM563.87,37.99c3.73,0,9.46-2.46,9.46-13.06s-5.73-13.06-9.46-13.06-9.46,2.47-9.46,13.06,5.73,13.06,9.46,13.06Z"/>
-    <path d="M591.55,1.13h14.66v35.39h21.06v12.2h-35.72V1.13Z"/>
-  </g>
-)
+import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
 
 export default function Navigation({ variant = 'default' }: { variant?: 'default' | 'magenta' | 'green' }) {
   const isMagenta  = variant === 'magenta'
   const isGreen    = variant === 'green'
   const isColored  = isMagenta || isGreen
 
-  const bgColor    = isMagenta ? '#FF00FF' : isGreen ? '#77DD77' : '#000000'
-  const cellText   = isColored ? '#000000' : '#FFFFFF'
-  const logoColor  = isColored ? '#000000' : '#F0E040'
-  const borderCol  = isColored ? '#000000' : '#FFFFFF'
+  // E3-3: Use CSS variable references where possible
+  const bgColor    = isMagenta ? '#FF00FF' : isGreen ? '#77DD77' : 'var(--rc-color-bg)'
+  const cellText   = isColored ? '#000000' : 'var(--rc-color-text)'
+  const logoColor  = isColored ? '#000000' : 'var(--rc-color-accent)'
+  const borderCol  = isColored ? '#000000' : 'var(--rc-color-text)'
+  const hoverBg    = 'var(--rc-color-accent)'  // #F0E040
+  const hoverText  = '#000000'
 
   const { totalItems, toggleCart } = useCart()
   const { t } = useLocale()
-
-  // Hover functions need closure over variant colors
-  function onEnter(e: React.MouseEvent<HTMLElement>) {
-    e.currentTarget.style.backgroundColor = '#F0E040'
-    e.currentTarget.style.color = '#000000'
-  }
-  function onLeave(e: React.MouseEvent<HTMLElement>) {
-    e.currentTarget.style.backgroundColor = bgColor
-    e.currentTarget.style.color = cellText
-  }
-
-  const CELL: CSSProperties = {
-    backgroundColor: bgColor,
-    color: cellText,
-    padding: '14px 0',
-    cursor: 'pointer',
-    transition: 'background-color 0.15s, color 0.15s',
-    textAlign: 'center' as const,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRight: `2px solid ${borderCol}`,
-    textDecoration: 'none',
-    width: '100%',
-  }
 
   const NAV_ITEMS = [
     { type: 'link' as const, href: '/novedades', label: t('nav.novedades') },
@@ -76,75 +40,91 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
       {/* ── Logo row ── */}
       <div style={{ padding: '16px 24px', borderBottom: `2px solid ${borderCol}` }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative', maxWidth: '100%' }} className="group">
-          <div className="transition-opacity duration-200 group-hover:opacity-0" style={{ lineHeight: 0 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 627.27 49.85"
-              style={{ height: '48px', width: 'auto', maxWidth: 'min(600px, calc(100vw - 48px))' }}
-              fill={logoColor}>
-              {LOGO_PATHS}
-            </svg>
+          {/* E3-15: Logo always visible; BARCELONA on hover (desktop) or always (mobile) */}
+          <div className="transition-opacity duration-200 md:group-hover:opacity-0" style={{ lineHeight: 0 }}>
+            <RhythmControlLogo height="48px" fill={logoColor} />
           </div>
-          <div className="absolute inset-0 flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <span style={{ color: logoColor, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: '3rem', fontWeight: '900', letterSpacing: '-0.02em', lineHeight: '1', whiteSpace: 'nowrap' }}>
+          {/* E3-15: BARCELONA visible on hover (desktop) AND always on mobile via md:opacity-0 */}
+          <div className="absolute inset-0 flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none overflow-hidden">
+            <span style={{ color: logoColor, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 'clamp(1.5rem, 6vw, 3rem)', fontWeight: '900', letterSpacing: '-0.02em', lineHeight: '1', whiteSpace: 'nowrap', maxWidth: 'calc(100vw - 48px)' }}>
               BARCELONA
             </span>
           </div>
         </Link>
       </div>
 
-      {/* ── Desktop nav: 6 columns ── */}
+      {/* ── Desktop nav: 6 columns — E3-2: CSS hover instead of onMouseEnter/Leave ── */}
       <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)', borderBottom: `2px solid ${borderCol}` }}>
         {NAV_ITEMS.map((item, i) => {
           const isLast = i === NAV_ITEMS.length - 1
-          const cellStyle: CSSProperties = { ...CELL, borderRight: isLast ? 'none' : `2px solid ${borderCol}` }
+
+          // E3-2: CSS classes for hover — no JS event handlers
+          const cellClasses = 'font-display text-xs flex items-center justify-center w-full cursor-pointer transition-colors duration-150 hover:bg-[var(--rc-color-accent)] hover:text-black'
+
+          const cellStyle: React.CSSProperties = {
+            backgroundColor: bgColor,
+            color: cellText,
+            padding: '14px 0',
+            textAlign: 'center',
+            textDecoration: 'none',
+            borderRight: isLast ? 'none' : `2px solid ${borderCol}`,
+          }
 
           if (item.type === 'lang') return (
-            <div key="lang" style={cellStyle}><LanguageSwitcher /></div>
+            <div key="lang" className={cellClasses} style={cellStyle}><LanguageSwitcher /></div>
           )
           if (item.type === 'cart') return (
-            <button key="cart" onClick={toggleCart} className="font-display text-xs"
-              style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+            <button key="cart" onClick={toggleCart}
+              className={cellClasses} style={cellStyle}>
               {item.label}
             </button>
           )
           return (
-            <Link key={item.href} href={item.href} className="font-display text-xs"
-              style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+            <Link key={item.href} href={item.href}
+              className={cellClasses} style={cellStyle}>
               {item.label}
             </Link>
           )
         })}
       </div>
 
-      {/* ── Mobile nav: 3×2 grid ── */}
+      {/* ── Mobile nav: 3×2 grid — E3-8: fontSize 0.75rem minimum, better padding ── */}
       <div className="grid md:hidden" style={{ gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: `2px solid ${borderCol}` }}>
         {NAV_ITEMS.map((item, i) => {
           const col = i % 3
           const row = Math.floor(i / 3)
           const isLastCol  = col === 2
           const isFirstRow = row === 0
-          const cellStyle: CSSProperties = {
-            ...CELL,
-            borderRight:  isLastCol  ? 'none' : `2px solid ${borderCol}`,
-            borderBottom: isFirstRow ? `2px solid ${borderCol}` : 'none',
-            padding: '14px 4px',
-            fontSize: '0.65rem',
+
+          // E3-2: CSS hover + E3-8: larger font + E3-10: min 44px height
+          const cellClasses = 'font-display flex items-center justify-center w-full cursor-pointer transition-colors duration-150 active:bg-[var(--rc-color-accent)] active:text-black'
+
+          const cellStyle: React.CSSProperties = {
+            backgroundColor: bgColor,
+            color: cellText,
+            padding: '12px 6px',
+            fontSize: '0.75rem',   // E3-8: 0.75rem minimum (was 0.65rem)
             lineHeight: '1.2',
             wordBreak: 'break-word',
-            minHeight: '44px',
+            minHeight: '44px',     // E3-10: touch target minimum
+            textAlign: 'center',
+            textDecoration: 'none',
+            borderRight:  isLastCol  ? 'none' : `2px solid ${borderCol}`,
+            borderBottom: isFirstRow ? `2px solid ${borderCol}` : 'none',
           }
 
           if (item.type === 'lang') return (
-            <div key="lang-m" style={cellStyle}><LanguageSwitcher /></div>
+            <div key="lang-m" className={cellClasses} style={cellStyle}><LanguageSwitcher /></div>
           )
           if (item.type === 'cart') return (
-            <button key="cart-m" onClick={toggleCart} className="font-display"
-              style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+            <button key="cart-m" onClick={toggleCart}
+              className={cellClasses} style={cellStyle}>
               {item.label}
             </button>
           )
           return (
-            <Link key={item.href + '-m'} href={item.href} className="font-display"
-              style={cellStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+            <Link key={item.href + '-m'} href={item.href}
+              className={cellClasses} style={cellStyle}>
               {item.label}
             </Link>
           )

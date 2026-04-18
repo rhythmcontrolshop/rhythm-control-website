@@ -1,4 +1,7 @@
 'use client'
+// E3-2: onMouseEnter/Leave → CSS :hover
+// E3-12: Arrow touch area enlarged
+
 import { useState, useEffect, useRef } from 'react'
 
 export type SortOption = 'newest' | 'price_asc' | 'price_desc' | 'year' | 'artist'
@@ -68,19 +71,18 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: 
 }) {
   return (
     <div style={{ flex: 1, position: 'relative', height: '48px', borderRight: borderRight ? '2px solid #FFFFFF' : 'none' }}>
+      {/* E3-2: CSS hover + E3-12: min 44px touch target */}
       <button
         onClick={onToggle}
-        className="font-display text-xs w-full h-full flex items-center justify-between active:bg-[#F0E040] active:text-black"
+        className="font-display text-xs w-full h-full flex items-center justify-between hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
         style={{
           color: isActive || isOpen ? '#F0E040' : '#FFFFFF',
           padding: '0 16px',
-          transition: 'background-color 0.15s, color 0.15s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
-        onMouseLeave={e => { if (!isOpen && !isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' } }}
       >
         <span>{label}</span>
-        <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▼</span>
+        {/* E3-12: Arrow with proper touch area */}
+        <span className="flex items-center justify-center" style={{ fontSize: '0.55rem', opacity: 0.7, minWidth: '20px', minHeight: '20px' }}>▼</span>
       </button>
       {isOpen && (
         <div style={{ position: 'absolute', top: '100%', left: '-2px', right: '-2px', backgroundColor: '#000000', border: '2px solid #FFFFFF', borderTop: 'none', maxHeight: '260px', overflowY: 'auto', zIndex: 50 }}>
@@ -95,7 +97,7 @@ function DropItem({ label, isSelected, onClick }: { label: string; isSelected: b
   return (
     <button
       onClick={onClick}
-      className="font-display text-xs block w-full text-left active:bg-[#F0E040] active:text-black"
+      className="font-display text-xs block w-full text-left hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
       style={{
         color: isSelected ? '#F0E040' : '#FFFFFF',
         backgroundColor: isSelected ? 'rgba(240,224,64,0.08)' : '#000000',
@@ -103,8 +105,6 @@ function DropItem({ label, isSelected, onClick }: { label: string; isSelected: b
         borderBottom: '1px solid #1C1C1C',
         minHeight: '44px',
       }}
-      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
-      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF' } }}
     >
       {label}
     </button>

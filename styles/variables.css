@@ -90,9 +90,15 @@
 }
 
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   :root {
     --rc-grid-cols: 3;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --rc-grid-cols: 4;
     --rc-nav-height: 64px;
   }
 }

@@ -55,7 +55,7 @@ export default async function FavoritosPage() {
               <div key={fav.id} className="flex gap-4 p-4" style={{ border: '2px solid #FFFFFF' }}>
                 <div className="w-20 h-20 shrink-0 relative" style={{ border: '1px solid #333' }}>
                   {displayCover ? (
-                    <Image src={displayCover} alt={displayTitle} fill className="object-cover" unoptimized />
+                    <Image src={displayCover} alt={displayTitle} fill className="object-cover" sizes="80px" />
                   ) : (
                     <div className="w-full h-full bg-black" />
                   )}

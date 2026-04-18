@@ -30,6 +30,22 @@ export default async function CuentaPage() {
     <div className="p-6 md:p-10 max-w-4xl mx-auto">
 
       <section className="mb-10">
+        <div className="mb-4">
+          <p className="font-meta text-xs mb-2" style={{ color: '#FFFFFF' }}>BIENVENIDO</p>
+          <h1 className="font-display text-3xl" style={{ color: '#FFFFFF' }}>
+            {profile?.username || profile?.email?.split('@')[0] || 'USUARIO'}
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <StatCard label="PEDIDOS" value={ordersList.length} href="/cuenta/pedidos" />
+          <StatCard label="FAVORITOS" value={favoritesCount ?? 0} href="/cuenta/favoritos" />
+        </div>
+      </section>
+
+      <hr className="mb-10" style={{ border: 'none', borderTop: '1px solid #333' }} />
+
+      <section className="mb-10">
         <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>ACCESOS RÁPIDOS</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <QuickLink href="/cuenta/pedidos" label="MIS PEDIDOS" />
@@ -38,20 +54,6 @@ export default async function CuentaPage() {
           <QuickLink href="/stock" label="IR A LA TIENDA" external />
         </div>
       </section>
-
-      <hr className="mb-10" style={{ border: 'none', borderTop: '1px solid #333' }} />
-
-      <div className="mb-10">
-        <p className="font-meta text-xs mb-2" style={{ color: '#FFFFFF' }}>BIENVENIDO</p>
-        <h1 className="font-display text-3xl" style={{ color: '#FFFFFF' }}>
-          {profile?.username || profile?.email?.split('@')[0] || 'USUARIO'}
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-10">
-        <StatCard label="PEDIDOS" value={ordersList.length} href="/cuenta/pedidos" />
-        <StatCard label="FAVORITOS" value={favoritesCount ?? 0} href="/cuenta/favoritos" />
-      </div>
 
       <hr className="mb-10" style={{ border: 'none', borderTop: '1px solid #333' }} />
 
