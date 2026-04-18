@@ -519,9 +519,17 @@ export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale] ?? dictionaries.es
 }
 
-export function t(locale: Locale, key: string): string {
+export function t(locale: Locale, key: string, vars?: Record<string, string | number>): string {
   const dict = getDictionary(locale)
-  const value = dict[key]
-  if (typeof value === 'string') return value
-  return key // fallback a la clave si no existe
+  let value = dict[key]
+  if (typeof value !== 'string') return key // fallback a la clave si no existe
+
+  // E5-4: Interpolación de variables — reemplaza {varName} con el valor proporcionado
+  if (vars) {
+    for (const [varKey, varVal] of Object.entries(vars)) {
+      value = value.replace(new RegExp(`\\{${varKey}\\}`, 'g'), String(varVal))
+    }
+  }
+
+  return value
 }
