@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Navigation    from '@/components/layout/Navigation'
 import CatalogueView from '@/components/store/CatalogueView'
 import StrobeDots    from '@/components/ui/StrobeDots'
@@ -16,33 +17,45 @@ async function getInitialData(): Promise<{ releases: Release[]; total: number; g
   } catch { return { releases: [], total: 0, genres: [] } }
 }
 
-export default async function StockPage() {
+function StockSkeleton() {
+  return (
+    <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
+      <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
+        <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+          STOCK
+        </h2>
+      </div>
+      <div className="flex items-center justify-center py-32">
+        <div className="inline-block w-6 h-6 border-2 border-t-transparent animate-spin" style={{ borderColor: '#F0E040', borderTopColor: 'transparent' }} />
+      </div>
+    </main>
+  )
+}
+
+async function StockContent() {
   const { releases, total, genres } = await getInitialData()
 
   return (
+    <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
+      <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
+        <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+          STOCK
+        </h2>
+      </div>
+      <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
+      <div style={{ height: '48px' }} />
+      <StrobeDots />
+    </main>
+  )
+}
+
+export default function StockPage() {
+  return (
     <>
       <Navigation />
-      <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
-
-        {/* STOCK Title — centered, big */}
-        <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
-          <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
-            STOCK
-          </h2>
-        </div>
-
-        {/* Catalogue Content + Pagination */}
-        <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
-
-        {/* Spacer between pagination and animation */}
-        <div style={{ height: '48px' }} />
-
-        {/* Animation Separator */}
-        <StrobeDots />
-
-      </main>
-
-      {/* Footer */}
+      <Suspense fallback={<StockSkeleton />}>
+        <StockContent />
+      </Suspense>
       <Footer />
     </>
   )

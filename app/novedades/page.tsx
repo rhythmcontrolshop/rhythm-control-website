@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import Navigation      from '@/components/layout/Navigation'
 import Footer          from '@/components/layout/Footer'
 import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
 import { Marquee }     from '@/components/ui/Marquee'
 import { createClient } from '@/lib/supabase/server'
+import type { Release } from '@/types'
 
 const MagentaStripes = () => (
   <svg 
@@ -28,77 +30,117 @@ const MagentaStripes = () => (
   </svg>
 )
 
-export default async function NovedadesPage() {
+function NovedadesSkeleton() {
+  return (
+    <div className="relative z-10">
+      <header className="border-b-2 border-black">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
+          <div className="hidden md:block" />
+          <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
+            <h1 className="font-display w-full text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+              NOVEDADES
+            </h1>
+          </div>
+          <div className="hidden md:block" />
+        </div>
+      </header>
+      <section className="p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-0 max-w-7xl mx-auto">
+          <div className="hidden md:block" />
+          <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
+            <div className="flex items-center justify-center py-32">
+              <div className="inline-block w-6 h-6 border-2 border-t-transparent animate-spin" style={{ borderColor: '#F0E040', borderTopColor: 'transparent' }} />
+            </div>
+          </div>
+          <div className="hidden md:block" />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// E2-3: Novedades con paginación server-side
+const NOVEDADES_PER_PAGE = 24
+
+// Columnas proyectadas para novedades (sin tracklist, comments, youtube IDs)
+const NOVEDADES_COLUMNS = [
+  'id', 'title', 'artists', 'price', 'cover_image', 'condition',
+  'format', 'genres', 'styles', 'labels', 'year', 'country',
+  'status', 'created_at', 'discogs_listing_id', 'discogs_release_id',
+  'catno', 'currency', 'thumb', 'sleeve_condition', 'quantity',
+].join(',')
+
+async function NovedadesContent({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page ?? '1', 10))
+  const perPage = NOVEDADES_PER_PAGE
+
   const supabase = await createClient()
-  
-  // Filtrar discos de los últimos 30 días naturales
+
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const cutoff = thirtyDaysAgo.toISOString()
-  
-  const { data: releases } = await supabase
+
+  const from = (page - 1) * perPage
+
+  const { data: releases, count } = await supabase
     .from('releases')
-    .select('*')
+    .select(NOVEDADES_COLUMNS, { count: 'exact' })
     .eq('status', 'active')
     .gte('created_at', cutoff)
     .order('created_at', { ascending: false })
+    .range(from, from + perPage - 1)
 
+  return (
+    <div className="relative z-10">
+      <header className="border-b-2 border-black">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
+          <div className="hidden md:block" />
+          <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
+            <h1 className="font-display w-full text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+              NOVEDADES
+            </h1>
+          </div>
+          <div className="hidden md:block" />
+        </div>
+        <div className="border-t-2 border-black bg-black py-2">
+          <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품 · NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#FFFFFF', fontSize: '1.2rem', lineHeight: '1.2' }} />
+        </div>
+      </header>
+      <section className="p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-0 max-w-7xl mx-auto">
+          <div className="hidden md:block" />
+          <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
+            <NovedadesGrid
+              releases={(releases as unknown as Release[]) || []}
+              total={count ?? 0}
+              page={page}
+              perPage={perPage}
+            />
+          </div>
+          <div className="hidden md:block" />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default function NovedadesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   return (
     <>
       <Navigation variant="magenta" />
       <main className="relative min-h-screen" style={{ backgroundColor: '#000000' }}>
-        
-        {/* Background Layer: Stripes */}
         <div className="absolute inset-0 z-0">
           <MagentaStripes />
         </div>
-
-        {/* Content Layer */}
-        <div className="relative z-10">
-          
-          {/* Header: Título centrado gigante */}
-          <header className="border-b-2 border-black">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
-                
-                {/* Margen izq */}
-                <div className="hidden md:block" />
-
-                {/* Título centrado */}
-                <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
-                   <h1 className="font-display w-full text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
-                      NOVEDADES
-                   </h1>
-                </div>
-
-                {/* Margen der */}
-                <div className="hidden md:block" />
-
-            </div>
-            
-            {/* Marquee con fondo negro */}
-            <div className="border-t-2 border-black bg-black py-2">
-              <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품 · NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#FFFFFF', fontSize: '1.2rem', lineHeight: '1.2' }} />
-            </div>
-          </header>
-
-          {/* Grid */}
-          <section className="p-4 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-0 max-w-7xl mx-auto">
-              
-              <div className="hidden md:block" />
-              
-              <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
-                <NovedadesGrid releases={releases || []} />
-              </div>
-
-              <div className="hidden md:block" />
-
-            </div>
-          </section>
-
-        </div>
+        <Suspense fallback={<NovedadesSkeleton />}>
+          <NovedadesContent searchParams={searchParams} />
+        </Suspense>
       </main>
-      
       <Footer variant="magenta" />
     </>
   )

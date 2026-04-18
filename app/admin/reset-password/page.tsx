@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -11,37 +11,80 @@ export default function AdminResetPassword() {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [verifying, setVerifying] = useState(true)
 
   useEffect(() => {
     const supabase = createClient()
     supabaseRef.current = supabase
 
-    // @supabase/ssr no procesa el hash automáticamente — hay que hacerlo a mano
-    const hash = window.location.hash.substring(1)
-    const params = new URLSearchParams(hash)
-    const accessToken  = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
-    const type         = params.get('type')
+    async function exchangeCode() {
+      // Strategy 1: PKCE code flow (recommended by Supabase for SSR)
+      // Supabase sends ?code=xxx in the redirect URL
+      const searchParams = new URLSearchParams(window.location.search)
+      const code = searchParams.get('code')
 
-    if (type === 'recovery' && accessToken && refreshToken) {
-      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ error }) => {
-          if (error) {
+      if (code) {
+        try {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) {
             setError('Enlace inválido o expirado.')
-          } else {
-            setReady(true)
-            // Limpiar el hash de la URL sin recargar
-            window.history.replaceState(null, '', window.location.pathname)
+            setVerifying(false)
+            return
           }
-        })
-    } else {
-      // Fallback: escuchar el evento por si el cliente lo procesa solo
+          setReady(true)
+          setVerifying(false)
+          // Clean URL
+          window.history.replaceState(null, '', window.location.pathname)
+          return
+        } catch {
+          // Fall through to hash parsing
+        }
+      }
+
+      // Strategy 2: Hash fragment flow (legacy, still used by password reset emails)
+      const hash = window.location.hash.substring(1)
+      const params = new URLSearchParams(hash)
+      const accessToken  = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
+      const type         = params.get('type')
+
+      if (type === 'recovery' && accessToken && refreshToken) {
+        try {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          if (sessionError) {
+            setError('Enlace inválido o expirado.')
+            setVerifying(false)
+            return
+          }
+          setReady(true)
+          setVerifying(false)
+          // Clean the hash from URL without reload
+          window.history.replaceState(null, '', window.location.pathname)
+          return
+        } catch {
+          setError('Enlace inválido o expirado.')
+          setVerifying(false)
+          return
+        }
+      }
+
+      // Strategy 3: Listen for auth state change event
+      // If the Supabase client already processed the hash before this component mounted
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'PASSWORD_RECOVERY') setReady(true)
+        if (event === 'PASSWORD_RECOVERY') {
+          setReady(true)
+          setVerifying(false)
+          window.history.replaceState(null, '', window.location.pathname)
+        }
       })
 
+      // Timeout: if no recovery event after 6 seconds, show error
       const timeout = setTimeout(() => {
         setError('Enlace inválido o expirado.')
+        setVerifying(false)
       }, 6000)
 
       return () => {
@@ -49,9 +92,11 @@ export default function AdminResetPassword() {
         clearTimeout(timeout)
       }
     }
+
+    exchangeCode()
   }, [])
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
     const form = e.currentTarget
@@ -67,16 +112,16 @@ export default function AdminResetPassword() {
     if (!supabase) { setError('Error interno. Recarga la página.'); return }
 
     setLoading(true)
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) {
-      setError('Error al actualizar: ' + error.message)
+    const { error: updateError } = await supabase.auth.updateUser({ password })
+    if (updateError) {
+      setError('Error al actualizar: ' + updateError.message)
       setLoading(false)
       return
     }
 
     await supabase.auth.signOut()
     router.replace('/admin/login')
-  }
+  }, [router])
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#FFFFFF' }}>
@@ -96,6 +141,8 @@ export default function AdminResetPassword() {
               Solicitar nuevo enlace
             </a>
           </div>
+        ) : verifying ? (
+          <p className="text-xs text-center" style={{ color: '#6b7280' }}>Verificando enlace…</p>
         ) : !ready ? (
           <p className="text-xs text-center" style={{ color: '#6b7280' }}>Verificando enlace…</p>
         ) : (
@@ -105,6 +152,7 @@ export default function AdminResetPassword() {
               <input
                 id="password" name="password" type="password"
                 required minLength={6} autoFocus
+                autoComplete="new-password"
                 placeholder="Mínimo 6 caracteres"
                 className="w-full text-sm px-4 py-3 focus:outline-none"
                 style={{ border: '1px solid #d1d5db', color: '#000000' }}
@@ -115,6 +163,7 @@ export default function AdminResetPassword() {
               <input
                 id="confirmPassword" name="confirmPassword" type="password"
                 required minLength={6}
+                autoComplete="new-password"
                 placeholder="Repite la contraseña"
                 className="w-full text-sm px-4 py-3 focus:outline-none"
                 style={{ border: '1px solid #d1d5db', color: '#000000' }}

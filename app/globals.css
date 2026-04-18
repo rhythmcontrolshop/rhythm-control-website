@@ -32,8 +32,14 @@
 *,
 *::before,
 *::after {
-  border-radius: 0;
   box-sizing: border-box;
+}
+
+/* E5-9: border-radius:0 solo para layout, no para inputs/buttons (touch-friendly) */
+html, body, div, section, article, aside, main, nav, footer, header,
+h1, h2, h3, h4, h5, h6, p, ul, ol, li, dl, dt, dd,
+table, thead, tbody, tr, th, td, img, figure, figcaption {
+  border-radius: 0;
 }
 
 html {
@@ -44,7 +50,6 @@ html {
 }
 
 body {
-  overflow-x: hidden;
   background-color: var(--rc-color-bg);
   color: var(--rc-color-text);
   font-family: var(--rc-font-mono);
@@ -54,6 +59,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
+  overflow-x: clip;
 }
 
 
@@ -105,6 +111,13 @@ body {
   100% { transform: translateX(-50%); }
 }
 
+/* E4-6: Single @keyframes for all Marquee components.
+   Uses CSS custom properties --mq-unit and --mq-duration. */
+@keyframes mq-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * var(--mq-unit, 200px))); }
+}
+
 
 /* ── SCROLLBAR ─────────────────────────────────────────────── */
 
@@ -135,4 +148,22 @@ body {
 .page-content {
   padding-top: var(--rc-nav-height);
   padding-bottom: var(--rc-player-height);
+}
+
+
+/* ── REDUCED MOTION (E3-25) ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .marquee-content {
+    animation: none !important;
+  }
 }
