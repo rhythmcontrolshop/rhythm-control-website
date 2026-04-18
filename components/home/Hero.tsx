@@ -1,4 +1,8 @@
 'use client'
+// components/home/Hero.tsx
+// E2-10: Events carga desde /api/events (Supabase) en vez de MOCK_EVENTS.
+// MIX sigue como config estática (no hay tabla mixes aún).
+
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import RecordCard     from '@/components/store/RecordCard'
@@ -10,12 +14,7 @@ import { FlyerPlaceholder }  from '@/components/ui/FlyerPlaceholder'
 
 type HeroTab = 'top' | 'mix' | 'events'
 
-const BADGES = ['STAFF PICK', 'NEW!', 'ON HYPE'] as const
-const MOCK_EVENTS = [
-  { id: 'e1', date: '2026-04-18', type: 'DJ SET', title: 'RHYTHM CONTROL × MOOG', venue: 'Moog Club', lineup: ['Selector'], flyer_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=900&fit=crop' as string | null, web: null },
-  { id: 'e2', date: '2026-04-25', type: 'SESIÓN', title: 'DEEP FACTORY VOL.12', venue: 'Sala Apolo', lineup: ['Larry Deep'], flyer_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=900&fit=crop' as string | null, web: null },
-  { id: 'e3', date: '2026-05-03', type: 'ALL NIGHT', title: 'TECHNO MARATHON', venue: 'Nitsa Club', lineup: ['Surgeon'], flyer_url: null as string | null, web: null },
-]
+// E2-10: MIX como config estática (migrar a tabla DB cuando haya admin UI)
 const MIX = {
   date: '2026-04-01', embed: 'https://www.mixcloud.com/widget/iframe/?hide_cover=0&mini=0&autoplay=0&feed=%2Fmaxvibes%2Fthe-cat-walk-040426-totally-wired-radio%2F', dj: 'RC SELECTOR', origin: 'Barcelona',
   dj_image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=440&fit=crop',
@@ -23,11 +22,23 @@ const MIX = {
   mixcloud: 'https://www.mixcloud.com/rhythmcontrolshop/' as string | null, tracklist: 'Strings of Life · Move Your Body',
 }
 
+// Tipo para eventos de la API
+interface HeroEvent {
+  id: string
+  date: string
+  type: string
+  title: string
+  venue: string
+  lineup: string[]
+  flyer_url: string | null
+  web: string | null
+}
+
 // FIX: Usar getUTCMonth() para evitar errores de hidratación por zona horaria
-function getMixLabel() { 
-  const d = new Date(MIX.date); 
-  const mes = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][d.getUTCMonth()]; 
-  return `MIX ${mes} ${String(d.getUTCFullYear()).slice(2)}` 
+function getMixLabel() {
+  const d = new Date(MIX.date);
+  const mes = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][d.getUTCMonth()];
+  return `MIX ${mes} ${String(d.getUTCFullYear()).slice(2)}`;
 }
 
 function FlyerModal({ src, title, onClose }: { src: string; title: string; onClose: () => void }) {
@@ -38,7 +49,7 @@ function FlyerModal({ src, title, onClose }: { src: string; title: string; onClo
       <div className="relative overflow-hidden" style={{ border: '2px solid #FFFFFF', backgroundColor: '#000000', maxHeight: '90vh' }}>
         <button onClick={onClose} className="absolute top-3 right-3 font-display text-xs z-10 hover:opacity-60" style={{ color: '#FFFFFF' }}>✕</button>
         <div style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
-          <Image src={src} alt={title} width={800} height={1200} style={{ width: 'auto', height: 'auto', maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', display: 'block' }} unoptimized />
+          <Image src={src} alt={title} width={800} height={1200} style={{ width: 'auto', height: 'auto', maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', display: 'block' }} />
         </div>
         <div className="p-4" style={{ borderTop: '1px solid #1C1C1C' }}>
           <p className="font-display" style={{ color: '#FFFFFF', fontSize: '0.85rem' }}>{title}</p>
@@ -52,9 +63,8 @@ function TopContent({ releases, onSelect, onPlay }: { releases: Release[]; onSel
   if (releases.length === 0) return null
   return (
     <div className="grid grid-cols-2 md:grid-cols-6 gap-[2px]" style={{ backgroundColor: '#FFFFFF' }}>
-      {releases.map((release, i) => (
+      {releases.map((release) => (
         <div key={release.discogs_listing_id} className="relative bg-black">
-          <span className="font-display" style={{ position: 'absolute', top: '6px', right: '6px', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.5rem', padding: '2px 6px', zIndex: 10 }}>{BADGES[i % BADGES.length]}</span>
           <RecordCard release={release} onSelect={onSelect} onPlay={onPlay} />
         </div>
       ))}
@@ -68,7 +78,7 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 gap-[2px]" style={{ minHeight: '300px', backgroundColor: '#1C1C1C' }}>
       <div className="hidden md:block relative overflow-hidden group bg-black" style={{ cursor: MIX.dj_image ? 'pointer' : 'default' }} onClick={() => { if (MIX.dj_image) onImage({ url: MIX.dj_image, title: MIX.dj }) }}>
-        {MIX.dj_image ? (<><Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top' }} sizes="200px" unoptimized /></>) : (<FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />)}
+        {MIX.dj_image ? (<><Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top' }} sizes="200px" /></>) : (<FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />)}
       </div>
       <div className="col-span-1 md:col-span-2 flex flex-col bg-black" style={{ borderLeft: '2px solid #FFFFFF' }}>
         <div style={{ padding: '16px', flexShrink: 0 }}><Marquee text={MIX.dj} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2' }} /></div>
@@ -77,7 +87,7 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
           {MIX.mixcloud && <a href={MIX.mixcloud} target="_blank" rel="noopener noreferrer" className="font-display" style={{ color: '#000000', backgroundColor: '#F0E040', fontSize: '0.6rem', padding: '7px 14px', textDecoration: 'none' }}>MIXCLOUD →</a>}
         </div>
       </div>
-      <div className="col-span-1 md:col-span-3 overflow-hidden bg-black" style={{ minHeight: '300px' }}><iframe title={getMixLabel()} src={MIX.embed} width="100%" height="100%" style={{ border: 'none', minHeight: '300px' }} allow="autoplay" /></div>
+      <div className="col-span-1 md:col-span-3 overflow-hidden bg-black" style={{ minHeight: '300px' }}><iframe title={getMixLabel()} src={MIX.embed} width="100%" height="100%" style={{ border: 'none', minHeight: '300px' }} allow="autoplay" loading="lazy" /></div>
     </div>
   )
 }
@@ -86,11 +96,20 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
 const DIAS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB']; const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']
 function formatEventDate(iso: string) { const d = new Date(iso + 'T12:00:00Z'); return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} ${MESES[d.getUTCMonth()]}` }
 
-function EventsContent({ onFlyer }: { onFlyer: (f: { url: string; title: string }) => void }) {
-  const n = MOCK_EVENTS.length; const textDesktopClass = n === 1 ? 'md:col-span-3' : n === 2 ? 'md:col-span-2' : 'md:col-span-1'; const imageDesktopClass = n === 1 ? 'md:col-span-3' : 'md:col-span-1'
+// E2-10: EventsContent ahora recibe datos de la API en vez de MOCK_EVENTS
+function EventsContent({ events, onFlyer }: { events: HeroEvent[]; onFlyer: (f: { url: string; title: string }) => void }) {
+  if (events.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-16" style={{ backgroundColor: '#000000' }}>
+        <p className="font-meta text-sm" style={{ color: '#999' }}>No hay eventos próximos.</p>
+      </div>
+    )
+  }
+
+  const n = events.length; const textDesktopClass = n === 1 ? 'md:col-span-3' : n === 2 ? 'md:col-span-2' : 'md:col-span-1'; const imageDesktopClass = n === 1 ? 'md:col-span-3' : 'md:col-span-1'
   return (
     <div className="grid grid-cols-2 md:grid-cols-6 gap-[2px]" style={{ minHeight: '220px', backgroundColor: '#1C1C1C' }}>
-      {MOCK_EVENTS.flatMap((event) => {
+      {events.flatMap((event) => {
         const hasFlyer = Boolean(event.flyer_url)
         return [
           <div key={`${event.id}-text`} className={`col-span-1 ${textDesktopClass} flex flex-col bg-black`} style={{ borderLeft: '2px solid #FFFFFF', padding: '16px' }}>
@@ -99,7 +118,7 @@ function EventsContent({ onFlyer }: { onFlyer: (f: { url: string; title: string 
              <button onClick={() => { if (hasFlyer && event.flyer_url) onFlyer({ url: event.flyer_url, title: event.title }) }} style={{ marginTop: 'auto', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.6rem', padding: '7px 14px', width: 'fit-content' }} className="font-display">VER FLYER</button>
           </div>,
           <div key={`${event.id}-img`} className={`col-span-1 ${imageDesktopClass} relative overflow-hidden bg-black`} style={{ minHeight: '220px' }} onClick={() => { if (hasFlyer && event.flyer_url) onFlyer({ url: event.flyer_url, title: event.title }) }}>
-            {hasFlyer ? <Image src={event.flyer_url!} alt={event.title} fill style={{ objectFit: 'cover' }} sizes="300px" unoptimized /> : <FlyerPlaceholder title={event.title} date={formatEventDate(event.date)} type={event.type} code={event.id} />}
+            {hasFlyer ? <Image src={event.flyer_url!} alt={event.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 50vw, 16vw" /> : <FlyerPlaceholder title={event.title} date={formatEventDate(event.date)} type={event.type} code={event.id} />}
           </div>,
         ]
       })}
@@ -115,11 +134,20 @@ export default function Hero({ releases }: HeroProps) {
   const [clipIndex, setClipIndex] = useState(1)
   const [flyer, setFlyer] = useState<{ url: string; title: string } | null>(null)
 
+  // E2-10: Cargar eventos desde la API
+  const [apiEvents, setApiEvents] = useState<HeroEvent[]>([])
+  useEffect(() => {
+    fetch('/api/events')
+      .then(res => res.ok ? res.json() : [])
+      .then(data => Array.isArray(data) ? setApiEvents(data) : setApiEvents([]))
+      .catch(() => setApiEvents([]))
+  }, [])
+
   const topReleases = [...releases].sort((a, b) => b.price - a.price).slice(0, 6)
   const handlePlay = (t: PlayerTrack, clip: number) => { setTrack(t); setClipIndex(clip) }
   const mixLabel = getMixLabel()
   const TABS: { id: HeroTab; label: string }[] = [ { id: 'top', label: 'TOP' }, { id: 'mix', label: mixLabel }, { id: 'events', label: 'AGENDA' } ]
-  const marqueeText = tab === 'top' ? topReleases.map(r => `${r.artists[0]} — ${r.title}`).join(' · ') : tab === 'mix' ? MIX.tracklist : MOCK_EVENTS.map(e => `${e.date} · ${e.title}`).join(' — ')
+  const marqueeText = tab === 'top' ? topReleases.map(r => `${r.artists[0]} — ${r.title}`).join(' · ') : tab === 'mix' ? MIX.tracklist : apiEvents.map(e => `${e.date} · ${e.title}`).join(' — ')
 
   return (
     <>
@@ -137,7 +165,7 @@ export default function Hero({ releases }: HeroProps) {
       <div style={{ borderBottom: '2px solid #FFFFFF' }}>
         {tab === 'top' && <TopContent releases={topReleases} onSelect={setSelected} onPlay={handlePlay} />}
         {tab === 'mix' && <MixContent onImage={setFlyer} />}
-        {tab === 'events' && <EventsContent onFlyer={setFlyer} />}
+        {tab === 'events' && <EventsContent events={apiEvents} onFlyer={setFlyer} />}
       </div>
       {selected && <RecordModal release={selected} releases={releases} onClose={() => setSelected(null)} onPlay={handlePlay} onSelect={setSelected} />}
       {flyer && <FlyerModal src={flyer.url} title={flyer.title} onClose={() => setFlyer(null)} />}

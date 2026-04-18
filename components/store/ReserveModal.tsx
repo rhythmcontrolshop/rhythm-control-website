@@ -43,8 +43,18 @@ export default function ReserveModal({ release, onClose, onSuccess }: Props) {
         body: JSON.stringify({ release_id: release.id, customer_name: name, customer_phone: phone, customer_email: email }),
       })
       const data = await res.json()
-      if (res.ok) { setPickupCode(data.pickup_code || ''); setDone(true); onSuccess() }
-      else        { setError(data.error ?? 'Error al crear la reserva') }
+      if (res.ok) {
+        setPickupCode(data.pickup_code || '')
+        setDone(true)
+        onSuccess()
+      } else {
+        // E2-1: Mensaje de error claro para status 409 (ya reservado)
+        if (res.status === 409) {
+          setError('Este disco ya ha sido reservado por otra persona. Vuelve más tarde para comprobar disponibilidad.')
+        } else {
+          setError(data.error ?? 'Error al crear la reserva')
+        }
+      }
     } catch {
       setError('Error de conexión. Inténtalo de nuevo.')
     } finally {

@@ -1,3 +1,9 @@
+'use client'
+// E2-2: Conectado al API /api/newsletter (Resend)
+// E3-9: Footer grid-cols-1 on mobile (was grid-cols-2 cramped)
+// E3-20: Newsletter input with proper attributes
+
+import { useState } from 'react'
 import Link from 'next/link'
 
 interface FooterProps {
@@ -16,11 +22,37 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
   const borderColor = '#000000'
   const textColor   = '#000000'
 
+  const [email, setEmail]           = useState('')
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setNewsletterStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      if (res.ok) {
+        setNewsletterStatus('ok')
+        setEmail('')
+      } else {
+        setNewsletterStatus('error')
+      }
+    } catch {
+      setNewsletterStatus('error')
+    }
+  }
+
   return (
     <footer style={{ backgroundColor: bgColor, borderTop: `2px solid ${borderColor}` }}>
-      <div className="grid grid-cols-2 md:grid-cols-6" style={{ minHeight: '120px' }}>
+      {/* E3-9: grid-cols-1 on mobile, grid-cols-6 on md+ */}
+      <div className="grid grid-cols-1 md:grid-cols-6" style={{ minHeight: '120px' }}>
 
-        <div className="col-span-2 p-6" style={{ borderRight: `2px solid ${borderColor}` }}>
+        <div className="p-6 md:col-span-2 md:border-r-2" style={{ borderColor }}>
           <h3 className="font-display text-2xl" style={{ color: textColor }}>RHYTHM CONTROL BARCELONA</h3>
           <p className="font-mono text-xs mt-2" style={{ color: textColor }}>
             Rda. de Sant Pau, 19-21, Local 28<br />
@@ -33,7 +65,7 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
           </p>
         </div>
 
-        <div className="col-span-1 p-6" style={{ borderRight: `2px solid ${borderColor}` }}>
+        <div className="p-6 md:col-span-1 border-t-2 md:border-t-0 md:border-r-2" style={{ borderColor }}>
           <nav className="flex flex-col gap-2">
             <Link href="/stock"     className="font-display text-xs hover:underline" style={{ color: textColor }}>STOCK</Link>
             <Link href="/novedades" className="font-display text-xs hover:underline" style={{ color: textColor }}>NOVEDADES</Link>
@@ -41,28 +73,44 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
           </nav>
         </div>
 
-        <div className="col-span-1 p-6" style={{ borderRight: `2px solid ${borderColor}` }}>
+        <div className="p-6 md:col-span-1 border-t-2 md:border-t-0 md:border-r-2" style={{ borderColor }}>
           <nav className="flex flex-col gap-2">
             <a href="https://instagram.com/rhythmcontrol.bcn" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline" style={{ color: textColor }}>INSTAGRAM →</a>
             <a href="https://mixcloud.com/rhythmcontrolshop"  target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline" style={{ color: textColor }}>MIXCLOUD →</a>
           </nav>
         </div>
 
-        <div className="col-span-2 p-6 flex flex-col justify-between">
+        <div className="p-6 md:col-span-2 border-t-2 md:border-t-0 flex flex-col justify-between">
           <div>
             <p className="font-display text-xs" style={{ color: textColor }}>NEWSLETTER</p>
-            <div className="flex mt-2">
+            {/* E3-20: inputMode="email" for mobile keyboard */}
+            <form onSubmit={handleNewsletterSubmit} className="flex mt-2">
               <input
                 type="email"
+                name="newsletter_email"
                 placeholder="EMAIL"
-                className="w-full p-2 font-mono text-xs placeholder:text-gray-400"
+                required
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full p-2 font-mono text-xs placeholder:text-white"
                 style={{ backgroundColor: '#000000', color: '#FFFFFF', border: 'none', outline: 'none' }}
               />
-              <button className="px-3 font-display text-xs shrink-0"
+              <button
+                type="submit"
+                disabled={newsletterStatus === 'loading'}
+                className="px-3 font-display text-xs shrink-0 min-h-[44px]"
                 style={{ backgroundColor: '#000000', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}>
                 →
               </button>
-            </div>
+            </form>
+            {newsletterStatus === 'ok' && (
+              <p className="font-mono text-[10px] mt-1" style={{ color: textColor }}>¡Suscrito!</p>
+            )}
+            {newsletterStatus === 'error' && (
+              <p className="font-mono text-[10px] mt-1" style={{ color: textColor }}>Error. Inténtalo de nuevo.</p>
+            )}
           </div>
           <p className="font-mono text-[10px] mt-4" style={{ color: textColor }}>
             © 2026 RHYTHM CONTROL BARCELONA. ALL RIGHTS RESERVED.

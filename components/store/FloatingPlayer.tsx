@@ -1,6 +1,7 @@
 'use client'
 // components/store/FloatingPlayer.tsx
 // Player flotante que reproduce previews de Spotify.
+// E2-8: Cache de preview URLs para evitar re-fetch del mismo track.
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
@@ -11,6 +12,9 @@ interface FloatingPlayerProps {
   clipIndex: number
   onClose:   () => void
 }
+
+// E2-8: Cache global de preview URLs (compartido entre instancias)
+const previewCache = new Map<string, string>()
 
 export default function FloatingPlayer({ track, clipIndex, onClose }: FloatingPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -27,11 +31,20 @@ export default function FloatingPlayer({ track, clipIndex, onClose }: FloatingPl
         return
       }
 
+      // E2-8: Comprobar cache antes de fetch
+      const cached = previewCache.get(track.source_id)
+      if (cached) {
+        setPreviewUrl(cached)
+        setLoading(false)
+        return
+      }
+
       try {
         const res = await fetch(`/api/audio/spotify/${track.source_id}`)
         const data = await res.json()
 
         if (data.preview_url) {
+          previewCache.set(track.source_id, data.preview_url)
           setPreviewUrl(data.preview_url)
         } else {
           setError(true)
@@ -83,7 +96,6 @@ export default function FloatingPlayer({ track, clipIndex, onClose }: FloatingPl
             fill
             className="object-cover"
             sizes="80px"
-            unoptimized
           />
         ) : (
           <div className="w-full h-full" style={{ backgroundColor: '#0a0a0a' }} />

@@ -10,13 +10,14 @@ export default function CheckoutCancelPage() {
           Los artículos siguen disponibles en el catálogo.
         </p>
         <div className="flex gap-3">
-          <Link href="/"
-            className="flex-1 text-center font-display text-sm py-3"
+          {/* E2-7: Link al catálogo real / E3-29: min 44px touch */}
+          <Link href="/stock"
+            className="flex-1 text-center font-display text-sm py-3 min-h-[44px] flex items-center justify-center"
             style={{ backgroundColor: '#FFF', color: '#000' }}>
             VOLVER AL CATÁLOGO
           </Link>
           <Link href="/cuenta/pedidos"
-            className="flex-1 text-center font-display text-sm py-3"
+            className="flex-1 text-center font-display text-sm py-3 min-h-[44px] flex items-center justify-center"
             style={{ border: '2px solid #FFF', color: '#FFF' }}>
             MIS PEDIDOS
           </Link>

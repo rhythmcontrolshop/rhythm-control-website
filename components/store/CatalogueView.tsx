@@ -2,7 +2,7 @@
 // components/store/CatalogueView.tsx
 // Orquestador del catálogo: filtros, grid, modal y player.
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useTransition } from 'react'
 import CatalogueTabs  from './CatalogueTabs'
 import type { SortOption } from './CatalogueTabs'
 import RecordGrid     from './RecordGrid'
@@ -20,6 +20,7 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
   const [releases,  setReleases]  = useState<Release[]>(initialReleases)
   const [total,     setTotal]     = useState(initialTotal)
   const [loading,   setLoading]   = useState(false)
+  const [isPending, startTransition] = useTransition()  // E4-2: Non-blocking filter changes
   const [style,     setStyle]     = useState<string | null>(null)
   const [label,     setLabel]     = useState<string | null>(null)
   const [sort,      setSort]      = useState<SortOption>('newest')
@@ -33,16 +34,28 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
 
   const perPage = 24
 
-  // Extraer estilos y sellos únicos de los releases iniciales
+  // E2-5: Extraer estilos y sellos de TODOS los releases (endpoint dedicado)
   useEffect(() => {
-    const styleSet = new Set<string>()
-    const labelSet = new Set<string>()
-    initialReleases.forEach(r => {
-      r.styles?.forEach(s => styleSet.add(s))
-      r.labels?.forEach(l => labelSet.add(l))
-    })
-    setStyles(Array.from(styleSet).sort())
-    setLabels(Array.from(labelSet).sort())
+    async function fetchAllFilters() {
+      try {
+        const res = await fetch('/api/catalogue/filters')
+        if (!res.ok) throw new Error('filters API failed')
+        const json = await res.json()
+        if (json.styles?.length) setStyles(json.styles)
+        if (json.labels?.length) setLabels(json.labels)
+      } catch {
+        // Fallback: extraer de initialReleases (solo primera página)
+        const styleSet = new Set<string>()
+        const labelSet = new Set<string>()
+        initialReleases.forEach(r => {
+          r.styles?.forEach((s: string) => styleSet.add(s))
+          r.labels?.forEach((l: string) => labelSet.add(l))
+        })
+        setStyles(Array.from(styleSet).sort())
+        setLabels(Array.from(labelSet).sort())
+      }
+    }
+    fetchAllFilters()
   }, [initialReleases])
 
   const fetchReleases = useCallback(async (
@@ -70,27 +83,27 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
 
   const handleStyleChange = (s: string | null) => {
     setStyle(s); setPage(1)
-    fetchReleases(s, label, sort, 1)
+    startTransition(() => fetchReleases(s, label, sort, 1))
   }
   const handleLabelChange = (l: string | null) => {
     setLabel(l); setPage(1)
-    fetchReleases(style, l, sort, 1)
+    startTransition(() => fetchReleases(style, l, sort, 1))
   }
   const handleSortChange = (s: SortOption) => {
     setSort(s); setPage(1)
-    fetchReleases(style, label, s, 1)
+    startTransition(() => fetchReleases(style, label, s, 1))
   }
 
   const handlePageNext = () => {
     const next = page + 1
     setPage(next)
-    fetchReleases(style, label, sort, next)
+    startTransition(() => fetchReleases(style, label, sort, next))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const handlePagePrev = () => {
     const prev = page - 1
     setPage(prev)
-    fetchReleases(style, label, sort, prev)
+    startTransition(() => fetchReleases(style, label, sort, prev))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -109,13 +122,15 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
 
       <RecordGrid
         releases={releases}
-        loading={loading}
+        loading={loading || isPending}
         onSelect={r => handleSelect(r)}
         onPlay={handlePlay}
       />
 
       {totalPages > 1 && !loading && (
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
+        <>
+          <div style={{ height: '48px' }} />
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
           <button
             className="font-display text-xs disabled:opacity-30 hover:opacity-60"
             style={{ color: '#FFFFFF' }}
@@ -131,7 +146,8 @@ export default function CatalogueView({ initialReleases, initialTotal }: Catalog
             onClick={handlePageNext}
             disabled={page >= totalPages}
           >SIGUIENTE →</button>
-        </div>
+          </div>
+        </>
       )}
 
       {selected && (

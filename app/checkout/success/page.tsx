@@ -63,8 +63,9 @@ export default async function CheckoutSuccessPage({ searchParams }: SearchParams
           Gracias por tu compra en Rhythm Control. Si tienes cualquier duda, escríbenos a hola@rhythmcontrolbcn.com
         </p>
 
-        <Link href="/"
-          className="block w-full text-center font-display text-sm py-3"
+        {/* E2-7: Link al catálogo real, no a home / E3-29: min 44px touch */}
+        <Link href="/stock"
+          className="block w-full text-center font-display text-sm py-3 min-h-[44px] flex items-center justify-center"
           style={{ backgroundColor: '#FFF', color: '#000' }}>
           VOLVER AL CATÁLOGO
         </Link>
