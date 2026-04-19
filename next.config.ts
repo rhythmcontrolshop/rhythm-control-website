@@ -14,12 +14,12 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      // E1-6: Reducido unsafe-inline a solo donde es necesario.
-      // Stripe.js requiere unsafe-eval, pero nuestros scripts no.
-      "script-src 'self' 'unsafe-eval' https://js.stripe.com",
+      // E1-6: Next.js App Router requiere unsafe-inline para hydration.
+      // Stripe.js requiere unsafe-eval. Vercel Live/Analytics necesitan sus dominios.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://vercel.live https://va.vercel-scripts.v0.dev",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://i.discogs.com https://*.discogs.com https://img.discogs.com https://images.unsplash.com https://picsum.photos https://*.picsum.photos",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.googleapis.com https://api.discogs.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.googleapis.com https://api.discogs.com wss://ws-us3.pusherapp.com https://vercel.live",
       "frame-src https://js.stripe.com https://www.youtube.com https://www.youtube-nocookie.com",
       "font-src 'self'",
       "media-src 'self' https://*.supabase.co",
