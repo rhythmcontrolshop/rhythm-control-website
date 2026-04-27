@@ -5,6 +5,7 @@ import CatalogueView     from '@/components/store/CatalogueView'
 import StrobeDots        from '@/components/ui/StrobeDots'
 import Footer            from '@/components/layout/Footer'
 import AuthHashRedirect  from '@/components/auth/AuthHashRedirect'
+import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
 import { createClient }  from '@/lib/supabase/server'
 import type { Release }  from '@/types'
 
@@ -40,7 +41,9 @@ function HomeSkeleton() {
   return (
     <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
       <div className="flex items-center justify-center py-32">
-        <div className="inline-block w-6 h-6 border-2 border-t-transparent animate-spin" style={{ borderColor: '#F0E040', borderTopColor: 'transparent' }} />
+        <div className="rc-loader-spin inline-flex items-center justify-center">
+          <RhythmControlLogo height="64px" fill="#F0E040" />
+        </div>
       </div>
     </main>
   )
@@ -52,7 +55,12 @@ async function HomeContent() {
   return (
     <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
       <Hero releases={releases} />
-      <div style={{ height: '48px', backgroundColor: '#000000' }} />
+      {/* STOCK section title in logo-style typography */}
+      <div style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '20px 24px', backgroundColor: '#000000' }}>
+        <h2 style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: '900', letterSpacing: '-0.04em', lineHeight: '1', color: '#FFFFFF', margin: 0, textTransform: 'uppercase' }}>
+          STOCK
+        </h2>
+      </div>
       <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
       <div style={{ height: '48px' }} />
       <StrobeDots />

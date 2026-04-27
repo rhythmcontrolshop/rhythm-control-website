@@ -121,6 +121,17 @@ body {
 
 /* ── SCROLLBAR ─────────────────────────────────────────────── */
 
+/* ── SPINNING LOADER ────────────────────────────────────────── */
+
+@keyframes rc-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.rc-loader-spin {
+  animation: rc-spin 1.2s linear infinite;
+}
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -148,6 +159,39 @@ body {
 .page-content {
   padding-top: var(--rc-nav-height);
   padding-bottom: var(--rc-player-height);
+}
+
+
+/* ── NAV TAB HOVER COLORS ───────────────────────────────────── */
+
+.nav-tab-novedades:hover,
+.nav-tab-novedades:active {
+  background-color: #F03E3E !important;
+  color: #FFFFFF !important;
+}
+
+.nav-tab-stock:hover,
+.nav-tab-stock:active {
+  background-color: #9E9893 !important;
+  color: #FFFFFF !important;
+}
+
+.nav-tab-contacto:hover,
+.nav-tab-contacto:active {
+  background-color: #77DD77 !important;
+  color: #000000 !important;
+}
+
+.nav-tab-carrito:hover,
+.nav-tab-carrito:active {
+  background-color: #388ED9 !important;
+  color: #FFFFFF !important;
+}
+
+.nav-tab-cuenta:hover,
+.nav-tab-cuenta:active {
+  background-color: #F0E040 !important;
+  color: #000000 !important;
 }
 
 
