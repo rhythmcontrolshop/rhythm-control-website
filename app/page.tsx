@@ -56,8 +56,8 @@ async function HomeContent() {
     <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
       <Hero releases={releases} />
       {/* STOCK section title in logo-style typography */}
-      <div style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '20px 24px', backgroundColor: '#000000' }}>
-        <h2 style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: '900', letterSpacing: '-0.04em', lineHeight: '1', color: '#FFFFFF', margin: 0, textTransform: 'uppercase' }}>
+      <div className="px-4 py-4 md:px-6 md:py-5" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', backgroundColor: '#000000' }}>
+        <h2 style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 'clamp(2rem, 7vw, 4.5rem)', fontWeight: '900', letterSpacing: '-0.04em', lineHeight: '1', color: '#FFFFFF', margin: 0, textTransform: 'uppercase' }}>
           STOCK
         </h2>
       </div>

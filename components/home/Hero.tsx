@@ -1,7 +1,7 @@
 'use client'
 // components/home/Hero.tsx
-// E2-10: Events carga desde /api/events (Supabase) en vez de MOCK_EVENTS.
-// MIX sigue como config estática (no hay tabla mixes aún).
+// Restored: BADGES on TOP releases, MOCK_EVENTS as fallback for AGENDA
+// E2-10: Events loads from /api/events (Supabase), falls back to mock data when empty
 
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -14,7 +14,17 @@ import { FlyerPlaceholder }  from '@/components/ui/FlyerPlaceholder'
 
 type HeroTab = 'top' | 'mix' | 'events'
 
-// E2-10: MIX como config estática (migrar a tabla DB cuando haya admin UI)
+// Badge labels for TOP releases
+const BADGES = ['STAFF PICK', 'NEW!', 'ON HYPE'] as const
+
+// Mock events — shown as fallback when API returns empty (no events in DB yet)
+const MOCK_EVENTS = [
+  { id: 'e1', date: '2026-04-18', type: 'DJ SET', title: 'RHYTHM CONTROL × MOOG', venue: 'Moog Club', lineup: ['Selector'], flyer_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=900&fit=crop' as string | null, web: null },
+  { id: 'e2', date: '2026-04-25', type: 'SESIÓN', title: 'DEEP FACTORY VOL.12', venue: 'Sala Apolo', lineup: ['Larry Deep'], flyer_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=900&fit=crop' as string | null, web: null },
+  { id: 'e3', date: '2026-05-03', type: 'ALL NIGHT', title: 'TECHNO MARATHON', venue: 'Nitsa Club', lineup: ['Surgeon'], flyer_url: null as string | null, web: null },
+]
+
+// MIX config — static until there's a mixes table
 const MIX = {
   date: '2026-04-01', embed: 'https://www.mixcloud.com/widget/iframe/?hide_cover=0&mini=0&autoplay=0&feed=%2Fmaxvibes%2Fthe-cat-walk-040426-totally-wired-radio%2F', dj: 'RC SELECTOR', origin: 'Barcelona',
   dj_image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=440&fit=crop',
@@ -22,7 +32,7 @@ const MIX = {
   mixcloud: 'https://www.mixcloud.com/rhythmcontrolshop/' as string | null, tracklist: 'Strings of Life · Move Your Body',
 }
 
-// Tipo para eventos de la API
+// Type for events from API
 interface HeroEvent {
   id: string
   date: string
@@ -34,7 +44,7 @@ interface HeroEvent {
   web: string | null
 }
 
-// FIX: Usar getUTCMonth() para evitar errores de hidratación por zona horaria
+// Use UTC methods to avoid hydration timezone mismatch
 function getMixLabel() {
   const d = new Date(MIX.date);
   const mes = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][d.getUTCMonth()];
@@ -63,8 +73,10 @@ function TopContent({ releases, onSelect, onPlay }: { releases: Release[]; onSel
   if (releases.length === 0) return null
   return (
     <div className="grid grid-cols-2 md:grid-cols-6 gap-[2px]" style={{ backgroundColor: '#FFFFFF' }}>
-      {releases.map((release) => (
+      {releases.map((release, i) => (
         <div key={release.discogs_listing_id} className="relative bg-black">
+          {/* Badge overlay — STAFF PICK / NEW! / ON HYPE cycling through top releases */}
+          <span className="font-display" style={{ position: 'absolute', top: '6px', right: '6px', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.5rem', padding: '2px 6px', zIndex: 10 }}>{BADGES[i % BADGES.length]}</span>
           <RecordCard release={release} onSelect={onSelect} onPlay={onPlay} />
         </div>
       ))}
@@ -92,24 +104,18 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
   )
 }
 
-// FIX: Usar getUTCDay() y getUTCDate()
 const DIAS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB']; const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']
 function formatEventDate(iso: string) { const d = new Date(iso + 'T12:00:00Z'); return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} ${MESES[d.getUTCMonth()]}` }
 
-// E2-10: EventsContent ahora recibe datos de la API en vez de MOCK_EVENTS
+// EventsContent: uses API data if available, falls back to MOCK_EVENTS
 function EventsContent({ events, onFlyer }: { events: HeroEvent[]; onFlyer: (f: { url: string; title: string }) => void }) {
-  if (events.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-16" style={{ backgroundColor: '#000000' }}>
-        <p className="font-meta text-sm" style={{ color: '#999' }}>No hay eventos próximos.</p>
-      </div>
-    )
-  }
+  // Use real events if available, otherwise fall back to mock data
+  const displayEvents = events.length > 0 ? events : MOCK_EVENTS as unknown as HeroEvent[]
 
-  const n = events.length; const textDesktopClass = n === 1 ? 'md:col-span-3' : n === 2 ? 'md:col-span-2' : 'md:col-span-1'; const imageDesktopClass = n === 1 ? 'md:col-span-3' : 'md:col-span-1'
+  const n = displayEvents.length; const textDesktopClass = n === 1 ? 'md:col-span-3' : n === 2 ? 'md:col-span-2' : 'md:col-span-1'; const imageDesktopClass = n === 1 ? 'md:col-span-3' : 'md:col-span-1'
   return (
     <div className="grid grid-cols-2 md:grid-cols-6 gap-[2px]" style={{ minHeight: '220px', backgroundColor: '#1C1C1C' }}>
-      {events.flatMap((event) => {
+      {displayEvents.flatMap((event) => {
         const hasFlyer = Boolean(event.flyer_url)
         return [
           <div key={`${event.id}-text`} className={`col-span-1 ${textDesktopClass} flex flex-col bg-black`} style={{ borderLeft: '2px solid #FFFFFF', padding: '16px' }}>
@@ -134,7 +140,7 @@ export default function Hero({ releases }: HeroProps) {
   const [clipIndex, setClipIndex] = useState(1)
   const [flyer, setFlyer] = useState<{ url: string; title: string } | null>(null)
 
-  // E2-10: Cargar eventos desde la API
+  // Load events from API
   const [apiEvents, setApiEvents] = useState<HeroEvent[]>([])
   useEffect(() => {
     fetch('/api/events')
@@ -147,7 +153,10 @@ export default function Hero({ releases }: HeroProps) {
   const handlePlay = (t: PlayerTrack, clip: number) => { setTrack(t); setClipIndex(clip) }
   const mixLabel = getMixLabel()
   const TABS: { id: HeroTab; label: string }[] = [ { id: 'top', label: 'TOP' }, { id: 'mix', label: mixLabel }, { id: 'events', label: 'AGENDA' } ]
-  const marqueeText = tab === 'top' ? topReleases.map(r => `${r.artists[0]} — ${r.title}`).join(' · ') : tab === 'mix' ? MIX.tracklist : apiEvents.map(e => `${e.date} · ${e.title}`).join(' — ')
+
+  // Marquee text: use mock events as fallback when API is empty
+  const displayEvents = apiEvents.length > 0 ? apiEvents : MOCK_EVENTS as unknown as HeroEvent[]
+  const marqueeText = tab === 'top' ? topReleases.map(r => `${r.artists[0]} — ${r.title}`).join(' · ') : tab === 'mix' ? MIX.tracklist : displayEvents.map(e => `${e.date} · ${e.title}`).join(' — ')
 
   return (
     <>

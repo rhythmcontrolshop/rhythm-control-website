@@ -34,8 +34,8 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
   return (
     <header style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
 
-      {/* ── Logo row ── */}
-      <div style={{ padding: '16px 24px', borderBottom: `2px solid ${borderCol}` }}>
+      {/* ── Logo row — responsive padding ── */}
+      <div className="px-4 py-3 md:px-6 md:py-4" style={{ borderBottom: `2px solid ${borderCol}` }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative', maxWidth: '100%', height: '48px' }} className="group">
           {/* Logo — fades out on hover (desktop) */}
           <div className="transition-opacity duration-200 md:group-hover:opacity-0 flex items-center" style={{ height: '48px', lineHeight: 0 }}>
@@ -84,7 +84,7 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
         })}
       </div>
 
-      {/* ── Mobile nav: 3x2 grid ── */}
+      {/* ── Mobile nav: 3x2 grid — compact on small screens ── */}
       <div className="grid md:hidden" style={{ gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: `2px solid ${borderCol}` }}>
         {NAV_ITEMS.map((item, i) => {
           const col = i % 3
@@ -95,8 +95,8 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
           const cellStyle: React.CSSProperties = {
             backgroundColor: bgColor,
             color: cellText,
-            padding: '12px 6px',
-            fontSize: '0.75rem',
+            padding: '10px 4px',
+            fontSize: '0.65rem',
             lineHeight: '1.2',
             wordBreak: 'break-word',
             minHeight: '44px',
