@@ -115,12 +115,12 @@ export default function CartDrawer() {
         onTouchEnd={handleTouchEnd}
       >
 
-        <div className="flex items-center justify-between p-4 border-b-2 border-black">
-          <h2 className="font-display uppercase text-xl" style={{ letterSpacing: '-0.05em', color: '#000000' }}>
+        <div className="flex items-center justify-between p-4 border-b-2 border-black" style={{ backgroundColor: '#388ED9' }}>
+          <h2 className="font-display uppercase text-xl" style={{ letterSpacing: '-0.05em', color: '#FFFFFF' }}>
             CARRITO ({items.length})
           </h2>
           {/* E3-11: min 44px touch target */}
-          <button onClick={toggleCart} className="font-display text-xs min-h-[44px] flex items-center" style={{ color: '#000000', cursor: 'pointer' }}>✕ CERRAR</button>
+          <button onClick={toggleCart} className="font-display text-xs min-h-[44px] flex items-center" style={{ color: '#FFFFFF', cursor: 'pointer' }}>✕ CERRAR</button>
         </div>
 
         <div className="flex-1 overflow-y-auto min-h-0">

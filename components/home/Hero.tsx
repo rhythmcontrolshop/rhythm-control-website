@@ -89,10 +89,10 @@ function parseBio(text: string): React.ReactNode[] { return text.split(/(\{\{[^}
 function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 gap-[2px]" style={{ minHeight: '300px', backgroundColor: '#1C1C1C' }}>
-      <div className="hidden md:block relative overflow-hidden group bg-black" style={{ cursor: MIX.dj_image ? 'pointer' : 'default' }} onClick={() => { if (MIX.dj_image) onImage({ url: MIX.dj_image, title: MIX.dj }) }}>
-        {MIX.dj_image ? (<><Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top' }} sizes="200px" /></>) : (<FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />)}
+      <div className="hidden md:block relative overflow-hidden group bg-black" style={{ cursor: MIX.dj_image ? 'pointer' : 'default', minHeight: '300px' }} onClick={() => { if (MIX.dj_image) onImage({ url: MIX.dj_image, title: MIX.dj }) }}>
+        {MIX.dj_image ? (<><Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top center' }} sizes="(min-width: 768px) 16vw, 0px" priority /></>) : (<FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />)}
       </div>
-      <div className="col-span-1 md:col-span-2 flex flex-col bg-black" style={{ borderLeft: '2px solid #FFFFFF' }}>
+      <div className="col-span-1 md:col-span-2 flex flex-col bg-black">
         <div style={{ padding: '16px', flexShrink: 0 }}><Marquee text={MIX.dj} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2' }} /></div>
         <div style={{ flex: 1, padding: '10px 16px' }}><p className="font-meta font-bold" style={{ color: '#FFFFFF', fontSize: '0.68rem', lineHeight: 1.8 }}>{parseBio(MIX.bio)}</p></div>
         <div className="flex gap-3" style={{ padding: '12px 16px', borderTop: '1px solid #1C1C1C' }}>
@@ -118,7 +118,7 @@ function EventsContent({ events, onFlyer }: { events: HeroEvent[]; onFlyer: (f: 
       {displayEvents.flatMap((event) => {
         const hasFlyer = Boolean(event.flyer_url)
         return [
-          <div key={`${event.id}-text`} className={`col-span-1 ${textDesktopClass} flex flex-col bg-black`} style={{ borderLeft: '2px solid #FFFFFF', padding: '16px' }}>
+          <div key={`${event.id}-text`} className={`col-span-1 ${textDesktopClass} flex flex-col bg-black`} style={{ padding: '16px' }}>
              <span className="font-display" style={{ color: '#F0E040', fontSize: '0.65rem' }}>{formatEventDate(event.date)}</span>
              <Marquee text={event.title} style={{ color: '#FFFFFF', fontSize: '1.3rem', marginTop: '4px' }} />
              <button onClick={() => { if (hasFlyer && event.flyer_url) onFlyer({ url: event.flyer_url, title: event.title }) }} style={{ marginTop: 'auto', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.6rem', padding: '7px 14px', width: 'fit-content' }} className="font-display">VER FLYER</button>
@@ -160,18 +160,18 @@ export default function Hero({ releases }: HeroProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-6" style={{ borderBottom: '2px solid #FFFFFF' }}>
+      <div className="grid grid-cols-2 md:grid-cols-6">
         <div className="col-span-2 md:col-span-3 grid grid-cols-3">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} className="font-display text-xs" style={{ backgroundColor: tab === t.id ? '#F0E040' : '#000000', color: tab === t.id ? '#000000' : '#FFFFFF', borderRight: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF', padding: '14px 20px', cursor: 'pointer', transition: 'background-color 0.15s, color 0.15s' }}
               onMouseEnter={(e) => { if(tab !== t.id) { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000'; } }} onMouseLeave={(e) => { if(tab !== t.id) { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#FFFFFF'; } }}>{t.label}</button>
           ))}
         </div>
-        <div className="hidden md:flex col-span-3 items-center" style={{ paddingLeft: '12px', backgroundColor: '#000000' }}>
+        <div className="hidden md:flex col-span-3 items-center" style={{ paddingLeft: '12px', backgroundColor: '#000000', borderBottom: '2px solid #FFFFFF' }}>
           <Marquee text={marqueeText} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
         </div>
       </div>
-      <div style={{ borderBottom: '2px solid #FFFFFF' }}>
+      <div>
         {tab === 'top' && <TopContent releases={topReleases} onSelect={setSelected} onPlay={handlePlay} />}
         {tab === 'mix' && <MixContent onImage={setFlyer} />}
         {tab === 'events' && <EventsContent events={apiEvents} onFlyer={setFlyer} />}

@@ -3,6 +3,7 @@ import Navigation      from '@/components/layout/Navigation'
 import Footer          from '@/components/layout/Footer'
 import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
 import { Marquee }     from '@/components/ui/Marquee'
+import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
@@ -49,7 +50,9 @@ function NovedadesSkeleton() {
           <div className="hidden md:block" />
           <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
             <div className="flex items-center justify-center py-32">
-              <div className="inline-block w-6 h-6 border-2 border-t-transparent animate-spin" style={{ borderColor: '#F0E040', borderTopColor: 'transparent' }} />
+              <div className="rc-loader-spin inline-flex items-center justify-center">
+                <RhythmControlLogo height="48px" fill="#F0E040" />
+              </div>
             </div>
           </div>
           <div className="hidden md:block" />
@@ -133,7 +136,7 @@ export default function NovedadesPage({
   return (
     <>
       <Navigation variant="magenta" />
-      <main className="relative min-h-screen" style={{ backgroundColor: '#000000' }}>
+      <main className="relative min-h-screen" style={{ backgroundColor: '#FF00FF' }}>
         <div className="absolute inset-0 z-0">
           <MagentaStripes />
         </div>
