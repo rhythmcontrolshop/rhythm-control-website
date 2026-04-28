@@ -61,9 +61,9 @@ export default function ContactForm() {
           className="w-full p-2 border-2 border-black font-mono text-xs focus:outline-none focus:bg-[#F0E040] resize-none text-black"></textarea>
       </div>
       {status === 'error' && (
-        <p className="font-meta text-xs" style={{ color: '#ef4444' }}>Error al enviar. Inténtalo de nuevo.</p>
+        <p className="font-meta text-xs" style={{ color: '#ef4444' }}>{t('contact.error')}</p>
       )}
-      <button type="submit" disabled={status === 'sending'} className="font-display text-xs py-3 bg-black text-white hover:bg-[#F0E040] hover:text-black transition-colors disabled:opacity-50">
+      <button type="submit" disabled={status === 'sending'} className="font-display text-xs py-3 bg-black border-2 border-black text-[#22C55E] hover:bg-[#22C55E] hover:text-black hover:border-black transition-colors disabled:opacity-50">
         {status === 'sending' ? t('contact.sending') : t('contact.send')}
       </button>
     </form>

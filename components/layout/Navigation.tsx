@@ -26,15 +26,15 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
 
   const NAV_ITEMS = [
     { type: 'link' as const, href: '/novedades', label: t('nav.novedades'), key: 'novedades' },
-    { type: 'link' as const, href: '/stock',     label: 'STOCK',            key: 'stock' },
-    { type: 'link' as const, href: '/contacto',  label: t('nav.contact'),   key: 'contacto' },
-    { type: 'cart' as const, href: '',           label: `CARRITO (${totalItems})`, key: 'carrito' },
+    { type: 'link' as const, href: '/stock',     label: t('nav.stock'),      key: 'stock' },
+    { type: 'link' as const, href: '/contacto',  label: t('nav.contact'),    key: 'contacto' },
+    { type: 'cart' as const, href: '',           label: `${t('nav.cart')} (${totalItems})`, key: 'carrito' },
     { type: 'link' as const, href: '/cuenta',    label: t('nav.account'),   key: 'cuenta' },
     { type: 'lang' as const, href: '',           label: '',                 key: 'lang' },
   ]
 
   return (
-    <header style={{ backgroundColor: bgColor, overflow: 'hidden' }}>
+    <header style={{ backgroundColor: bgColor }}>
 
       {/* ── Logo row — responsive padding ── */}
       <div className="px-4 py-3 md:px-6 md:py-4" style={{ borderBottom: `2px solid ${borderCol}` }}>

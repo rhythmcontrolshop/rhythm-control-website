@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
+import { useLocale } from '@/context/LocaleContext'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { ShippingRate } from '@/types'
@@ -36,6 +37,7 @@ interface ProfileData {
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart() as any
   const router = useRouter()
+  const { t } = useLocale()
 
   // ── Form state ────────────────────────────────────────────────
   const [customerName, setCustomerName] = useState('')
@@ -126,17 +128,17 @@ export default function CheckoutPage() {
     e.preventDefault()
     setError('')
 
-    if (!customerName.trim()) { setError('El nombre es obligatorio'); return }
-    if (!customerEmail.trim()) { setError('El email es obligatorio'); return }
-    if (!customerPhone.trim()) { setError('El teléfono es obligatorio'); return }
+    if (!customerName.trim()) { setError(t('checkout.nameRequired')); return }
+    if (!customerEmail.trim()) { setError(t('checkout.emailRequired')); return }
+    if (!customerPhone.trim()) { setError(t('checkout.phoneRequired')); return }
 
     if (!isGUARDI) {
-      if (!address.trim()) { setError('La dirección es obligatoria para envío'); return }
-      if (!postalCode.trim()) { setError('El código postal es obligatorio'); return }
-      if (!city.trim()) { setError('La ciudad es obligatoria'); return }
+      if (!address.trim()) { setError(t('checkout.addressRequired')); return }
+      if (!postalCode.trim()) { setError(t('checkout.postalCodeRequired')); return }
+      if (!city.trim()) { setError(t('checkout.cityRequired')); return }
     }
 
-    if (!selectedRate) { setError('Selecciona un método de envío'); return }
+    if (!selectedRate) { setError(t('checkout.selectShipping')); return }
 
     setLoading(true)
 
@@ -178,12 +180,12 @@ export default function CheckoutPage() {
       try {
         data = await res.json()
       } catch {
-        setError('Error del servidor. Inténtalo de nuevo en unos segundos.')
+        setError(t('checkout.serverError'))
         return
       }
 
       if (!res.ok) {
-        setError(data.error || 'Error al procesar el pago')
+        setError(data.error || t('checkout.paymentError'))
         return
       }
 
@@ -208,10 +210,37 @@ export default function CheckoutPage() {
       }
 
       document.body.appendChild(form)
-      form.submit()
 
-    } catch {
-      setError('Error de conexión. Comprueba tu conexión e inténtalo de nuevo.')
+      // Attempt form submission — CSP or network issues may block it
+      try {
+        form.submit()
+      } catch (submitErr) {
+        // Form submission failed (likely CSP blocking the redirect)
+        // Cleanup: unreserve the items so they can be re-attempted
+        console.error('Redsys form submission failed:', submitErr)
+        try {
+          await fetch('/api/checkout/cleanup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemIds: items.map((i: any) => i.id) }),
+          })
+        } catch { /* cleanup failed, ignore */ }
+        setError(t('checkout.connectionError'))
+        setLoading(false)
+        return
+      }
+
+    } catch (err) {
+      console.error('Checkout error:', err)
+      // Cleanup: try to unreserve items so they can be re-attempted
+      try {
+        await fetch('/api/checkout/cleanup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemIds: items.map((i: any) => i.id) }),
+        })
+      } catch { /* cleanup failed, ignore */ }
+      setError(t('checkout.connectionError'))
     } finally {
       setLoading(false)
     }
@@ -229,14 +258,14 @@ export default function CheckoutPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-display text-xl uppercase" style={{ color: WHITE, letterSpacing: '-0.05em' }}>
-            CHECKOUT
+            {t('checkout.title')}
           </h1>
           <button
             onClick={() => router.push('/stock')}
             className="font-display text-xs min-h-[44px] flex items-center"
             style={{ color: GRAY, cursor: 'pointer' }}
           >
-            ← VOLVER
+            {t('checkout.back')}
           </button>
         </div>
 
@@ -244,7 +273,7 @@ export default function CheckoutPage() {
           {/* ── Order summary ────────────────────────────────── */}
           <div className="p-4" style={{ border: `1px solid ${BORDER}` }}>
             <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
-              TU PEDIDO ({items.length})
+              {t('checkout.yourOrder')} ({items.length})
             </h2>
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {items.map((item: any) => (
@@ -273,7 +302,7 @@ export default function CheckoutPage() {
               ))}
             </div>
             <div className="mt-4 pt-4 flex justify-between" style={{ borderTop: `1px solid ${BORDER}` }}>
-              <span className="font-display text-sm" style={{ color: WHITE }}>SUBTOTAL</span>
+              <span className="font-display text-sm" style={{ color: WHITE }}>{t('checkout.subtotal')}</span>
               <span className="font-display text-sm" style={{ color: BLUE }}>{totalPrice.toFixed(2)} €</span>
             </div>
           </div>
@@ -281,7 +310,7 @@ export default function CheckoutPage() {
           {/* ── Shipping method ──────────────────────────────── */}
           <div>
             <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
-              MÉTODO DE ENVÍO
+              {t('checkout.shippingMethod')}
             </h2>
             <div className="space-y-2">
               {shippingRates.map(rate => (
@@ -304,14 +333,14 @@ export default function CheckoutPage() {
                   />
                   <div className="flex-1">
                     <p className="font-display text-xs" style={{ color: WHITE }}>
-                      {rate.method === 'click_collect' ? 'GUARDI (Click&Collect)' : rate.name}
+                      {rate.method === 'click_collect' ? t('checkout.guardi') : rate.name}
                     </p>
                     {rate.description && (
                       <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>{rate.description}</p>
                     )}
                   </div>
                   <span className="font-display text-xs" style={{ color: WHITE }}>
-                    {rate.price === 0 ? 'GRATIS' : `${rate.price.toFixed(2)} €`}
+                    {rate.price === 0 ? t('checkout.free') : `${rate.price.toFixed(2)} €`}
                   </span>
                 </label>
               ))}
@@ -321,11 +350,11 @@ export default function CheckoutPage() {
           {/* ── Customer info ────────────────────────────────── */}
           <div>
             <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
-              TUS DATOS
+              {t('checkout.yourData')}
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Nombre completo *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.fullName')}</label>
                 <input
                   type="text"
                   value={customerName}
@@ -334,11 +363,11 @@ export default function CheckoutPage() {
                   autoComplete="name"
                   className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                  placeholder="Tu nombre"
+                  placeholder={t('checkout.namePlaceholder')}
                 />
               </div>
               <div>
-                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Email *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.emailLabel')}</label>
                 <input
                   type="email"
                   value={customerEmail}
@@ -347,11 +376,11 @@ export default function CheckoutPage() {
                   autoComplete="email"
                   className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                  placeholder="tu@email.com"
+                  placeholder={t('checkout.emailPlaceholder')}
                 />
               </div>
               <div>
-                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Teléfono *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.phoneLabel')}</label>
                 <input
                   type="tel"
                   value={customerPhone}
@@ -360,7 +389,7 @@ export default function CheckoutPage() {
                   autoComplete="tel"
                   className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                  placeholder="+34 6XX XXX XXX"
+                  placeholder={t('checkout.phonePlaceholder')}
                 />
               </div>
             </div>
@@ -370,11 +399,11 @@ export default function CheckoutPage() {
           {!isGUARDI && (
             <div>
               <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
-                DIRECCIÓN DE ENVÍO
+                {t('checkout.shippingAddress')}
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Dirección *</label>
+                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.addressLabel')}</label>
                   <input
                     type="text"
                     value={address}
@@ -383,12 +412,12 @@ export default function CheckoutPage() {
                     autoComplete="street-address"
                     className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                    placeholder="Calle, número, piso..."
+                    placeholder={t('checkout.addressPlaceholder')}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>C.P. *</label>
+                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.postalCodeLabel')}</label>
                     <input
                       type="text"
                       value={postalCode}
@@ -397,11 +426,11 @@ export default function CheckoutPage() {
                       autoComplete="postal-code"
                       className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                       style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                      placeholder="08001"
+                      placeholder={t('checkout.postalCodePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Ciudad *</label>
+                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.cityLabel')}</label>
                     <input
                       type="text"
                       value={city}
@@ -410,12 +439,12 @@ export default function CheckoutPage() {
                       autoComplete="address-level2"
                       className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                       style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                      placeholder="Barcelona"
+                      placeholder={t('checkout.cityPlaceholder')}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Provincia</label>
+                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>{t('checkout.provinceLabel')}</label>
                   <input
                     type="text"
                     value={province}
@@ -423,7 +452,7 @@ export default function CheckoutPage() {
                     autoComplete="address-level1"
                     className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                     style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
-                    placeholder="Barcelona"
+                    placeholder={t('checkout.provincePlaceholder')}
                   />
                 </div>
               </div>
@@ -433,7 +462,7 @@ export default function CheckoutPage() {
           {/* ── Payment method ───────────────────────────────── */}
           <div>
             <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
-              MÉTODO DE PAGO
+              {t('checkout.paymentMethod')}
             </h2>
             <div className="space-y-2">
               <label
@@ -452,8 +481,8 @@ export default function CheckoutPage() {
                   className="accent-blue-500"
                 />
                 <div className="flex-1">
-                  <p className="font-display text-xs" style={{ color: WHITE }}>TARJETA</p>
-                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>Visa, Mastercard, etc.</p>
+                  <p className="font-display text-xs" style={{ color: WHITE }}>{t('checkout.card')}</p>
+                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>{t('checkout.cardDesc')}</p>
                 </div>
               </label>
               <label
@@ -472,8 +501,8 @@ export default function CheckoutPage() {
                   className="accent-blue-500"
                 />
                 <div className="flex-1">
-                  <p className="font-display text-xs" style={{ color: WHITE }}>BIZUM</p>
-                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>Pago instantáneo</p>
+                  <p className="font-display text-xs" style={{ color: WHITE }}>{t('checkout.bizum')}</p>
+                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>{t('checkout.bizumDesc')}</p>
                 </div>
               </label>
             </div>
@@ -482,19 +511,19 @@ export default function CheckoutPage() {
           {/* ── Total and pay button ─────────────────────────── */}
           <div className="p-4" style={{ border: `2px solid ${BLUE}` }}>
             <div className="flex justify-between mb-2">
-              <span className="font-mono text-xs" style={{ color: GRAY }}>Subtotal</span>
+              <span className="font-mono text-xs" style={{ color: GRAY }}>{t('checkout.subtotal')}</span>
               <span className="font-mono text-xs" style={{ color: WHITE }}>{totalPrice.toFixed(2)} €</span>
             </div>
             <div className="flex justify-between mb-4">
               <span className="font-mono text-xs" style={{ color: GRAY }}>
-                Envío {isGUARDI ? '(GUARDI)' : ''}
+                {t('checkout.shipping')} {isGUARDI ? `(${t('checkout.guardi')})` : ''}
               </span>
               <span className="font-mono text-xs" style={{ color: WHITE }}>
-                {shippingCost === 0 ? 'GRATIS' : `${shippingCost.toFixed(2)} €`}
+                {shippingCost === 0 ? t('checkout.free') : `${shippingCost.toFixed(2)} €`}
               </span>
             </div>
             <div className="flex justify-between mb-6 pt-4" style={{ borderTop: `1px solid ${BORDER}` }}>
-              <span className="font-display text-base" style={{ color: WHITE }}>TOTAL</span>
+              <span className="font-display text-base" style={{ color: WHITE }}>{t('checkout.total')}</span>
               <span className="font-display text-base" style={{ color: BLUE }}>{grandTotal.toFixed(2)} €</span>
             </div>
 
@@ -514,11 +543,11 @@ export default function CheckoutPage() {
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? 'PROCESANDO...' : payMethod === 'bizum' ? 'PAGAR CON BIZUM' : 'PAGAR CON TARJETA'}
+              {loading ? t('checkout.processing') : payMethod === 'bizum' ? t('checkout.payBizum') : t('checkout.payCard')}
             </button>
 
             <p className="font-mono text-xs text-center mt-4" style={{ color: GRAY_DARK }}>
-              Serás redirigido a la pasarela de pago segura de Redsys
+              {t('checkout.redsysRedirect')}
             </p>
           </div>
         </form>

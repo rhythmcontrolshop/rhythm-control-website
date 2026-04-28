@@ -1,27 +1,32 @@
+'use client'
+
 import Navigation    from '@/components/layout/Navigation'
 import Footer        from '@/components/layout/Footer'
 import ContactForm   from '@/components/contact/ContactForm'
 import Image         from 'next/image'
 import Link          from 'next/link'
-
-const SCHEDULE = [
-  { day: 'LUNES',     hours: '15:00–19:45' },
-  { day: 'MARTES',    hours: '15:00–19:45' },
-  { day: 'MIÉRCOLES', hours: '15:00–20:00' },
-  { day: 'JUEVES',    hours: '15:00–19:45' },
-  { day: 'VIERNES',   hours: '15:00–19:45' },
-  { day: 'SÁBADO',    hours: '12:00–19:45' },
-  { day: 'DOMINGO',   hours: 'CERRADO'     },
-]
-
-const LEGAL_LINKS = [
-  { href: '/aviso-legal', label: 'AVISO LEGAL'  },
-  { href: '/privacidad',  label: 'PRIVACIDAD'   },
-  { href: '/cookies',     label: 'COOKIES'      },
-  { href: '/terminos',    label: 'TÉRMINOS'     },
-]
+import { useLocale } from '@/context/LocaleContext'
 
 export default function ContactoPage() {
+  const { t } = useLocale()
+
+  const SCHEDULE = [
+    { day: t('contact.mon'), hours: '15:00–19:45' },
+    { day: t('contact.tue'), hours: '15:00–19:45' },
+    { day: t('contact.wed'), hours: '15:00–20:00' },
+    { day: t('contact.thu'), hours: '15:00–19:45' },
+    { day: t('contact.fri'), hours: '15:00–19:45' },
+    { day: t('contact.sat'), hours: '12:00–19:45' },
+    { day: t('contact.sun'), hours: t('contact.closed') },
+  ]
+
+  const LEGAL_LINKS = [
+    { href: '/aviso-legal', label: t('footer.legalNotice') },
+    { href: '/privacidad',  label: t('footer.privacy')     },
+    { href: '/cookies',     label: t('footer.cookies')     },
+    { href: '/terminos',    label: t('footer.terms')       },
+  ]
+
   return (
     <>
       <Navigation variant="green" />
@@ -46,22 +51,22 @@ export default function ContactoPage() {
           {/* Título */}
           <div className="p-6 border-b-2 border-black">
             <h1 className="font-display text-4xl md:text-5xl uppercase" style={{ letterSpacing: '-0.05em', color: '#000000' }}>
-              CONTACTO
+              {t('contact.title')}
             </h1>
-            <p className="font-display text-xs mt-2" style={{ color: '#000000' }}>RHYTHM CONTROL BARCELONA · TIENDA DE VINILOS</p>
+            <p className="font-display text-xs mt-2" style={{ color: '#000000' }}>{t('contact.subtitle')}</p>
           </div>
 
           {/* Dirección + Horarios */}
           <div className="grid grid-cols-1 md:grid-cols-2 border-b-2 border-black">
 
             <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-black">
-              <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>DIRECCIÓN</h2>
+              <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>{t('contact.address').toUpperCase()}</h2>
               <p className="font-mono text-xs leading-relaxed mb-4" style={{ color: '#000000' }}>
-                Rda. de Sant Pau, 19-21, Local 28<br />
-                Eixample, 08015 Barcelona
+                {t('footer.address')}<br />
+                {t('footer.district')}
               </p>
               <p className="font-display text-sm mb-4" style={{ color: '#000000' }}>
-                <a href="tel:+34696592106" className="hover:underline transition-colors">696 59 21 06</a>
+                <a href="tel:+34696592106" className="hover:underline transition-colors">{t('footer.phone')}</a>
               </p>
               <a
                 href="https://maps.google.com/?q=Ronda+de+Sant+Pau+19+Barcelona"
@@ -69,17 +74,17 @@ export default function ContactoPage() {
                 rel="noopener noreferrer"
                 className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors inline-block"
                 style={{ color: '#000000' }}>
-                VER EN MAPA →
+                {t('btn.viewMap')}
               </a>
             </div>
 
             <div className="p-6">
-              <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>HORARIO</h2>
+              <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>{t('contact.schedule').toUpperCase()}</h2>
               <div className="space-y-1">
                 {SCHEDULE.map(({ day, hours }) => (
                   <div key={day} className="flex justify-between font-mono text-xs" style={{ color: '#000000' }}>
                     <span>{day}</span>
-                    <span style={{ fontWeight: hours === 'CERRADO' ? 700 : 400 }}>{hours}</span>
+                    <span style={{ fontWeight: hours === t('contact.closed') ? 700 : 400 }}>{hours}</span>
                   </div>
                 ))}
               </div>
@@ -88,19 +93,19 @@ export default function ContactoPage() {
 
           {/* Formulario */}
           <div className="p-6 border-b-2 border-black">
-            <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>ESCRÍBENOS</h2>
+            <h2 className="font-display text-xs mb-4" style={{ color: '#000000' }}>{t('contact.writeUs')}</h2>
             <ContactForm />
           </div>
 
           {/* Info venta online + Legal */}
           <div className="p-6 border-b-2 border-black">
-            <h2 className="font-display text-xs mb-2" style={{ color: '#000000' }}>INFO VENTA ONLINE</h2>
+            <h2 className="font-display text-xs mb-2" style={{ color: '#000000' }}>{t('contact.onlineInfo')}</h2>
             <ul className="font-mono text-[10px] space-y-1 list-disc pl-4 mb-4" style={{ color: '#000000' }}>
-              <li>Envíos a toda España y Europa a través de agencia (MRW/GLS).</li>
-              <li>Plazo de preparación: 24-48h laborables tras confirmación de pago.</li>
-              <li>Devoluciones aceptadas en un plazo de 14 días naturales.</li>
-              <li>Los discos de segunda mano se revisan antes del envío.</li>
-              <li>Pago seguro mediante tarjeta (Stripe).</li>
+              <li>{t('contact.onlineInfo1')}</li>
+              <li>{t('contact.onlineInfo2')}</li>
+              <li>{t('contact.onlineInfo3')}</li>
+              <li>{t('contact.onlineInfo4')}</li>
+              <li>{t('contact.onlineInfo5')}</li>
             </ul>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
               {LEGAL_LINKS.map(({ href, label }) => (
@@ -113,8 +118,8 @@ export default function ContactoPage() {
 
           {/* Redes */}
           <div className="p-6 flex gap-4">
-            <a href="https://instagram.com/rhythmcontrol.bcn" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>INSTAGRAM →</a>
-            <a href="https://mixcloud.com/rhythmcontrolshop"  target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>MIXCLOUD →</a>
+            <a href="https://instagram.com/rhythmcontrol.bcn" target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>{t('footer.instagram')}</a>
+            <a href="https://mixcloud.com/rhythmcontrolshop"  target="_blank" rel="noopener noreferrer" className="font-display text-xs hover:underline transition-colors" style={{ color: '#000000' }}>{t('footer.mixcloud')}</a>
           </div>
 
         </div>

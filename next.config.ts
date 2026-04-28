@@ -19,12 +19,12 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://vercel.live https://va.vercel-scripts.v0.dev",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://i.discogs.com https://*.discogs.com https://img.discogs.com https://images.unsplash.com https://picsum.photos https://*.picsum.photos",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.googleapis.com https://api.discogs.com wss://ws-us3.pusherapp.com https://vercel.live",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.googleapis.com https://api.discogs.com wss://ws-us3.pusherapp.com https://vercel.live https://sis-t.redsys.es:25443 https://sis.redsys.es",
       "frame-src https://js.stripe.com https://www.youtube.com https://www.youtube-nocookie.com",
       "font-src 'self'",
       "media-src 'self' https://*.supabase.co",
-      // Prevenir form submissions a dominios externos (CSRF mitigation)
-      "form-action 'self'",
+      // Redsys TPV necesita form-action para redirigir al pago
+      "form-action 'self' https://sis-t.redsys.es:25443 https://sis.redsys.es",
       // Prevenir framing externo (clickjacking)
       "frame-ancestors 'none'",
       // Forzar HTTPS para todos los recursos

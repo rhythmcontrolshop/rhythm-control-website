@@ -23,7 +23,7 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => setOpen(prev => !prev)}
         className="font-display text-xs w-full h-full flex items-center justify-between hover:opacity-80 transition-opacity duration-150"
-        style={{ padding: '0 12px', color: '#FFFFFF', minHeight: '44px' }}
+        style={{ padding: '0 12px', color: '#22C55E', minHeight: '44px' }}
       >
         <span>{currentLabel}</span>
         <span style={{ fontSize: '0.55rem', opacity: 0.7, marginLeft: '4px' }}>▼</span>
