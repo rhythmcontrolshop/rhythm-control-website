@@ -13,7 +13,7 @@ import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
   release: Release; onSelect: (release: Release) => void
-  onPlay: (track: PlayerTrack, clipIndex: number) => void; theme?: 'default' | 'magenta' | 'green'
+  onPlay: (track: PlayerTrack, clipIndex: number) => void; theme?: 'default' | 'magenta' | 'red' | 'green' | 'stock'
   isNew?: boolean
 }
 
@@ -22,8 +22,8 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
   const { addItem } = useCart()
   const { t } = useLocale()
   const artist      = release.artists[0] ?? '—'
-  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : 'var(--rc-color-accent)'
-  const accentHex   = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : '#F0E040'
+  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'green' ? '#77DD77' : theme === 'stock' ? '#9E9893' : 'var(--rc-color-accent)'
+  const accentHex   = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'green' ? '#77DD77' : theme === 'stock' ? '#9E9893' : '#F0E040'
   const status      = release.status ?? 'active'
   const isAvailable = status === 'active'
 

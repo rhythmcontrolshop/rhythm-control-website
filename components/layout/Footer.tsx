@@ -7,7 +7,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 interface FooterProps {
-  variant?: 'yellow' | 'magenta' | 'green'
+  variant?: 'yellow' | 'magenta' | 'red' | 'green' | 'stock'
 }
 
 const LEGAL_LINKS = [
@@ -18,7 +18,7 @@ const LEGAL_LINKS = [
 ]
 
 export default function Footer({ variant = 'yellow' }: FooterProps) {
-  const bgColor    = variant === 'magenta' ? '#FF00FF' : variant === 'green' ? '#77DD77' : '#F0E040'
+  const bgColor    = variant === 'magenta' ? '#FF00FF' : variant === 'red' ? '#F03E3E' : variant === 'green' ? '#77DD77' : variant === 'stock' ? '#9E9893' : '#F0E040'
   const borderColor = '#000000'
   const textColor   = '#000000'
 

@@ -3,11 +3,11 @@ import Navigation      from '@/components/layout/Navigation'
 import Footer          from '@/components/layout/Footer'
 import NovedadesGrid   from '@/components/novedades/NovedadesGrid'
 import { Marquee }     from '@/components/ui/Marquee'
-import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
+import { SpinningR }    from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
-const MagentaStripes = () => (
+const RedStripes = () => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     version="1.1"
@@ -24,7 +24,7 @@ const MagentaStripes = () => (
         height="6"
         patternTransform="rotate(45)"
       >
-        <rect width="3" height="6" fill="#FF00FF"/>
+        <rect width="3" height="6" fill="#F03E3E"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#diagonal-stripes)"/>
@@ -50,9 +50,7 @@ function NovedadesSkeleton() {
           <div className="hidden md:block" />
           <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
             <div className="flex items-center justify-center py-32">
-              <div className="rc-loader-spin inline-flex items-center justify-center">
-                <RhythmControlLogo height="48px" fill="#F0E040" />
-              </div>
+              <SpinningR size={48} fill="#F03E3E" />
             </div>
           </div>
           <div className="hidden md:block" />
@@ -135,16 +133,16 @@ export default function NovedadesPage({
 }) {
   return (
     <>
-      <Navigation variant="magenta" />
-      <main className="relative min-h-screen" style={{ backgroundColor: '#FF00FF' }}>
+      <Navigation variant="red" />
+      <main className="relative min-h-screen" style={{ backgroundColor: '#F03E3E' }}>
         <div className="absolute inset-0 z-0">
-          <MagentaStripes />
+          <RedStripes />
         </div>
         <Suspense fallback={<NovedadesSkeleton />}>
           <NovedadesContent searchParams={searchParams} />
         </Suspense>
       </main>
-      <Footer variant="magenta" />
+      <Footer variant="red" />
     </>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
-// E3-7: Images stacked vertically on mobile (flex-col)
-// E3-23: iOS scroll lock fix using scrollY restore instead of position:fixed
+// RecordModal — Full-screen detail popup for a release
+// Mobile: horizontal image slider + scrollable info below
+// Desktop: side-by-side layout with image column + info column
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
@@ -18,7 +19,7 @@ interface RecordModalProps {
   onPlay: (track: PlayerTrack, clipIndex: number) => void
   onSelect: (release: Release) => void
   openTab?: 'tracklist' | 'notes' | 'artist' | 'label'
-  theme?: 'default' | 'magenta'
+  theme?: 'default' | 'magenta' | 'red' | 'green' | 'stock'
 }
 
 const ACCENT_CONDITIONS = ['M', 'NM']
@@ -31,9 +32,10 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
   const backdropRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<TabType>(openTab || 'tracklist')
   const [showReserve, setShowReserve] = useState(false)
+  const [imageIndex, setImageIndex] = useState(0)
 
-  const accentColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
-  const guardiColor = theme === 'magenta' ? '#FF00FF' : '#F0E040'
+  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'stock' ? '#9E9893' : '#F0E040'
+  const guardiColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'stock' ? '#9E9893' : '#F0E040'
   const isAccentCondition = ACCENT_CONDITIONS.includes(release.condition)
   const tracklist = release.discogs_tracklist?.length
     ? release.discogs_tracklist
@@ -53,7 +55,16 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
     { key: 'label', label: `${t('catalogue.moreFrom')} ${release.labels[0]?.toUpperCase()}`, available: false },
   ]
 
-  // E3-23: iOS-safe scroll lock using overflow:hidden instead of position:fixed
+  // Build image array: front cover always, back cover if exists
+  const images = [
+    { src: release.cover_image, alt: `${release.title} Front` },
+    ...(release.back_cover_image ? [{ src: release.back_cover_image, alt: `${release.title} Back` }] : []),
+  ]
+
+  // Reset image index when release changes
+  useEffect(() => { setImageIndex(0) }, [release.id])
+
+  // iOS-safe scroll lock
   useEffect(() => {
     const scrollY = window.scrollY
     document.body.style.overflow = 'hidden'
@@ -85,6 +96,13 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
     openCart()
   }
 
+  const handlePrevImage = () => {
+    setImageIndex(i => (i > 0 ? i - 1 : images.length - 1))
+  }
+  const handleNextImage = () => {
+    setImageIndex(i => (i < images.length - 1 ? i + 1 : 0))
+  }
+
   return (
     <>
       <div ref={backdropRef} className="fixed inset-0 flex items-center justify-center p-2 md:p-4"
@@ -108,24 +126,68 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
             style={{ width: '44px', height: '44px', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.8)' }}
             onClick={onClose}>✕</button>
 
-          {/* E3-7: Images stacked vertically on mobile (flex-col) */}
-          <div className="flex flex-col md:flex-col shrink-0 w-full md:w-[300px] md:border-r-2 md:border-b-0 border-b-2 border-white">
+          {/* ── MOBILE: Horizontal image slider ── */}
+          <div className="md:hidden shrink-0 w-full">
+            <div className="relative w-full" style={{ aspectRatio: '1' }}>
+              {images[imageIndex]?.src ? (
+                <Image src={images[imageIndex].src!} alt={images[imageIndex].alt} fill style={{ objectFit: 'cover' }} sizes="100vw" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#111' }}>
+                  <span className="font-display text-xs" style={{ color: '#333' }}>No image</span>
+                </div>
+              )}
+
+              {/* Image navigation arrows */}
+              {images.length > 1 && (
+                <>
+                  <button onClick={handlePrevImage}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center z-10"
+                    style={{ width: '44px', height: '44px', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    ‹
+                  </button>
+                  <button onClick={handleNextImage}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center z-10"
+                    style={{ width: '44px', height: '44px', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    ›
+                  </button>
+
+                  {/* Dot indicators */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    {images.map((_, i) => (
+                      <button key={i} onClick={() => setImageIndex(i)}
+                        className="transition-all"
+                        style={{
+                          width: i === imageIndex ? '20px' : '8px',
+                          height: '8px',
+                          backgroundColor: i === imageIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── DESKTOP: Side-by-side images (front + back) ── */}
+          <div className="hidden md:flex md:flex-col shrink-0 md:w-[300px] md:border-r-2 md:border-b-0 border-b-0 border-white">
             <div className="relative w-full" style={{ aspectRatio: '1' }}>
               {release.cover_image
-                ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
+                ? <Image src={release.cover_image} alt={`${release.title} Front`} fill style={{ objectFit: 'cover' }} sizes="300px" />
                 : <div className="w-full h-full bg-black" />}
             </div>
             <div className="relative w-full border-t-2 md:border-t-2 border-white" style={{ aspectRatio: '1' }}>
               {release.back_cover_image
-                ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
+                ? <Image src={release.back_cover_image} alt={`${release.title} Back`} fill style={{ objectFit: 'cover' }} sizes="300px" />
                 : <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#111' }}>
                     <span className="font-display text-xs" style={{ color: '#333' }}>{t('catalogue.noBack')}</span>
                   </div>}
             </div>
           </div>
 
-          {/* Info */}
-          <div className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 flex flex-col overflow-y-auto">
+          {/* Info — scrollable on both mobile and desktop */}
+          <div className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 flex flex-col">
             <p className="font-display" style={{ color: '#FFFFFF', fontSize: '1.8rem', lineHeight: '1.1' }}>{release.artists.join(', ') || '—'}</p>
             <p className="font-display mt-1" style={{ color: accentColor, fontSize: '1.8rem', lineHeight: '1.1' }}>{release.title}</p>
             <p className="font-display text-base font-bold mt-2" style={{ color: '#FFFFFF' }}>{release.labels[0]} {release.catno && `· ${release.catno}`}</p>

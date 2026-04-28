@@ -23,12 +23,14 @@ interface CatalogueTabsProps {
   onLabelChange: (l: string | null) => void
   sort:          SortOption
   onSortChange:  (s: SortOption) => void
+  accentColor?:  string  // hex color for active/hover states
 }
 
 export default function CatalogueTabs({
   styles, activeStyle, onStyleChange,
   labels, activeLabel, onLabelChange,
   sort, onSortChange,
+  accentColor = '#F0E040',
 }: CatalogueTabsProps) {
   const [open, setOpen] = useState<'sort' | 'style' | 'label' | null>(null)
   const ref = useRef<HTMLDivElement>(null)
@@ -48,41 +50,43 @@ export default function CatalogueTabs({
 
   return (
     <div ref={ref} className="flex" style={{ height: '48px', borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
-      <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight>
+      <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight accentColor={accentColor}>
         {SORT_OPTIONS.map(opt => (
-          <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} />
+          <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} accentColor={accentColor} />
         ))}
       </Dropdown>
-      <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight>
-        <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} />
-        {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} />)}
+      <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight accentColor={accentColor}>
+        <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} accentColor={accentColor} />
+        {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} accentColor={accentColor} />)}
       </Dropdown>
-      <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false}>
-        <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} />
-        {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} />)}
+      <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false} accentColor={accentColor}>
+        <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} accentColor={accentColor} />
+        {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} accentColor={accentColor} />)}
       </Dropdown>
     </div>
   )
 }
 
-function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: {
+function Dropdown({ label, isOpen, onToggle, isActive, borderRight, accentColor = '#F0E040', children }: {
   label: string; isOpen: boolean; onToggle: () => void
-  isActive: boolean; borderRight: boolean; children: React.ReactNode
+  isActive: boolean; borderRight: boolean; accentColor: string; children: React.ReactNode
 }) {
+  // Generate dynamic hover class using inline styles since we can't use arbitrary Tailwind values for dynamic colors
   return (
     <div style={{ flex: 1, position: 'relative', height: '48px', borderRight: borderRight ? '2px solid #FFFFFF' : 'none' }}>
-      {/* E3-2: CSS hover + E3-12: min 44px touch target */}
       <button
         onClick={onToggle}
-        className="font-display text-xs w-full h-full flex items-center justify-between hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
+        className="font-display text-xs w-full h-full flex items-center justify-between transition-colors duration-150"
         style={{
-          color: (isActive || isOpen) ? '#F0E040' : '#FFFFFF',
+          color: (isActive || isOpen) ? accentColor : '#FFFFFF',
           padding: '0 16px',
           backgroundColor: '#000000',
+          cursor: 'pointer',
         }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = accentColor; e.currentTarget.style.color = '#000000' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = (isActive || isOpen) ? accentColor : '#FFFFFF' }}
       >
         <span>{label}</span>
-        {/* E3-12: Arrow with proper touch area */}
         <span className="flex items-center justify-center" style={{ fontSize: '0.55rem', opacity: 0.7, minWidth: '20px', minHeight: '20px' }}>▼</span>
       </button>
       {isOpen && (
@@ -94,18 +98,21 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: 
   )
 }
 
-function DropItem({ label, isSelected, onClick }: { label: string; isSelected: boolean; onClick: () => void }) {
+function DropItem({ label, isSelected, onClick, accentColor = '#F0E040' }: { label: string; isSelected: boolean; onClick: () => void; accentColor: string }) {
   return (
     <button
       onClick={onClick}
-      className="font-display text-xs block w-full text-left hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
+      className="font-display text-xs block w-full text-left transition-colors duration-150"
       style={{
-        color: isSelected ? '#F0E040' : '#FFFFFF',
+        color: isSelected ? accentColor : '#FFFFFF',
         backgroundColor: '#000000',
         padding: '12px 16px',
         borderBottom: '1px solid #1C1C1C',
         minHeight: '44px',
+        cursor: 'pointer',
       }}
+      onMouseEnter={e => { e.currentTarget.style.backgroundColor = accentColor; e.currentTarget.style.color = '#000000' }}
+      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = isSelected ? accentColor : '#FFFFFF' }}
     >
       {label}
     </button>

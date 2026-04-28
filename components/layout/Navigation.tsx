@@ -6,14 +6,16 @@ import { useLocale } from '@/context/LocaleContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
 
-export default function Navigation({ variant = 'default' }: { variant?: 'default' | 'magenta' | 'green' }) {
+export default function Navigation({ variant = 'default' }: { variant?: 'default' | 'magenta' | 'red' | 'green' | 'stock' }) {
   const isMagenta  = variant === 'magenta'
+  const isRed      = variant === 'red'
   const isGreen    = variant === 'green'
-  const isColored  = isMagenta || isGreen
+  const isStock    = variant === 'stock'
+  const isColored  = isMagenta || isRed || isGreen
 
-  const bgColor    = isMagenta ? '#FF00FF' : isGreen ? '#77DD77' : '#000000'
+  const bgColor    = isMagenta ? '#FF00FF' : isRed ? '#F03E3E' : isGreen ? '#77DD77' : '#000000'
   const cellText   = isColored ? '#000000' : '#FFFFFF'
-  const logoColor  = isColored ? '#000000' : '#F0E040'
+  const logoColor  = isColored ? '#000000' : isStock ? '#9E9893' : '#F0E040'
   const borderCol  = isColored ? '#000000' : '#FFFFFF'
 
   const { totalItems, toggleCart } = useCart()

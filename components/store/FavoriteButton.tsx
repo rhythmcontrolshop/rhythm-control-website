@@ -14,7 +14,7 @@ interface FavoriteButtonProps {
   initialFavorited?: boolean
   size?: number
   variant?: 'card' | 'modal'
-  theme?: 'default' | 'magenta' | 'green'
+  theme?: 'default' | 'magenta' | 'red' | 'green' | 'stock'
 }
 
 export default function FavoriteButton({
@@ -38,7 +38,7 @@ export default function FavoriteButton({
   const [hovering, setHovering] = useState(false)
 
   const favorited = isFavoritedFromCtx !== null ? isFavoritedFromCtx : localFavorited
-  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'green' ? '#77DD77' : '#F0E040'
+  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'green' ? '#77DD77' : theme === 'stock' ? '#9E9893' : '#F0E040'
 
   async function toggle(e: React.MouseEvent) {
     e.stopPropagation()

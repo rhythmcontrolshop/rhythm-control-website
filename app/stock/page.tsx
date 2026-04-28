@@ -3,7 +3,7 @@ import Navigation    from '@/components/layout/Navigation'
 import CatalogueView from '@/components/store/CatalogueView'
 import StrobeDots    from '@/components/ui/StrobeDots'
 import Footer        from '@/components/layout/Footer'
-import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
+import { SpinningR } from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
@@ -22,14 +22,12 @@ function StockSkeleton() {
   return (
     <main style={{ minHeight: '100vh', backgroundColor: '#1C1C1C' }}>
       <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
-        <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+        <h2 className="font-display text-center" style={{ color: '#9E9893', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
           STOCK
         </h2>
       </div>
       <div className="flex items-center justify-center py-32">
-        <div className="rc-loader-spin inline-flex items-center justify-center">
-          <RhythmControlLogo height="48px" fill="#9E9893" />
-        </div>
+        <SpinningR size={48} fill="#9E9893" />
       </div>
     </main>
   )
@@ -41,11 +39,11 @@ async function StockContent() {
   return (
     <main style={{ minHeight: '100vh', backgroundColor: '#1C1C1C' }}>
       <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
-        <h2 className="font-display text-center" style={{ color: '#FFFFFF', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+        <h2 className="font-display text-center" style={{ color: '#9E9893', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
           STOCK
         </h2>
       </div>
-      <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
+      <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} accentColor="#9E9893" theme="stock" />
       <div style={{ height: '48px' }} />
       <StrobeDots />
     </main>
@@ -55,11 +53,11 @@ async function StockContent() {
 export default function StockPage() {
   return (
     <>
-      <Navigation />
+      <Navigation variant="stock" />
       <Suspense fallback={<StockSkeleton />}>
         <StockContent />
       </Suspense>
-      <Footer />
+      <Footer variant="stock" />
     </>
   )
 }
