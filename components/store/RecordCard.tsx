@@ -1,6 +1,7 @@
 'use client'
 // RecordCard — Catálogo grid card
-// Marquee + action buttons always visible, hover reveals full info overlay on desktop
+// Compact bottom overlay: Marquee text + small buttons, never overlap
+// Desktop hover reveals full info overlay with larger Marquee
 
 import { memo }       from 'react'
 import Image          from 'next/image'
@@ -52,49 +53,49 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
           )}
         </div>
 
-        {/* ── Bottom overlay: Marquee + action buttons — ALWAYS visible ── */}
-        <div className="absolute bottom-0 left-0 right-0 z-10"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 55%, transparent)' }}>
+        {/* ── Bottom overlay: Marquee + buttons — ALWAYS visible, compact ── */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 40%, transparent)' }}>
 
-          {/* Marquee text */}
-          <div className="px-3 pt-10 pb-1">
-            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '0.875rem', lineHeight: '1.3' }} />
-            <Marquee text={release.title} style={{ color: accentColor, fontSize: '0.875rem', lineHeight: '1.3' }} />
+          {/* Text: Marquee for artist & title */}
+          <div style={{ padding: '20px 8px 2px 8px' }}>
+            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '0.75rem', lineHeight: '1.25' }} />
+            <Marquee text={release.title} style={{ color: accentColor, fontSize: '0.75rem', lineHeight: '1.25' }} />
           </div>
 
-          {/* Action buttons — always visible */}
+          {/* Action buttons — compact row */}
           {isAvailable ? (
-            <div className="flex items-center gap-2 px-3 pb-3">
+            <div className="flex items-center gap-1" style={{ padding: '4px 8px 6px 8px' }}>
               <button
-                className="flex items-center justify-center font-display text-xs px-3 transition-opacity hover:opacity-80 active:opacity-70"
-                style={{ backgroundColor: accentHex, color: '#000000', minHeight: '36px', minWidth: '36px', cursor: 'pointer' }}
+                className="flex items-center justify-center font-display text-xs transition-opacity hover:opacity-80 active:opacity-70"
+                style={{ backgroundColor: accentHex, color: '#000000', minHeight: '28px', minWidth: '28px', padding: '0 8px', cursor: 'pointer', fontSize: '0.6rem' }}
                 onClick={e => { e.stopPropagation(); onSelect(release) }}>
                 {t('btn.listen')}
               </button>
               <button
-                className="flex-1 flex items-center justify-center gap-1 font-display text-xs px-2 transition-opacity hover:opacity-80 active:opacity-70"
-                style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '36px', cursor: 'pointer' }}
+                className="flex-1 flex items-center justify-center gap-1 font-display text-xs transition-opacity hover:opacity-80 active:opacity-70"
+                style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '28px', cursor: 'pointer', fontSize: '0.65rem' }}
                 onClick={e => { e.stopPropagation(); addItem(release) }}>
                 <span style={{ fontWeight: 700 }}>
                   {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                 </span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                   <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                 </svg>
               </button>
             </div>
           ) : (
-            <div className="px-3 pb-3">
-              <span className="font-display text-xs px-3 py-1"
-                style={{ border: '1px solid #333', color: '#FFFFFF' }}>
+            <div style={{ padding: '4px 8px 6px 8px' }}>
+              <span className="font-display text-xs px-2 py-0.5"
+                style={{ border: '1px solid #333', color: '#FFFFFF', fontSize: '0.6rem' }}>
                 {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
               </span>
             </div>
           )}
         </div>
 
-        {/* ── Hover state (desktop only) — full info overlay ── */}
+        {/* ── Hover state (desktop only) — full info overlay with larger Marquee ── */}
         <div className="hidden md:flex absolute inset-0 flex-col justify-between p-4 opacity-0 md:transition-opacity md:duration-250 md:group-hover:opacity-100"
           style={{ backgroundColor: 'var(--rc-color-bg)' }}>
           <div className="ml-1">
