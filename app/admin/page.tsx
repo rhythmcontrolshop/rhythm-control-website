@@ -43,8 +43,8 @@ export default async function AdminDashboard() {
   const { active, sold, reserved, totalOrders, todayOrders, lastJob, error } = await getStats()
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-10" style={{ color: '#000000' }}>DASHBOARD</h1>
+    <div className="p-6 md:p-8">
+      <h1 className="text-xl font-bold mb-8" style={{ color: '#000000' }}>DASHBOARD</h1>
 
       {error && (
         <div className="mb-8 p-4" style={{ border: '2px solid #ef4444', backgroundColor: '#fef2f2' }}>
