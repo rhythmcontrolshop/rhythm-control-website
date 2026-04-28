@@ -1,14 +1,25 @@
 'use client'
 
 // app/checkout/page.tsx
-// Página de checkout mínima — recoge datos del cliente antes de redirigir a Redsys TPV
+// Página de checkout — recoge datos del cliente antes de redirigir a Redsys TPV
 // Si el usuario está logueado, precarga datos del perfil
+// Color scheme: blue (#3B82F6) accents on black background
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { ShippingRate } from '@/types'
+
+// ─── Color constants ────────────────────────────────────────────────────────
+const BLUE      = '#3B82F6'
+const BLUE_DIM  = 'rgba(59, 130, 246, 0.08)'
+const BLUE_MID  = 'rgba(59, 130, 246, 0.15)'
+const WHITE     = '#FFFFFF'
+const GRAY      = '#999999'
+const GRAY_DARK = '#666666'
+const BORDER    = '#333333'
+const BG        = '#000000'
 
 interface ProfileData {
   first_name: string | null
@@ -46,14 +57,14 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // ── Redirigir si carrito vacío ────────────────────────────────
+  // ── Redirect if empty cart ────────────────────────────────────
   useEffect(() => {
     if (items.length === 0) {
       router.push('/stock')
     }
   }, [items.length, router])
 
-  // ── Cargar perfil del usuario si está logueado ───────────────
+  // ── Load user profile ─────────────────────────────────────────
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -75,13 +86,13 @@ export default function CheckoutPage() {
           }
         }
       } catch {
-        // No hay perfil — formulario vacío
+        // No profile — empty form
       }
     }
     loadProfile()
   }, [])
 
-  // ── Cargar tarifas de envío ───────────────────────────────────
+  // ── Load shipping rates ───────────────────────────────────────
   useEffect(() => {
     async function loadShipping() {
       try {
@@ -89,7 +100,6 @@ export default function CheckoutPage() {
         if (res.ok) {
           const data = await res.json()
           setShippingRates(data.rates || [])
-          // Seleccionar GUARDI por defecto
           const guardi = data.rates?.find((r: ShippingRate) => r.method === 'click_collect')
           if (guardi) {
             setSelectedRate(guardi.id)
@@ -104,7 +114,7 @@ export default function CheckoutPage() {
     loadShipping()
   }, [])
 
-  // ── Manejar cambio de tarifa ──────────────────────────────────
+  // ── Handle shipping change ────────────────────────────────────
   function handleShippingChange(rateId: string) {
     setSelectedRate(rateId)
     const rate = shippingRates.find(r => r.id === rateId)
@@ -116,7 +126,6 @@ export default function CheckoutPage() {
     e.preventDefault()
     setError('')
 
-    // Validaciones básicas
     if (!customerName.trim()) { setError('El nombre es obligatorio'); return }
     if (!customerEmail.trim()) { setError('El email es obligatorio'); return }
     if (!customerPhone.trim()) { setError('El teléfono es obligatorio'); return }
@@ -164,14 +173,21 @@ export default function CheckoutPage() {
         }),
       })
 
-      const data = await res.json()
+      // Try to parse JSON, but handle non-JSON responses gracefully
+      let data: any
+      try {
+        data = await res.json()
+      } catch {
+        setError('Error del servidor. Inténtalo de nuevo en unos segundos.')
+        return
+      }
 
       if (!res.ok) {
         setError(data.error || 'Error al procesar el pago')
         return
       }
 
-      // Crear formulario oculto y enviar a Redsys
+      // Create hidden form and submit to Redsys
       const form = document.createElement('form')
       form.setAttribute('method', 'POST')
       form.setAttribute('action', data.redsys.action)
@@ -195,7 +211,7 @@ export default function CheckoutPage() {
       form.submit()
 
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      setError('Error de conexión. Comprueba tu conexión e inténtalo de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -208,70 +224,73 @@ export default function CheckoutPage() {
   if (items.length === 0) return null
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#000' }}>
-      <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="min-h-screen" style={{ backgroundColor: BG }}>
+      <div className="max-w-lg mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display text-xl uppercase" style={{ color: '#FFF', letterSpacing: '-0.05em' }}>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="font-display text-xl uppercase" style={{ color: WHITE, letterSpacing: '-0.05em' }}>
             CHECKOUT
           </h1>
           <button
             onClick={() => router.push('/stock')}
             className="font-display text-xs min-h-[44px] flex items-center"
-            style={{ color: '#999', cursor: 'pointer' }}
+            style={{ color: GRAY, cursor: 'pointer' }}
           >
             ← VOLVER
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ── Resumen del pedido ─────────────────────────────── */}
-          <div className="p-4" style={{ border: '1px solid #333' }}>
-            <h2 className="font-display text-xs uppercase mb-3" style={{ color: '#F0E040' }}>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* ── Order summary ────────────────────────────────── */}
+          <div className="p-4" style={{ border: `1px solid ${BORDER}` }}>
+            <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
               TU PEDIDO ({items.length})
             </h2>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-3 max-h-48 overflow-y-auto">
               {items.map((item: any) => (
                 <div key={item.discogs_listing_id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 relative flex-shrink-0 border border-gray-700 bg-gray-900">
+                  <div className="w-12 h-12 relative flex-shrink-0" style={{ border: `1px solid ${BORDER}`, backgroundColor: '#111' }}>
                     <Image
                       src={item.cover_image || '/placeholder.png'}
                       alt={item.title}
                       fill
                       className="object-cover"
-                      sizes="40px"
+                      sizes="48px"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display text-xs uppercase truncate" style={{ color: '#FFF' }}>
+                    <p className="font-display text-xs uppercase truncate" style={{ color: WHITE }}>
                       {item.artists?.[0]} — {item.title}
                     </p>
+                    <p className="font-mono text-xs mt-0.5" style={{ color: GRAY_DARK }}>
+                      {item.condition} · {item.format}
+                    </p>
                   </div>
-                  <span className="font-display text-xs flex-shrink-0" style={{ color: '#FFF' }}>
+                  <span className="font-display text-xs flex-shrink-0" style={{ color: WHITE }}>
                     {(item.price * (item.quantity || 1)).toFixed(2)} €
                   </span>
                 </div>
               ))}
             </div>
-            <div className="border-t border-gray-700 mt-3 pt-3 flex justify-between">
-              <span className="font-display text-sm" style={{ color: '#FFF' }}>TOTAL</span>
-              <span className="font-display text-sm" style={{ color: '#F0E040' }}>{totalPrice.toFixed(2)} €</span>
+            <div className="mt-4 pt-4 flex justify-between" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <span className="font-display text-sm" style={{ color: WHITE }}>SUBTOTAL</span>
+              <span className="font-display text-sm" style={{ color: BLUE }}>{totalPrice.toFixed(2)} €</span>
             </div>
           </div>
 
-          {/* ── Método de envío ─────────────────────────────────── */}
+          {/* ── Shipping method ──────────────────────────────── */}
           <div>
-            <h2 className="font-display text-xs uppercase mb-3" style={{ color: '#F0E040' }}>
+            <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
               MÉTODO DE ENVÍO
             </h2>
             <div className="space-y-2">
               {shippingRates.map(rate => (
                 <label
                   key={rate.id}
-                  className="flex items-center gap-3 p-3 cursor-pointer"
+                  className="flex items-center gap-3 p-4 cursor-pointer"
                   style={{
-                    border: selectedRate === rate.id ? '2px solid #F0E040' : '1px solid #333',
-                    backgroundColor: selectedRate === rate.id ? 'rgba(240, 224, 64, 0.05)' : 'transparent',
+                    border: selectedRate === rate.id ? `2px solid ${BLUE}` : `1px solid ${BORDER}`,
+                    backgroundColor: selectedRate === rate.id ? BLUE_DIM : 'transparent',
                     minHeight: '44px',
                   }}
                 >
@@ -281,17 +300,17 @@ export default function CheckoutPage() {
                     value={rate.id}
                     checked={selectedRate === rate.id}
                     onChange={() => handleShippingChange(rate.id)}
-                    className="accent-[#F0E040]"
+                    className="accent-blue-500"
                   />
                   <div className="flex-1">
-                    <p className="font-display text-xs" style={{ color: '#FFF' }}>
+                    <p className="font-display text-xs" style={{ color: WHITE }}>
                       {rate.method === 'click_collect' ? 'GUARDI (Click&Collect)' : rate.name}
                     </p>
                     {rate.description && (
-                      <p className="font-mono text-xs mt-0.5" style={{ color: '#666' }}>{rate.description}</p>
+                      <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>{rate.description}</p>
                     )}
                   </div>
-                  <span className="font-display text-xs" style={{ color: '#FFF' }}>
+                  <span className="font-display text-xs" style={{ color: WHITE }}>
                     {rate.price === 0 ? 'GRATIS' : `${rate.price.toFixed(2)} €`}
                   </span>
                 </label>
@@ -299,111 +318,111 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* ── Datos personales ────────────────────────────────── */}
+          {/* ── Customer info ────────────────────────────────── */}
           <div>
-            <h2 className="font-display text-xs uppercase mb-3" style={{ color: '#F0E040' }}>
+            <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
               TUS DATOS
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Nombre completo *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Nombre completo *</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   required
                   autoComplete="name"
-                  className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                  style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                  className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                   placeholder="Tu nombre"
                 />
               </div>
               <div>
-                <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Email *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Email *</label>
                 <input
                   type="email"
                   value={customerEmail}
                   onChange={e => setCustomerEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                  style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                  className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                   placeholder="tu@email.com"
                 />
               </div>
               <div>
-                <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Teléfono *</label>
+                <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Teléfono *</label>
                 <input
                   type="tel"
                   value={customerPhone}
                   onChange={e => setCustomerPhone(e.target.value)}
                   required
                   autoComplete="tel"
-                  className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                  style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                  className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                   placeholder="+34 6XX XXX XXX"
                 />
               </div>
             </div>
           </div>
 
-          {/* ── Dirección de envío (solo si no es GUARDI) ───────── */}
+          {/* ── Shipping address (only if not GUARDI) ────────── */}
           {!isGUARDI && (
             <div>
-              <h2 className="font-display text-xs uppercase mb-3" style={{ color: '#F0E040' }}>
+              <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
                 DIRECCIÓN DE ENVÍO
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Dirección *</label>
+                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Dirección *</label>
                   <input
                     type="text"
                     value={address}
                     onChange={e => setAddress(e.target.value)}
                     required={!isGUARDI}
                     autoComplete="street-address"
-                    className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                    style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                    className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                     placeholder="Calle, número, piso..."
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>C.P. *</label>
+                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>C.P. *</label>
                     <input
                       type="text"
                       value={postalCode}
                       onChange={e => setPostalCode(e.target.value)}
                       required={!isGUARDI}
                       autoComplete="postal-code"
-                      className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                      style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                      className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                       placeholder="08001"
                     />
                   </div>
                   <div>
-                    <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Ciudad *</label>
+                    <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Ciudad *</label>
                     <input
                       type="text"
                       value={city}
                       onChange={e => setCity(e.target.value)}
                       required={!isGUARDI}
                       autoComplete="address-level2"
-                      className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                      style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                      className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                       placeholder="Barcelona"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="font-mono text-xs block mb-1" style={{ color: '#999' }}>Provincia</label>
+                  <label className="font-mono text-xs block mb-2" style={{ color: GRAY }}>Provincia</label>
                   <input
                     type="text"
                     value={province}
                     onChange={e => setProvince(e.target.value)}
                     autoComplete="address-level1"
-                    className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                    style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
+                    className="w-full bg-transparent font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    style={{ border: `1px solid ${BORDER}`, color: WHITE, padding: '12px' }}
                     placeholder="Barcelona"
                   />
                 </div>
@@ -411,17 +430,17 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {/* ── Método de pago ──────────────────────────────────── */}
+          {/* ── Payment method ───────────────────────────────── */}
           <div>
-            <h2 className="font-display text-xs uppercase mb-3" style={{ color: '#F0E040' }}>
+            <h2 className="font-display text-xs uppercase mb-4" style={{ color: BLUE }}>
               MÉTODO DE PAGO
             </h2>
             <div className="space-y-2">
               <label
-                className="flex items-center gap-3 p-3 cursor-pointer"
+                className="flex items-center gap-3 p-4 cursor-pointer"
                 style={{
-                  border: payMethod === 'card' ? '2px solid #F0E040' : '1px solid #333',
-                  backgroundColor: payMethod === 'card' ? 'rgba(240, 224, 64, 0.05)' : 'transparent',
+                  border: payMethod === 'card' ? `2px solid ${BLUE}` : `1px solid ${BORDER}`,
+                  backgroundColor: payMethod === 'card' ? BLUE_DIM : 'transparent',
                   minHeight: '44px',
                 }}
               >
@@ -430,18 +449,18 @@ export default function CheckoutPage() {
                   name="payMethod"
                   checked={payMethod === 'card'}
                   onChange={() => setPayMethod('card')}
-                  className="accent-[#F0E040]"
+                  className="accent-blue-500"
                 />
                 <div className="flex-1">
-                  <p className="font-display text-xs" style={{ color: '#FFF' }}>TARJETA</p>
-                  <p className="font-mono text-xs mt-0.5" style={{ color: '#666' }}>Visa, Mastercard, etc.</p>
+                  <p className="font-display text-xs" style={{ color: WHITE }}>TARJETA</p>
+                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>Visa, Mastercard, etc.</p>
                 </div>
               </label>
               <label
-                className="flex items-center gap-3 p-3 cursor-pointer"
+                className="flex items-center gap-3 p-4 cursor-pointer"
                 style={{
-                  border: payMethod === 'bizum' ? '2px solid #F0E040' : '1px solid #333',
-                  backgroundColor: payMethod === 'bizum' ? 'rgba(240, 224, 64, 0.05)' : 'transparent',
+                  border: payMethod === 'bizum' ? `2px solid ${BLUE}` : `1px solid ${BORDER}`,
+                  backgroundColor: payMethod === 'bizum' ? BLUE_DIM : 'transparent',
                   minHeight: '44px',
                 }}
               >
@@ -450,37 +469,39 @@ export default function CheckoutPage() {
                   name="payMethod"
                   checked={payMethod === 'bizum'}
                   onChange={() => setPayMethod('bizum')}
-                  className="accent-[#F0E040]"
+                  className="accent-blue-500"
                 />
                 <div className="flex-1">
-                  <p className="font-display text-xs" style={{ color: '#FFF' }}>BIZUM</p>
-                  <p className="font-mono text-xs mt-0.5" style={{ color: '#666' }}>Pago instantáneo</p>
+                  <p className="font-display text-xs" style={{ color: WHITE }}>BIZUM</p>
+                  <p className="font-mono text-xs mt-1" style={{ color: GRAY_DARK }}>Pago instantáneo</p>
                 </div>
               </label>
             </div>
           </div>
 
-          {/* ── Total y botón de pago ───────────────────────────── */}
-          <div className="p-4" style={{ border: '2px solid #F0E040' }}>
-            <div className="flex justify-between mb-1">
-              <span className="font-mono text-xs" style={{ color: '#999' }}>Subtotal</span>
-              <span className="font-mono text-xs" style={{ color: '#FFF' }}>{totalPrice.toFixed(2)} €</span>
+          {/* ── Total and pay button ─────────────────────────── */}
+          <div className="p-4" style={{ border: `2px solid ${BLUE}` }}>
+            <div className="flex justify-between mb-2">
+              <span className="font-mono text-xs" style={{ color: GRAY }}>Subtotal</span>
+              <span className="font-mono text-xs" style={{ color: WHITE }}>{totalPrice.toFixed(2)} €</span>
             </div>
-            <div className="flex justify-between mb-3">
-              <span className="font-mono text-xs" style={{ color: '#999' }}>
+            <div className="flex justify-between mb-4">
+              <span className="font-mono text-xs" style={{ color: GRAY }}>
                 Envío {isGUARDI ? '(GUARDI)' : ''}
               </span>
-              <span className="font-mono text-xs" style={{ color: '#FFF' }}>
+              <span className="font-mono text-xs" style={{ color: WHITE }}>
                 {shippingCost === 0 ? 'GRATIS' : `${shippingCost.toFixed(2)} €`}
               </span>
             </div>
-            <div className="flex justify-between mb-4">
-              <span className="font-display text-base" style={{ color: '#FFF' }}>TOTAL</span>
-              <span className="font-display text-base" style={{ color: '#F0E040' }}>{grandTotal.toFixed(2)} €</span>
+            <div className="flex justify-between mb-6 pt-4" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <span className="font-display text-base" style={{ color: WHITE }}>TOTAL</span>
+              <span className="font-display text-base" style={{ color: BLUE }}>{grandTotal.toFixed(2)} €</span>
             </div>
 
             {error && (
-              <p className="font-mono text-xs mb-3" style={{ color: '#ef4444' }}>{error}</p>
+              <div className="mb-4 p-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <p className="font-mono text-xs" style={{ color: '#EF4444' }}>{error}</p>
+              </div>
             )}
 
             <button
@@ -488,15 +509,15 @@ export default function CheckoutPage() {
               disabled={loading || items.length === 0}
               className="w-full font-display text-sm uppercase py-4 min-h-[52px] transition-colors duration-200"
               style={{
-                backgroundColor: loading ? '#666' : '#F0E040',
-                color: '#000',
+                backgroundColor: loading ? '#1E3A5F' : BLUE,
+                color: WHITE,
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
               {loading ? 'PROCESANDO...' : payMethod === 'bizum' ? 'PAGAR CON BIZUM' : 'PAGAR CON TARJETA'}
             </button>
 
-            <p className="font-mono text-xs text-center mt-3" style={{ color: '#666' }}>
+            <p className="font-mono text-xs text-center mt-4" style={{ color: GRAY_DARK }}>
               Serás redirigido a la pasarela de pago segura de Redsys
             </p>
           </div>

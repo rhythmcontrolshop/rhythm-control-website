@@ -1,7 +1,6 @@
 'use client'
-// E3-4: Removed pointer-events hack
-// E3-10: Touch targets minimum 44px
-// E3-14: Actions always visible on mobile (not hover-only)
+// RecordCard — Catálogo grid card
+// Refactored: 4/8px spacing grid, improved mobile title visibility
 
 import { memo }       from 'react'
 import Image          from 'next/image'
@@ -17,7 +16,6 @@ interface RecordCardProps {
   isNew?: boolean
 }
 
-// E4-2: React.memo evita re-renders cuando el release no cambió
 const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'default', isNew = false }: RecordCardProps) {
   const { addItem } = useCart()
   const { t } = useLocale()
@@ -33,11 +31,12 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
         style={{ aspectRatio: '1', backgroundColor: 'var(--rc-color-bg)', cursor: 'pointer' }}
         onClick={() => onSelect(release)}>
 
+        {/* Accent bar — left edge on hover */}
         <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
           style={{ backgroundColor: accentColor }} />
 
         {/* Cover image — always visible, fades on hover (desktop only) */}
-        <div className="absolute inset-0 md:transition-opacity md:duration-[250ms] md:group-hover:opacity-0">
+        <div className="absolute inset-0 md:transition-opacity md:duration-250 md:group-hover:opacity-0">
           {release.cover_image
             ? <Image src={release.cover_image} alt={`${artist} — ${release.title}`}
                 fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw" />
@@ -51,25 +50,32 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
               </span>
             </div>
           )}
-          {/* Gradient overlay with artist/title — always visible */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent)' }}>
-            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '1.3rem', lineHeight: '1.1' }} />
-            <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.3rem', lineHeight: '1.1' }} />
+
+          {/* Gradient overlay with artist/title — always visible, 4/8px spacing */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pt-12 pb-3"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)' }}>
+            <p className="font-display text-sm uppercase truncate leading-tight"
+              style={{ color: 'var(--rc-color-text)' }}>
+              {artist}
+            </p>
+            <p className="font-display text-sm uppercase truncate leading-tight mt-0.5"
+              style={{ color: accentColor }}>
+              {release.title}
+            </p>
           </div>
 
-          {/* E3-14: Mobile-only action bar — always visible, not hover-only */}
+          {/* Mobile-only action bar — always visible */}
           {isAvailable && (
             <div className="md:hidden absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1 z-10"
               style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 30%, transparent)' }}>
               <button
-                className="flex items-center justify-center font-display text-[0.65rem] px-2 active:opacity-70"
+                className="flex items-center justify-center font-display text-xs px-2 active:opacity-70"
                 style={{ backgroundColor: accentHex, color: '#000000', minHeight: '36px', minWidth: '36px' }}
                 onClick={e => { e.stopPropagation(); onSelect(release) }}>
                 ESCUCHAR
               </button>
               <button
-                className="flex items-center justify-center gap-1 font-display text-[0.65rem] px-2 active:opacity-70"
+                className="flex items-center justify-center gap-1 font-display text-xs px-2 active:opacity-70"
                 style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '36px' }}
                 onClick={e => { e.stopPropagation(); addItem(release) }}>
                 <span style={{ fontWeight: 700 }}>
@@ -84,20 +90,19 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
           )}
         </div>
 
-        {/* E3-4: Hover state (desktop only) — NO pointer-events hack */}
-        <div className="hidden md:flex absolute inset-0 flex-col justify-between p-4 opacity-0 md:transition-opacity md:duration-[250ms] md:group-hover:opacity-100"
+        {/* Hover state (desktop only) — 4/8px spacing */}
+        <div className="hidden md:flex absolute inset-0 flex-col justify-between p-4 opacity-0 md:transition-opacity md:duration-250 md:group-hover:opacity-100"
           style={{ backgroundColor: 'var(--rc-color-bg)' }}>
-          <div style={{ marginLeft: '6px' }}>
-            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '1.3rem', lineHeight: '1.1' }} />
-            <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.3rem', lineHeight: '1.1' }} />
+          <div className="ml-1">
+            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '1.25rem', lineHeight: '1.2' }} />
+            <Marquee text={release.title} style={{ color: accentColor, fontSize: '1.25rem', lineHeight: '1.2' }} />
             <p className="font-display text-sm font-bold mt-1" style={{ color: 'var(--rc-color-text)' }}>{release.labels[0] ?? ''}</p>
-            <p className="font-meta text-xs mt-1" style={{ color: 'var(--rc-color-text)' }}>{[release.year, release.format].filter(Boolean).join(' · ')}</p>
+            <p className="font-mono text-xs mt-1" style={{ color: 'var(--rc-color-text)' }}>{[release.year, release.format].filter(Boolean).join(' · ')}</p>
           </div>
 
           <div className="relative">
             <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} theme={theme} />
-            <div className="flex gap-2" style={{ marginLeft: '6px' }}>
-              {/* E3-10: 44px min touch target */}
+            <div className="flex gap-2 ml-1">
               <button className="font-display text-xs px-4 py-2 transition-opacity hover:opacity-80"
                 style={{ backgroundColor: accentHex, color: '#000000', cursor: 'pointer', minHeight: '44px' }}
                 onClick={e => { e.stopPropagation(); onSelect(release) }}>

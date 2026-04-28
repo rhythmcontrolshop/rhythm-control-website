@@ -28,11 +28,9 @@ const CheckoutBodySchema = z.object({
   items: z.array(CartItemSchema).min(1).max(20),
   shippingRateId: z.string().uuid().nullable().optional(),
   channel: z.enum(['online', 'physical', 'discogs']).default('online'),
-  // Datos del cliente (obligatorios)
   customerName: z.string().min(2).max(200),
   customerEmail: z.string().email(),
   customerPhone: z.string().min(6).max(30),
-  // Dirección de envío (obligatoria si no es GUARDI)
   shippingAddress: z.object({
     address: z.string().min(3).max(300),
     city: z.string().min(2).max(200),
@@ -40,7 +38,6 @@ const CheckoutBodySchema = z.object({
     province: z.string().optional(),
     countryCode: z.string().default('ES'),
   }).nullable().optional(),
-  // Método de pago
   payMethod: z.enum(['card', 'bizum']).default('card'),
 })
 
@@ -68,11 +65,25 @@ export async function POST(request: Request) {
     const { data: { user } } = await userClient.auth.getUser()
     const userId = user?.id ?? null
 
-    // ── 2. Validar items contra la BD ─────────────────────────────
+    // ── 2. Unreserve any previously reserved items from failed checkouts ──
+    // This prevents items from getting stuck in 'reserved' state
+    const itemIds = items.map(i => i.id)
+    const { data: currentlyReserved } = await supabase
+      .from('releases')
+      .select('id')
+      .in('id', itemIds)
+      .eq('status', 'reserved')
+
+    if (currentlyReserved && currentlyReserved.length > 0) {
+      const reservedIds = currentlyReserved.map(r => r.id)
+      await supabase.rpc('unreserve_releases', { p_release_ids: reservedIds })
+    }
+
+    // ── 3. Validar items contra la BD ─────────────────────────────
     const { data: releases } = await supabase
       .from('releases')
-      .select('id, price, status')
-      .in('id', items.map(i => i.id))
+      .select('id, price, status, quantity')
+      .in('id', itemIds)
 
     const rejectedItems: string[] = []
     const trustedItems: CartItem[] = []
@@ -83,7 +94,12 @@ export async function POST(request: Request) {
         rejectedItems.push(item.title || item.id)
         continue
       }
-      if (db.status !== 'active') {
+      // Accept both 'active' and 'reserved' (might have been re-reserved by another tab)
+      if (db.status !== 'active' && db.status !== 'reserved') {
+        rejectedItems.push(item.title || item.id)
+        continue
+      }
+      if (db.quantity < item.quantity) {
         rejectedItems.push(item.title || item.id)
         continue
       }
@@ -97,7 +113,12 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // ── 3. Reserva atómica de stock ───────────────────────────────
+    if (rejectedItems.length > 0 && trustedItems.length > 0) {
+      // Some items unavailable — proceed with available ones
+      // (Optionally notify the user, but don't block the whole order)
+    }
+
+    // ── 4. Reserva atómica de stock ───────────────────────────────
     const releaseIds = trustedItems.map(i => i.id)
     const { data: reservation } = await supabase.rpc('reserve_releases', {
       p_release_ids: releaseIds,
@@ -105,17 +126,17 @@ export async function POST(request: Request) {
 
     if (!reservation?.ok) {
       return Response.json({
-        error: 'Uno o más discos ya no están disponibles',
+        error: 'Uno o más discos ya no están disponibles. Inténtalo de nuevo.',
       }, { status: 409 })
     }
 
     try {
-      // ── 4. Precios por canal ────────────────────────────────────
+      // ── 5. Precios por canal ────────────────────────────────────
       const channels = await getPriceChannels()
       const onlineChannel = channels.find(c => c.slug === channel)
       const coefficient = onlineChannel?.coefficient ?? 1.05
 
-      // ── 5. Obtener tarifa de envío ──────────────────────────────
+      // ── 6. Obtener tarifa de envío ──────────────────────────────
       let shippingRate: ShippingRate | null = null
       if (shippingRateId) {
         const { data: rate } = await supabase
@@ -136,7 +157,7 @@ export async function POST(request: Request) {
         }, { status: 400 })
       }
 
-      // ── 6. Generar número de orden ──────────────────────────────
+      // ── 7. Generar número de orden ──────────────────────────────
       const { data: lastOrder } = await supabase
         .from('orders')
         .select('order_number')
@@ -151,12 +172,12 @@ export async function POST(request: Request) {
       }
       const orderNumber = `RC-${String(orderNum).padStart(5, '0')}`
 
-      // ── 7. Código de recogida para GUARDI ───────────────────────
+      // ── 8. Código de recogida para GUARDI ───────────────────────
       const pickupCode = isGUARDI
         ? `RC-${Math.floor(10000 + Math.random() * 90000)}`
         : undefined
 
-      // ── 8. Cálculos ─────────────────────────────────────────────
+      // ── 9. Cálculos ─────────────────────────────────────────────
       const subtotal = trustedItems.reduce(
         (sum, item) => sum + calculateChannelPrice(item.price, coefficient) * item.quantity,
         0
@@ -164,7 +185,7 @@ export async function POST(request: Request) {
       const shippingCost = shippingRate?.price ?? 0
       const total = subtotal + shippingCost
 
-      // ── 9. Crear orden en Supabase ──────────────────────────────
+      // ── 10. Crear orden en Supabase ─────────────────────────────
       const redsysOrderRef = generateRedsysOrderReference(orderNumber)
 
       const { data: order, error: orderError } = await supabase
@@ -204,7 +225,7 @@ export async function POST(request: Request) {
         throw new Error('No se pudo crear el pedido')
       }
 
-      // ── 10. Order items ─────────────────────────────────────────
+      // ── 11. Order items ─────────────────────────────────────────
       await supabase.from('order_items').insert(
         trustedItems.map(item => ({
           order_id: order.id,
@@ -219,7 +240,7 @@ export async function POST(request: Request) {
         }))
       )
 
-      // ── 11. Generar parámetros Redsys ───────────────────────────
+      // ── 12. Generar parámetros Redsys ───────────────────────────
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
       const origin = request.headers.get('origin') ?? siteUrl ?? 'http://localhost:3000'
 
@@ -233,7 +254,7 @@ export async function POST(request: Request) {
         payMethod: payMethod,
       })
 
-      // ── 12. Actualizar orden con referencia Redsys ──────────────
+      // ── 13. Actualizar orden con referencia Redsys ──────────────
       await supabase
         .from('orders')
         .update({
@@ -249,7 +270,11 @@ export async function POST(request: Request) {
 
     } catch (err) {
       // Liberar stock reservado si falla
-      await supabase.rpc('unreserve_releases', { p_release_ids: releaseIds })
+      try {
+        await supabase.rpc('unreserve_releases', { p_release_ids: releaseIds })
+      } catch (unreserveErr) {
+        console.error('Failed to unreserve releases after error:', unreserveErr)
+      }
       throw err
     }
 
@@ -258,7 +283,7 @@ export async function POST(request: Request) {
     const status = err.status === 409 ? 409 : 500
     const message = err.status === 409
       ? err.message
-      : 'Error al procesar el pago'
+      : 'Error al procesar el pago. Inténtalo de nuevo.'
     return Response.json({ error: message }, { status })
   }
 }
