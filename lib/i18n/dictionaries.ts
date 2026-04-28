@@ -89,7 +89,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     'pickup.nameRequired': 'El nom és obligatori',
     'pickup.phoneRequired': 'El telèfon és obligatori',
     'pickup.emailRequired': "L'email és obligatori per rebre el codi de recollida",
-    'pickup.phoneInvalid': 'Introdueix un telèfon espanyol vàlid (+34 6XX o 7XX XXX XXX). Click & Collect només disponible per recollida en botiga (Barcelona).',
+    'pickup.phoneInvalid': 'Introdueix un telèfon espanyol vàlid (+34 6XX o 7XX XXX XXX). GUARDI (Click&Collect) només disponible per recollida en botiga (Barcelona).',
     'pickup.emailInvalid': "Introdueix un email vàlid",
     'pickup.description': 'Reserva el disc i recull-lo a la nostra botiga de Barcelona en 72 hores. Rebràs un codi de recollida per email.',
 
@@ -258,7 +258,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     'pickup.nameRequired': 'El nombre es obligatorio',
     'pickup.phoneRequired': 'El teléfono es obligatorio',
     'pickup.emailRequired': 'El email es obligatorio para recibir el código de recogida',
-    'pickup.phoneInvalid': 'Introduce un teléfono español válido (+34 6XX o 7XX XXX XXX). Click & Collect solo disponible para recogida en tienda (Barcelona).',
+    'pickup.phoneInvalid': 'Introduce un teléfono español válido (+34 6XX o 7XX XXX XXX). GUARDI (Click&Collect) solo disponible para recogida en tienda (Barcelona).',
     'pickup.emailInvalid': 'Introduce un email válido',
     'pickup.description': 'Reserva el disco y recógelo en nuestra tienda de Barcelona en 72 horas. Recibirás un código de recogida por email.',
 
@@ -427,7 +427,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     'pickup.nameRequired': 'Name is required',
     'pickup.phoneRequired': 'Phone is required',
     'pickup.emailRequired': 'Email is required to receive the pickup code',
-    'pickup.phoneInvalid': 'Enter a valid Spanish phone number (+34 6XX or 7XX XXX XXX). Click & Collect only available for in-store pickup (Barcelona).',
+    'pickup.phoneInvalid': 'Enter a valid Spanish phone number (+34 6XX or 7XX XXX XXX). GUARDI (Click&Collect) only available for in-store pickup (Barcelona).',
     'pickup.emailInvalid': 'Enter a valid email address',
     'pickup.description': 'Reserve the record and pick it up at our Barcelona store within 72 hours. You\'ll receive a pickup code by email.',
 

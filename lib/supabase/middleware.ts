@@ -54,11 +54,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     user = data.user
 
     const isProtectedAdmin =
-      request.nextUrl.pathname.startsWith('/admin') &&
+      (request.nextUrl.pathname.startsWith('/admin') &&
       !request.nextUrl.pathname.startsWith('/admin/login') &&
       !request.nextUrl.pathname.startsWith('/admin/recover') &&
       !request.nextUrl.pathname.startsWith('/admin/reset-password') &&
-      !request.nextUrl.pathname.startsWith('/admin/setup')
+      !request.nextUrl.pathname.startsWith('/admin/setup')) ||
+      request.nextUrl.pathname.startsWith('/pos')
 
     if (isProtectedAdmin) {
       if (!user) return redirectToLogin(request)
@@ -76,11 +77,12 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     }
   } catch {
     const isProtectedAdmin =
-      request.nextUrl.pathname.startsWith('/admin') &&
+      (request.nextUrl.pathname.startsWith('/admin') &&
       !request.nextUrl.pathname.startsWith('/admin/login') &&
       !request.nextUrl.pathname.startsWith('/admin/recover') &&
       !request.nextUrl.pathname.startsWith('/admin/reset-password') &&
-      !request.nextUrl.pathname.startsWith('/admin/setup')
+      !request.nextUrl.pathname.startsWith('/admin/setup')) ||
+      request.nextUrl.pathname.startsWith('/pos')
 
     if (isProtectedAdmin) return redirectToLogin(request, 'session-error')
   }

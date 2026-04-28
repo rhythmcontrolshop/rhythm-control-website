@@ -133,7 +133,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <span className="font-meta text-xs" style={{ color: '#FFFFFF' }}>{Number(order.tax_amount).toFixed(2)} €</span>
           </div>
           <div className="flex justify-between">
-            <span className="font-meta text-xs" style={{ color: '#999' }}>Envío ({order.shipping_method === 'click_collect' ? 'Click & Collect' : 'Envío a domicilio'})</span>
+            <span className="font-meta text-xs" style={{ color: '#999' }}>Envío ({order.shipping_method === 'click_collect' ? 'GUARDI (Click&Collect)' : 'Envío a domicilio'})</span>
             <span className="font-meta text-xs" style={{ color: '#FFFFFF' }}>{Number(order.shipping_cost).toFixed(2)} €</span>
           </div>
           <div className="flex justify-between pt-2" style={{ borderTop: '1px solid #333' }}>

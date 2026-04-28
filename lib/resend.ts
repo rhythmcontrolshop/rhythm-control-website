@@ -97,7 +97,7 @@ export async function sendAdminNotification({
 
   const html = `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-      <h2 style="color: #1e293b;">Nueva reserva / Click & Collect</h2>
+      <h2 style="color: #1e293b;">Nueva reserva / GUARDI (Click&Collect)</h2>
       <ul>
         <li><strong>Cliente:</strong> ${customerName} (${customerEmail || 'sin email'})</li>
         <li><strong>Disco:</strong> ${recordArtist} — ${recordTitle}</li>

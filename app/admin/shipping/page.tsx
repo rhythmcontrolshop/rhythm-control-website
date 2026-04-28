@@ -21,7 +21,7 @@ interface ShippingRateRow {
 const METHOD_LABELS: Record<string, string> = {
   home_delivery: 'Domicilio',
   post_office: 'Oficina de correos',
-  click_collect: 'Click & Collect',
+  click_collect: 'GUARDI (Click&Collect)',
 }
 
 const ZONE_LABELS: Record<string, string> = {

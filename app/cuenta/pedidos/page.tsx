@@ -86,7 +86,7 @@ export default async function PedidosPage() {
                       </span>
                     )}
                     {isClickCollect && (
-                      <span className="font-meta text-[0.6rem]" style={{ color: '#F0E040' }}>Guardi (Click & Collect)</span>
+                      <span className="font-meta text-[0.6rem]" style={{ color: '#F0E040' }}>GUARDI (Click&Collect)</span>
                     )}
                     {hasTracking && (
                       <span className="font-meta text-[0.6rem]" style={{ color: '#3b82f6' }}>Con seguimiento</span>

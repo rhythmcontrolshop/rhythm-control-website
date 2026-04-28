@@ -313,7 +313,7 @@ export default function OrderDetailPage() {
               <div>
                 <p className="text-xs" style={{ color: '#6b7280' }}>Tipo</p>
                 <p className="text-sm font-bold" style={{ color: '#000000' }}>
-                  {isPickup ? 'GUARDI (Click & Collect)' : 'ENVIO'}
+                  {isPickup ? 'GUARDI (Click&Collect)' : 'ENVIO'}
                 </p>
               </div>
               <div>

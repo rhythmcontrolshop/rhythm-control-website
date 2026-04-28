@@ -70,7 +70,7 @@ export default function ReserveModal({ release, onClose, onSuccess }: Props) {
 
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="font-display text-xs mb-1" style={{ color: '#F0E040' }}>CLICK & COLLECT</p>
+            <p className="font-display text-xs mb-1" style={{ color: '#F0E040' }}>GUARDI (CLICK&COLLECT)</p>
             <p className="font-display text-sm" style={{ color: '#FFF' }}>{artist}</p>
             <p className="font-display text-sm" style={{ color: '#F0E040' }}>{release.title}</p>
           </div>
