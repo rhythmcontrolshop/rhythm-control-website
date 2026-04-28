@@ -1,8 +1,8 @@
 'use client'
 // RecordCard — Catálogo grid card
 // Identidad única RC: negro + amarillo #F0E040 + blanco
-// Default state: compact bottom overlay with Marquee text + small buttons
-// Desktop hover: bottom overlay fades OUT, full-info overlay fades IN with same compact buttons
+// Default: bottom overlay with Marquee + compact buttons. Heart top-left over text.
+// Hover: full-info overlay with same layout. Heart top-left, text shifts down to avoid badge overlap.
 
 import { memo }       from 'react'
 import Image          from 'next/image'
@@ -10,6 +10,8 @@ import { Marquee }    from '@/components/ui/Marquee'
 import { useCart }    from '@/context/CartContext'
 import { useLocale }  from '@/context/LocaleContext'
 import FavoriteButton from '@/components/store/FavoriteButton'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faHeadphones } from '@fortawesome/free-solid-svg-icons'
 import type { Release, PlayerTrack } from '@/types'
 
 interface RecordCardProps {
@@ -21,15 +23,14 @@ const ACCENT = '#F0E040'
 
 /* ── Shared compact button row ── */
 function CompactButtons({
-  onListen, onCart, price, isAvailable, statusLabel, fontSize = '0.55rem', minHeight = '26px',
+  onListen, onCart, price, isAvailable, statusLabel,
 }: {
   onListen: () => void; onCart: () => void
   price: string; isAvailable: boolean; statusLabel: string
-  fontSize?: string; minHeight?: string
 }) {
   if (!isAvailable) {
     return (
-      <span className="font-display" style={{ border: '1px solid #333', color: '#FFFFFF', fontSize, padding: '2px 8px' }}>
+      <span className="font-display" style={{ border: '1px solid #333', color: '#FFFFFF', fontSize: '0.55rem', padding: '2px 8px' }}>
         {statusLabel}
       </span>
     )
@@ -38,21 +39,17 @@ function CompactButtons({
     <div className="flex items-center gap-1 w-full">
       <button
         className="flex items-center justify-center font-display transition-opacity hover:opacity-80 active:opacity-70"
-        style={{ backgroundColor: ACCENT, color: '#000000', minHeight, padding: '0 8px', cursor: 'pointer', fontSize }}
+        style={{ backgroundColor: ACCENT, color: '#000000', minHeight: '32px', padding: '0 10px', cursor: 'pointer', fontSize: '0.7rem' }}
         onClick={onListen}
       >
-        LISTEN
+        <FontAwesomeIcon icon={faHeadphones} style={{ marginRight: '4px', fontSize: '0.6rem' }} />
       </button>
       <button
         className="flex-1 flex items-center justify-center gap-1 font-display transition-opacity hover:opacity-80 active:opacity-70"
-        style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight, cursor: 'pointer', fontSize }}
+        style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '32px', cursor: 'pointer', fontSize: '1.1rem' }}
         onClick={onCart}
       >
         <span style={{ fontWeight: 700 }}>{price}</span>
-        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-        </svg>
       </button>
     </div>
   )
@@ -69,7 +66,7 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
 
   return (
     <article className="group relative z-0 overflow-hidden"
-      style={{ aspectRatio: '1', backgroundColor: 'var(--rc-color-bg)', cursor: 'pointer' }}
+      style={{ aspectRatio: '1', backgroundColor: '#000000', cursor: 'pointer' }}
       onClick={() => onSelect(release)}>
 
       {/* Accent bar — left edge on hover */}
@@ -93,19 +90,18 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
         )}
       </div>
 
-      {/* ── Bottom overlay (DEFAULT state): Marquee + compact buttons ── */}
-      {/* Fades OUT on desktop hover so the full-info overlay can show */}
+      {/* ── Bottom overlay (DEFAULT state): heart + marquee + buttons ── */}
       <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col
                       md:opacity-100 md:group-hover:opacity-0 md:transition-opacity md:duration-200"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 50%, transparent)' }}>
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)' }}>
 
-        {/* Marquee text + heart */}
-        <div className="flex justify-between items-start" style={{ padding: '16px 8px 2px 8px' }}>
-          <div className="flex-1 min-w-0">
-            <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.15' }} />
-            <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.3rem', lineHeight: '1.15' }} />
+        {/* Heart + Marquee text — heart top-left, text full width below */}
+        <div style={{ padding: '24px 8px 2px 8px' }}>
+          <div className="absolute" style={{ top: '6px', left: '6px', zIndex: 20 }}>
+            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={18} />
           </div>
-          <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
+          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.15' }} />
+          <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.3rem', lineHeight: '1.15' }} />
         </div>
 
         {/* Compact buttons */}
@@ -120,20 +116,18 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
         </div>
       </div>
 
-      {/* ── Hover overlay (DESKTOP ONLY): full info + same compact buttons ── */}
+      {/* ── Hover overlay (DESKTOP ONLY): full info + same buttons ── */}
       <div className="hidden md:flex absolute inset-0 flex-col justify-between
                       opacity-0 md:transition-opacity md:duration-200 md:group-hover:opacity-100 z-20"
-        style={{ backgroundColor: 'var(--rc-color-bg)', padding: '6px 8px 8px 8px' }}>
+        style={{ backgroundColor: '#000000', padding: '6px 8px 8px 8px' }}>
 
-        {/* Top area: info + heart */}
-        <div>
-          <div className="flex justify-between items-start">
-            <div className="flex-1 min-w-0 mr-2">
-              <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.6rem', lineHeight: '1.15' }} />
-              <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.6rem', lineHeight: '1.15' }} />
-            </div>
-            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={18} />
+        {/* Top area: heart (top-left) + text below (shifted down to avoid badge) */}
+        <div style={{ paddingTop: '24px' }}>
+          <div className="absolute" style={{ top: '6px', left: '6px', zIndex: 20 }}>
+            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={20} />
           </div>
+          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.6rem', lineHeight: '1.15' }} />
+          <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.6rem', lineHeight: '1.15' }} />
           <p className="font-display text-xs font-bold mt-1" style={{ color: '#FFFFFF' }}>
             {release.labels[0] ?? ''}
           </p>
@@ -142,7 +136,7 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
           </p>
         </div>
 
-        {/* Bottom area: compact buttons (same padding as default) */}
+        {/* Bottom area: compact buttons */}
         <CompactButtons
           onListen={() => onSelect(release)}
           onCart={() => addItem(release)}

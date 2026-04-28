@@ -3,6 +3,8 @@
 // Identidad única RC: amarillo #F0E040
 
 import { useState, useEffect, useRef } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 export type SortOption = 'newest' | 'price_asc' | 'price_desc' | 'year' | 'artist'
 
@@ -67,16 +69,18 @@ export default function CatalogueTabs({
           position: 'relative',
         }}>
           <span
-            className="font-display text-xs"
             style={{
               color: searchQuery ? ACCENT : '#FFFFFF',
               padding: '0 12px 0 16px',
-              opacity: searchQuery ? 1 : 0.5,
+              opacity: searchQuery ? 1 : 0.6,
               whiteSpace: 'nowrap',
               userSelect: 'none',
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
-            {searchQuery ? '✕' : '⌕'}
+            <FontAwesomeIcon icon={searchQuery ? faXmark : faMagnifyingGlass} />
           </span>
           <input
             ref={inputRef}

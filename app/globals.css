@@ -111,12 +111,7 @@ body {
   100% { transform: translateX(-50%); }
 }
 
-/* E4-6: Single @keyframes for all Marquee components.
-   Uses CSS custom properties --mq-unit and --mq-duration. */
-@keyframes mq-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(-1 * var(--mq-unit, 200px))); }
-}
+/* Marquee scroll keyframe — now injected inline per-component for correct unit calculation */
 
 
 /* ── SCROLLBAR ─────────────────────────────────────────────── */

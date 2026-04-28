@@ -1,8 +1,7 @@
 'use client'
 // components/ui/Marquee.tsx
-// Robust marquee: measures text vs container, scrolls only when overflowing.
-// Uses CSS custom properties --mq-unit / --mq-duration with global @keyframes mq-scroll.
-// ResizeObserver re-measures on container resize.
+// Seamless marquee: measures text, scrolls only when overflowing.
+// Uses translateX animation with proper unit calculation for zero-gap loop.
 
 import { useRef, useEffect, useState } from 'react'
 
@@ -37,10 +36,7 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
       }
     }
 
-    // Measure after layout paint
     const raf = requestAnimationFrame(doMeasure)
-
-    // Re-measure when container resizes
     const ro = new ResizeObserver(doMeasure)
     ro.observe(container)
 
@@ -50,7 +46,7 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
     }
   }, [text])
 
-  // Static version: text fits — show with ellipsis as fallback
+  // Static: text fits
   if (!overflows) {
     return (
       <div
@@ -58,46 +54,46 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
         className={`font-display ${className}`}
         style={{ overflow: 'hidden', whiteSpace: 'nowrap', position: 'relative', ...style }}
       >
-        <span
-          ref={measureRef}
-          style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
-        >
+        <span ref={measureRef} style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
           {text}
         </span>
       </div>
     )
   }
 
-  // Scrolling version: text overflows — animate with seamless loop
+  // Scrolling: seamless loop with CSS animation
+  // The keyframe moves by exactly one unit (text + separator width)
+  // Two copies are placed side by side so the loop is seamless
   return (
     <div
       ref={containerRef}
       className={`font-display ${className}`}
       style={{ overflow: 'hidden', whiteSpace: 'nowrap', position: 'relative', ...style }}
     >
-      {/* Hidden measure span — always present for ResizeObserver */}
       <span
         ref={measureRef}
         aria-hidden
         style={{ visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap' }}
       >
-        {text}&nbsp;·&nbsp;
+        {text}&ensp;
       </span>
-
-      {/* Scrolling content — 2 copies for seamless loop */}
       <span
-        className="inline-block"
         style={{
-          '--mq-unit': `${unitPx}px`,
-          '--mq-duration': `${duration}s`,
-          animation: 'mq-scroll var(--mq-duration) linear infinite',
-          willChange: 'transform',
+          display: 'inline-flex',
           whiteSpace: 'nowrap',
+          animation: `mq-scroll ${duration}s linear infinite`,
+          willChange: 'transform',
         } as React.CSSProperties}
       >
-        <span>{text}&nbsp;·&nbsp;</span>
-        <span>{text}&nbsp;·&nbsp;</span>
+        <span style={{ paddingRight: '0.5em' }}>{text}</span>
+        <span style={{ paddingRight: '0.5em' }}>{text}</span>
       </span>
+      <style>{`
+        @keyframes mq-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-${unitPx}px); }
+        }
+      `}</style>
     </div>
   )
 }

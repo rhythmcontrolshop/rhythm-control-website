@@ -7,7 +7,7 @@ import { SpinningR }    from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
-// Yellow diagonal stripes pattern (RC identity)
+// Yellow diagonal stripes pattern — #F0E040 on black, spaced out so they read as yellow
 const YellowStripes = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -21,11 +21,11 @@ const YellowStripes = () => (
       <pattern
         id="diagonal-stripes"
         patternUnits="userSpaceOnUse"
-        width="6"
-        height="6"
+        width="14"
+        height="14"
         patternTransform="rotate(45)"
       >
-        <rect width="3" height="6" fill="#6B6A1E"/>
+        <rect width="3" height="14" fill="#F0E040" opacity="0.25"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#diagonal-stripes)"/>
@@ -110,7 +110,7 @@ async function NovedadesContent({ searchParams }: { searchParams: Promise<{ page
       <section className="p-4 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-0 max-w-7xl mx-auto">
           <div className="hidden md:block" />
-          <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
+          <div className="col-span-1 md:col-span-4 p-[2px]">
             <NovedadesGrid
               releases={(releases as unknown as Release[]) || []}
               total={count ?? 0}
