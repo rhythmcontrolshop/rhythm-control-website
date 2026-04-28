@@ -372,7 +372,7 @@ export interface Reservation {
 // ─── ORDERS ──────────────────────────────────────────────────────────────────
 
 export type OrderStatus = 'created' | 'processing' | 'shipped' | 'delivered' | 'collected' | 'cancelled'
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'disputed'
 
 export interface Order {
   id: string

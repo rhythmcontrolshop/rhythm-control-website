@@ -1,9 +1,17 @@
 // app/api/webhooks/redsys/route.ts
 // Webhook de Redsys — notificación IPN asíncrona tras el pago
 // Redsys envía POST con Ds_MerchantParameters, Ds_Signature, Ds_SignatureVersion
+//
+// E2: Refactor robusto
+// - Reordenado: orden first → event second (evita perder notificaciones de órdenes no encontradas)
+// - Amount verification: compara Ds_Amount con order.total antes de procesar
+// - Tabla renombrada: redsys_events (consistencia con stripe_events)
+// - Email confirmación para TODOS los métodos de envío (no solo GUARDI)
+// - Notificación al admin en cada pago exitoso
 
-import { verifyResponseParameters, isPaymentSuccessful, getResponseMessage, centsToEuros } from '@/lib/redsys'
+import { verifyResponseParameters, isPaymentSuccessful, getResponseMessage, centsToEuros, eurosToCents } from '@/lib/redsys'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendOrderConfirmationEmail, sendAdminNotification } from '@/lib/resend'
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +28,7 @@ export async function POST(request: Request) {
 
     console.log('Redsys IPN received, version:', signatureVersion)
 
-    // ── Verificar firma ──────────────────────────────────────────
+    // ── 1. Verificar firma ─────────────────────────────────────
     const response = verifyResponseParameters(merchantParams, signature)
     if (!response) {
       console.error('Redsys IPN: signature verification failed')
@@ -33,12 +41,12 @@ export async function POST(request: Request) {
       amount: response.Ds_Amount,
     })
 
-    // ── Idempotencia: evitar procesar la misma notificación ──────
     const supabase = createAdminClient()
     const notificationId = `${response.Ds_Order}_${response.Ds_Response}_${response.Ds_Date}_${response.Ds_Hour}`
 
+    // ── 2. Idempotencia: ya procesada? ─────────────────────────
     const { data: seen } = await supabase
-      .from('redsys_notifications')
+      .from('redsys_events')
       .select('id')
       .eq('id', notificationId)
       .maybeSingle()
@@ -48,19 +56,7 @@ export async function POST(request: Request) {
       return new Response('OK', { status: 200 })
     }
 
-    // Guardar notificación para idempotencia
-    await supabase.from('redsys_notifications').insert({
-      id: notificationId,
-      ds_order: response.Ds_Order ?? '',
-      ds_response: response.Ds_Response ?? '',
-      ds_amount: response.Ds_Amount ?? '',
-      ds_authorisation_code: response.Ds_AuthorisationCode ?? '',
-      ds_date: response.Ds_Date ?? '',
-      ds_hour: response.Ds_Hour ?? '',
-      raw_data: response,
-    })
-
-    // ── Buscar la orden por redsys_order_reference ───────────────
+    // ── 3. Buscar la orden PRIMERO (antes de guardar evento) ──
     const dsOrder = response.Ds_Order
     if (!dsOrder) {
       console.error('Redsys IPN: no Ds_Order in response')
@@ -69,16 +65,57 @@ export async function POST(request: Request) {
 
     const { data: order } = await supabase
       .from('orders')
-      .select('id, order_number, payment_status, status, pickup_code, shipping_method, customer_name, customer_email')
+      .select('id, order_number, payment_status, status, pickup_code, shipping_method, customer_name, customer_email, total')
       .eq('redsys_order_ref', dsOrder)
       .maybeSingle()
 
     if (!order) {
-      console.error('Redsys IPN: order not found for reference', dsOrder)
+      // No guardar evento — dejar que Redsys reenvíe
+      console.error('Redsys IPN: order not found for reference', dsOrder, '(event NOT saved to allow retry)')
       return new Response('OK', { status: 200 })
     }
 
-    // ── Procesar resultado del pago ──────────────────────────────
+    // ── 4. Verificar importe ───────────────────────────────────
+    const dsAmount = response.Ds_Amount ? parseInt(response.Ds_Amount, 10) : null
+    const expectedAmount = eurosToCents(order.total ?? 0)
+
+    if (dsAmount !== null && dsAmount !== expectedAmount) {
+      console.error('Redsys IPN: amount mismatch', {
+        order: order.order_number,
+        expected: expectedAmount,
+        received: dsAmount,
+      })
+      // Guardar evento como mismatch pero NO procesar el pago
+      await supabase.from('redsys_events').insert({
+        id: notificationId,
+        ds_order: dsOrder,
+        ds_response: response.Ds_Response ?? '',
+        ds_amount: response.Ds_Amount ?? '',
+        ds_authorisation_code: response.Ds_AuthorisationCode ?? '',
+        ds_date: response.Ds_Date ?? '',
+        ds_hour: response.Ds_Hour ?? '',
+        raw_data: response,
+        processed_amount_cents: dsAmount,
+        processing_result: 'amount_mismatch',
+      })
+      return new Response('OK', { status: 200 })
+    }
+
+    // ── 5. Guardar evento (orden existe e importe correcto) ────
+    await supabase.from('redsys_events').insert({
+      id: notificationId,
+      ds_order: dsOrder,
+      ds_response: response.Ds_Response ?? '',
+      ds_amount: response.Ds_Amount ?? '',
+      ds_authorisation_code: response.Ds_AuthorisationCode ?? '',
+      ds_date: response.Ds_Date ?? '',
+      ds_hour: response.Ds_Hour ?? '',
+      raw_data: response,
+      processed_amount_cents: dsAmount,
+      processing_result: 'processed',
+    })
+
+    // ── 6. Procesar resultado del pago ─────────────────────────
     const dsResponse = response.Ds_Response ?? ''
     const paymentOk = isPaymentSuccessful(dsResponse)
 
@@ -89,8 +126,7 @@ export async function POST(request: Request) {
         return new Response('OK', { status: 200 })
       }
 
-      const paidAmount = response.Ds_Amount ? centsToEuros(parseInt(response.Ds_Amount)) : null
-
+      // UPDATE con guard WHERE — solo actualiza si sigue pending
       const { data: updated } = await supabase
         .from('orders')
         .update({
@@ -101,14 +137,14 @@ export async function POST(request: Request) {
         })
         .eq('id', order.id)
         .eq('payment_status', 'pending')
-        .select('pickup_code, shipping_method, order_number, customer_name')
+        .select('pickup_code, shipping_method, order_number, customer_name, customer_email, total')
         .single()
 
       if (updated) {
         // Decrementar stock de los items
         const { data: items } = await supabase
           .from('order_items')
-          .select('release_id, quantity')
+          .select('release_id, quantity, title, artists, price_channel')
           .eq('order_id', order.id)
 
         for (const item of items ?? []) {
@@ -118,20 +154,45 @@ export async function POST(request: Request) {
           })
         }
 
-        // Enviar email de confirmación / código de recogida
-        if (updated.pickup_code && updated.shipping_method === 'click_collect') {
-          try {
-            const { sendReservationEmail } = await import('@/lib/resend')
-            await sendReservationEmail({
-              customerName: updated.customer_name ?? 'Cliente',
-              customerEmail: order.customer_email ?? '',
-              recordTitle: `Pedido ${updated.order_number}`,
-              recordArtist: 'Rhythm Control',
-              pickupCode: updated.pickup_code,
-            })
-          } catch (emailErr) {
-            console.error('Failed to send pickup code email:', emailErr)
-          }
+        // ── Email de confirmación (TODOS los métodos de envío) ──
+        const emailItems = (items ?? []).map(item => ({
+          artist: (item.artists ?? ['Desconocido']).join(', '),
+          title: item.title ?? 'Sin título',
+          price: `${(item.price_channel ?? 0).toFixed(2)}€`,
+        }))
+
+        try {
+          await sendOrderConfirmationEmail({
+            customerName: updated.customer_name ?? 'Cliente',
+            customerEmail: order.customer_email ?? '',
+            orderNumber: updated.order_number,
+            items: emailItems,
+            total: `${(updated.total ?? 0).toFixed(2)}€`,
+            shippingMethod: updated.shipping_method === 'click_collect'
+              ? 'Recogida en tienda (GUARDI)'
+              : updated.shipping_method === 'post_office'
+                ? 'Envío a oficina de correos'
+                : updated.shipping_method === 'home_delivery'
+                  ? 'Envío a domicilio'
+                  : undefined,
+            pickupCode: updated.pickup_code ?? undefined,
+          })
+          console.log('Redsys IPN: confirmation email sent', updated.order_number)
+        } catch (emailErr) {
+          console.error('Redsys IPN: failed to send confirmation email:', emailErr)
+        }
+
+        // ── Notificar al admin ─────────────────────────────────
+        try {
+          await sendAdminNotification({
+            customerName: updated.customer_name ?? 'Cliente',
+            customerEmail: order.customer_email ?? '',
+            recordTitle: `Pedido ${updated.order_number}`,
+            recordArtist: `Total: ${(updated.total ?? 0).toFixed(2)}€`,
+            pickupCode: updated.pickup_code ?? undefined,
+          })
+        } catch (adminErr) {
+          console.error('Redsys IPN: failed to send admin notification:', adminErr)
         }
 
         console.log('Redsys IPN: order paid successfully', order.order_number)
