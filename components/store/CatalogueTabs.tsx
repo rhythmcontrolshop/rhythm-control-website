@@ -76,8 +76,9 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: 
         onClick={onToggle}
         className="font-display text-xs w-full h-full flex items-center justify-between hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
         style={{
-          color: isActive || isOpen ? '#F0E040' : '#FFFFFF',
+          color: (isActive || isOpen) ? '#F0E040' : '#FFFFFF',
           padding: '0 16px',
+          backgroundColor: '#000000',
         }}
       >
         <span>{label}</span>
@@ -100,7 +101,7 @@ function DropItem({ label, isSelected, onClick }: { label: string; isSelected: b
       className="font-display text-xs block w-full text-left hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
       style={{
         color: isSelected ? '#F0E040' : '#FFFFFF',
-        backgroundColor: isSelected ? 'rgba(240,224,64,0.08)' : '#000000',
+        backgroundColor: '#000000',
         padding: '12px 16px',
         borderBottom: '1px solid #1C1C1C',
         minHeight: '44px',

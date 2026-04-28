@@ -16,8 +16,9 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 }
 
 const FULFILLMENT: Record<string, string> = {
-  pickup: 'GUARDI',
-  shipping: 'ENVIO',
+  click_collect: 'GUARDI',
+  home_delivery: 'ENVIO',
+  post_office: 'CORREOS',
 }
 
 const STATUS_OPTIONS = [
@@ -35,15 +36,16 @@ const STATUS_OPTIONS = [
 ]
 
 const TYPE_OPTIONS = [
-  { value: '',       label: 'Todos los tipos' },
-  { value: 'pickup', label: 'GUARDI' },
-  { value: 'shipping', label: 'ENVIO' },
+  { value: '',              label: 'Todos los tipos' },
+  { value: 'click_collect', label: 'GUARDI' },
+  { value: 'home_delivery', label: 'ENVIO' },
+  { value: 'post_office',   label: 'CORREOS' },
 ]
 
 interface Order {
   id: string; order_number: string; status: string; payment_status: string
-  fulfillment_type: string; customer_name: string | null; customer_email: string | null
-  total_amount: number; shipping_cost: number; pickup_code: string | null
+  shipping_method: string; customer_name: string | null; customer_email: string | null
+  total: number; shipping_cost: number; pickup_code: string | null
   created_at: string; updated_at: string
 }
 
@@ -123,7 +125,7 @@ export default function PedidosPage() {
           <div className="p-4" style={{ border: '1px solid #e5e7eb' }}>
             <p className="text-xs" style={{ color: '#6b7280' }}>REVENUE TOTAL</p>
             <p className="text-2xl font-bold" style={{ color: '#000000' }}>
-              {(stats.totalRevenue / 100).toFixed(2)} <span className="text-sm">EUR</span>
+              {stats.totalRevenue.toFixed(2)} <span className="text-sm">EUR</span>
             </p>
           </div>
           <div className="p-4" style={{ border: '1px solid #e5e7eb' }}>
@@ -203,11 +205,11 @@ export default function PedidosPage() {
                       </td>
                       <td className="p-3">
                         <span className="text-xs px-2 py-1" style={{ border: '1px solid #d1d5db', color: '#374151' }}>
-                          {FULFILLMENT[o.fulfillment_type] ?? o.fulfillment_type ?? '—'}
+                          {FULFILLMENT[o.shipping_method] ?? o.shipping_method ?? '—'}
                         </span>
                       </td>
                       <td className="p-3 text-sm font-bold" style={{ color: '#000000' }}>
-                        {o.total_amount ? (o.total_amount / 100).toFixed(2) + ' EUR' : '—'}
+                        {o.total != null ? Number(o.total).toFixed(2) + ' EUR' : '—'}
                       </td>
                       <td className="p-3">
                         <span className="text-xs px-2 py-1"

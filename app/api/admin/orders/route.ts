@@ -17,20 +17,20 @@ export async function GET(request: NextRequest) {
 
   // Filtros
   const status     = searchParams.get('status')?.trim()
-  const type       = searchParams.get('type')?.trim()       // pickup | shipping
+  const type       = searchParams.get('type')?.trim()       // click_collect | home_delivery | post_office
   const search     = searchParams.get('q')?.trim()
   const dateFrom   = searchParams.get('from')?.trim()
   const dateTo     = searchParams.get('to')?.trim()
 
-  // Construir query
+  // Construir query — use actual DB column names: total (not total_amount), shipping_method (not fulfillment_type)
   let query = admin
     .from('orders')
-    .select('id, order_number, status, payment_status, fulfillment_type, customer_name, customer_email, total_amount, shipping_cost, pickup_code, created_at, updated_at', { count: 'exact' })
+    .select('id, order_number, status, payment_status, shipping_method, customer_name, customer_email, total, shipping_cost, pickup_code, created_at, updated_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
   if (status)  query = query.eq('status', status)
-  if (type)    query = query.eq('fulfillment_type', type)
+  if (type)    query = query.eq('shipping_method', type)
   if (dateFrom) query = query.gte('created_at', dateFrom)
   if (dateTo)   query = query.lte('created_at', dateTo + 'T23:59:59')
 
@@ -47,11 +47,11 @@ export async function GET(request: NextRequest) {
   const today = new Date().toISOString().slice(0, 10)
   const [todayRes, revenueRes, statusCountsRes] = await Promise.all([
     admin.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
-    admin.from('orders').select('total_amount').eq('payment_status', 'paid'),
+    admin.from('orders').select('total').eq('payment_status', 'paid'),
     admin.from('orders').select('status'),
   ])
 
-  const totalRevenue = (revenueRes.data ?? []).reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
+  const totalRevenue = (revenueRes.data ?? []).reduce((sum: number, o: any) => sum + (o.total || 0), 0)
   const statusCounts: Record<string, number> = {}
   for (const o of (statusCountsRes.data ?? [])) {
     statusCounts[o.status] = (statusCounts[o.status] || 0) + 1

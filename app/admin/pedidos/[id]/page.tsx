@@ -26,9 +26,9 @@ const NEXT_STATUS: Record<string, { value: string; label: string }[]> = {
 }
 
 interface OrderItem {
-  id: string; release_id: string; title: string; artist: string
-  artists: string[]; condition: string; price: number; price_base: number
-  price_channel: number; quantity: number; thumb: string; cover_image: string
+  id: string; release_id: string; title: string
+  artists: string[]; condition: string
+  price_channel: number; quantity: number; cover_image: string
 }
 
 interface TimelineEvent {
@@ -37,16 +37,15 @@ interface TimelineEvent {
 
 interface Order {
   id: string; order_number: string; status: string; payment_status: string
-  fulfillment_type: string; shipping_method: string | null
+  shipping_method: string | null
   customer_name: string; customer_email: string; customer_phone: string
   shipping_address: any; pickup_code: string
-  total_amount: number; subtotal: number; shipping_cost: number; tax_amount: number; tax_rate: number
-  stripe_payment_intent: string; stripe_checkout_session_id: string
-  tracking_number: string; notes: string
+  total: number; subtotal: number; shipping_cost: number; tax_amount: number; tax_rate: number
+  stripe_payment_intent: string; stripe_session_id: string
+  tracking_number: string; tracking_url: string; notes: string; weight: number | null
   price_channel: string
   created_at: string; updated_at: string
   order_items: OrderItem[]
-  order_timeline?: TimelineEvent[]
 }
 
 export default function OrderDetailPage() {
@@ -59,6 +58,8 @@ export default function OrderDetailPage() {
   const [notesInput, setNotes]        = useState('')
   const [savingTracking, setSavingTracking] = useState(false)
   const [savingNotes, setSavingNotes]       = useState(false)
+  const [weightInput, setWeight]       = useState('')
+  const [savingWeight, setSavingWeight] = useState(false)
   const [showRefundConfirm, setShowRefund]  = useState(false)
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function OrderDetailPage() {
         setOrder(data)
         setTracking(data.tracking_number ?? '')
         setNotes(data.notes ?? '')
+        setWeight(data.weight != null ? String(data.weight) : '')
       }
       setLoading(false)
     }
@@ -123,6 +125,18 @@ export default function OrderDetailPage() {
     setSavingNotes(false)
   }
 
+  async function saveWeight() {
+    setSavingWeight(true)
+    const res = await fetch(`/api/admin/orders/${params.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weight: weightInput ? Number(weightInput) : null }),
+    })
+    if (res.ok) await refreshOrder()
+    else alert('Error al guardar peso')
+    setSavingWeight(false)
+  }
+
   async function refundOrder() {
     if (!confirm('Procesar reembolso via Stripe? Esta accion es irreversible.')) return
     setUpdating(true)
@@ -142,7 +156,7 @@ export default function OrderDetailPage() {
 
   const st = STATUS_MAP[order.status] ?? STATUS_MAP.pending
   const nextActions = NEXT_STATUS[order.status] ?? []
-  const isPickup = order.fulfillment_type === 'pickup'
+  const isPickup = order.shipping_method === 'click_collect'
   const isShipped = order.status === 'shipped'
   const isTerminal = ['cancelled', 'refunded', 'delivered', 'collected'].includes(order.status)
 
@@ -181,19 +195,19 @@ export default function OrderDetailPage() {
               {(order.order_items ?? []).map((item, i) => (
                 <div key={item.id} className="flex items-center gap-4 p-4"
                   style={{ borderBottom: i < (order.order_items?.length ?? 0) - 1 ? '1px solid #e5e7eb' : 'none' }}>
-                  {item.cover_image || item.thumb
-                    ? <img src={item.cover_image || item.thumb} alt="" className="w-14 h-14 object-cover shrink-0" style={{ border: '1px solid #d1d5db' }} />
+                  {item.cover_image
+                    ? <img src={item.cover_image} alt="" className="w-14 h-14 object-cover shrink-0" style={{ border: '1px solid #d1d5db' }} />
                     : <div className="w-14 h-14 shrink-0" style={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db' }} />
                   }
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#000000' }}>
-                      {item.artist || item.artists?.[0] || '—'}
+                      {item.artists?.[0] || '—'}
                     </p>
                     <p className="text-xs truncate" style={{ color: '#6b7280' }}>{item.title}</p>
                     {item.condition && <p className="text-xs" style={{ color: '#9ca3af' }}>{item.condition}</p>}
                   </div>
                   <p className="text-sm font-bold shrink-0" style={{ color: '#000000' }}>
-                    {((item.price || item.price_channel || 0) / 100).toFixed(2)} EUR
+                    {Number(item.price_channel || 0).toFixed(2)} EUR
                   </p>
                 </div>
               ))}
@@ -201,14 +215,14 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-xs" style={{ color: '#6b7280' }}>Subtotal</span>
                   <span className="text-xs" style={{ color: '#000000' }}>
-                    {((order.subtotal || (order.total_amount - order.shipping_cost) || 0) / 100).toFixed(2)} EUR
+                    {Number(order.subtotal || 0).toFixed(2)} EUR
                   </span>
                 </div>
                 {order.shipping_cost > 0 && (
                   <div className="flex justify-between">
                     <span className="text-xs" style={{ color: '#6b7280' }}>Envio</span>
                     <span className="text-xs" style={{ color: '#000000' }}>
-                      {(order.shipping_cost / 100).toFixed(2)} EUR
+                      {Number(order.shipping_cost).toFixed(2)} EUR
                     </span>
                   </div>
                 )}
@@ -216,14 +230,14 @@ export default function OrderDetailPage() {
                   <div className="flex justify-between">
                     <span className="text-xs" style={{ color: '#6b7280' }}>IVA ({((order.tax_rate || 0.21) * 100).toFixed(0)}%)</span>
                     <span className="text-xs" style={{ color: '#000000' }}>
-                      {(order.tax_amount / 100).toFixed(2)} EUR
+                      {Number(order.tax_amount).toFixed(2)} EUR
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2" style={{ borderTop: '1px solid #e5e7eb' }}>
                   <span className="text-sm font-bold" style={{ color: '#000000' }}>TOTAL</span>
                   <span className="text-sm font-bold" style={{ color: '#000000' }}>
-                    {((order.total_amount ?? 0) / 100).toFixed(2)} EUR
+                    {Number(order.total ?? 0).toFixed(2)} EUR
                   </span>
                 </div>
               </div>
@@ -283,10 +297,10 @@ export default function OrderDetailPage() {
               <div className="mt-3 pt-3" style={{ borderTop: '1px solid #e5e7eb' }}>
                 <p className="text-xs font-medium mb-1" style={{ color: '#6b7280' }}>DIRECCION</p>
                 <p className="text-xs leading-relaxed" style={{ color: '#000000' }}>
-                  {(order.shipping_address as any).line1 && <>{(order.shipping_address as any).line1}<br /></>}
+                  {(order.shipping_address as any).address && <>{(order.shipping_address as any).address}<br /></>}
                   {(order.shipping_address as any).city && <>{(order.shipping_address as any).city}</>}
-                  {(order.shipping_address as any).postal_code && <>, {(order.shipping_address as any).postal_code}</>}
-                  {(order.shipping_address as any).country && <><br />{(order.shipping_address as any).country}</>}
+                  {(order.shipping_address as any).postalCode && <>, {(order.shipping_address as any).postalCode}</>}
+                  {(order.shipping_address as any).countryCode && <><br />{(order.shipping_address as any).countryCode}</>}
                 </p>
               </div>
             )}
@@ -315,6 +329,12 @@ export default function OrderDetailPage() {
                   <p className="text-sm font-bold" style={{ color: '#000000' }}>
                     {order.price_channel.toUpperCase()}
                   </p>
+                </div>
+              )}
+              {order.weight != null && (
+                <div>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Peso</p>
+                  <p className="text-sm font-bold" style={{ color: '#000000' }}>{order.weight} g</p>
                 </div>
               )}
               {order.pickup_code && (
@@ -358,6 +378,22 @@ export default function OrderDetailPage() {
                 REEMBOLSAR
               </button>
             )}
+          </div>
+
+          {/* Peso del pedido */}
+          <div>
+            <p className="text-xs font-medium mb-2" style={{ color: '#6b7280' }}>PESO (gramos)</p>
+            <div className="flex gap-3">
+              <input type="number" value={weightInput} onChange={e => setWeight(e.target.value)}
+                placeholder="Peso en gramos"
+                className="flex-1 text-sm px-3 py-2 focus:outline-none"
+                style={{ border: '1px solid #d1d5db', color: '#000000' }} />
+              <button onClick={saveWeight} disabled={savingWeight}
+                className="text-xs px-4 py-2 transition-colors hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: '#000000', color: '#FFFFFF' }}>
+                {savingWeight ? '...' : 'GUARDAR'}
+              </button>
+            </div>
           </div>
 
           {/* Notas internas */}
@@ -411,7 +447,7 @@ function buildTimeline(order: Order): { label: string; date: string }[] {
 
   if (order.created_at) {
     events.push({
-      label: `Pedido creado — ${order.fulfillment_type === 'pickup' ? 'GUARDI' : 'ENVIO'}`,
+      label: `Pedido creado — ${order.shipping_method === 'click_collect' ? 'GUARDI' : 'ENVIO'}`,
       date: fmtDate(order.created_at),
     })
   }

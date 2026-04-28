@@ -6,17 +6,16 @@ export default function LogoutButton() {
     <form action={logout}>
       <button
         type="submit"
-        className="font-display text-xs px-5 py-2 tracking-widest transition-colors duration-200"
+        className="font-display text-xs w-full py-3 tracking-widest transition-colors duration-200 hover:bg-[#ef4444] hover:text-white active:bg-[#ef4444] active:text-white"
         style={{
-          backgroundColor: '#FFFFFF',
-          color: '#000000',
-          border: '2px solid #000000',
+          backgroundColor: '#000000',
+          color: '#999999',
+          border: '2px solid #333',
           cursor: 'pointer',
+          minHeight: '44px',
         }}
-        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040' }}
-        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#FFFFFF' }}
       >
-        SALIR
+        CERRAR SESIÓN
       </button>
     </form>
   )

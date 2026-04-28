@@ -9,7 +9,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json()
 
   // Solo permitir campos válidos
-  const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web']
+  const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web', 'city', 'start_time', 'end_time', 'ticket_url', 'description', 'is_featured']
   const filtered: Record<string, unknown> = {}
   for (const key of allowed) {
     if (body[key] !== undefined) filtered[key] = body[key]

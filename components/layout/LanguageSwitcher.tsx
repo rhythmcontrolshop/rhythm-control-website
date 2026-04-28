@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
   const currentLabel = locale.toUpperCase()
 
   return (
-    <div ref={ref} style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div ref={ref} style={{ position: 'relative', width: '100%', height: '100%', zIndex: 200 }}>
       <button
         onClick={() => setOpen(prev => !prev)}
         className="font-display text-xs w-full h-full flex items-center justify-between hover:opacity-80 transition-opacity duration-150"
@@ -37,7 +37,7 @@ export default function LanguageSwitcher() {
           backgroundColor: '#000000',
           border: '2px solid #FFFFFF',
           borderTop: 'none',
-          zIndex: 50,
+          zIndex: 200,
         }}>
           {locales.map(l => (
             <button

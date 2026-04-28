@@ -1,6 +1,6 @@
 // app/api/admin/orders/[id]/route.ts
 // GET — Detalle de pedido con items
-// PATCH — Actualizar estado, tracking, notas
+// PATCH — Actualizar estado, tracking, notas, peso
 
 import { requireAdminWithClient } from '@/lib/supabase/require-admin'
 import { NextRequest }   from 'next/server'
@@ -17,14 +17,14 @@ export async function GET(
   const { data: order, error } = await admin
     .from('orders')
     .select(`
-      id, order_number, status, payment_status, fulfillment_type, shipping_method,
+      id, order_number, status, payment_status, shipping_method,
       customer_name, customer_email, customer_phone,
       shipping_address, pickup_code,
-      total_amount, subtotal, shipping_cost, tax_amount, tax_rate,
-      stripe_payment_intent, stripe_checkout_session_id,
-      tracking_number, notes, price_channel,
+      total, subtotal, shipping_cost, tax_amount, tax_rate,
+      stripe_payment_intent, stripe_session_id,
+      tracking_number, tracking_url, notes, price_channel, weight,
       created_at, updated_at,
-      order_items(id, release_id, title, artist, artists, condition, price, price_base, price_channel, quantity, thumb, cover_image)
+      order_items(id, release_id, title, artists, condition, price_channel, quantity, cover_image)
     `)
     .eq('id', id)
     .single()
@@ -53,8 +53,14 @@ export async function PATCH(
   if (body.tracking_number !== undefined) {
     updates.tracking_number = body.tracking_number
   }
+  if (body.tracking_url !== undefined) {
+    updates.tracking_url = body.tracking_url
+  }
   if (body.notes !== undefined) {
     updates.notes = body.notes
+  }
+  if (body.weight !== undefined) {
+    updates.weight = Number(body.weight) || null
   }
 
   if (Object.keys(updates).length <= 1) {
