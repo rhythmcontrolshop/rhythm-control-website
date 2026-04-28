@@ -98,13 +98,13 @@ export default function FavoriteButton({
         onClick={toggle}
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
-        className="absolute left-0 z-30 transition-opacity"
+        className="relative z-10 shrink-0"
         style={{
           opacity: favCtx && !favCtx.loaded ? 0 : 1,
           transition: 'opacity 0.2s ease',
           cursor: 'pointer',
           padding: '2px',
-          top: '-22px',
+          lineHeight: 0,
         }}
         aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}
       >

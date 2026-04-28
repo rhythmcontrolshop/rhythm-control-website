@@ -25,7 +25,7 @@ const YellowStripes = () => (
         height="6"
         patternTransform="rotate(45)"
       >
-        <rect width="3" height="6" fill="#F0E040" opacity="0.35"/>
+        <rect width="3" height="6" fill="#6B6A1E"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#diagonal-stripes)"/>

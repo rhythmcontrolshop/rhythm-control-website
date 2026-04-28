@@ -118,7 +118,7 @@ export default function CatalogueTabs({
       )}
 
       {/* Filter tabs row */}
-      <div className="flex" style={{ height: '48px', borderBottom: '2px solid #FFFFFF' }}>
+      <div className="flex" style={{ height: '48px', borderBottom: '4px solid #FFFFFF' }}>
         <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight>
           {SORT_OPTIONS.map(opt => (
             <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} />

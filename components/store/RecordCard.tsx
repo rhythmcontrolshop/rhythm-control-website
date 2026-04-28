@@ -99,14 +99,17 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
                       md:opacity-100 md:group-hover:opacity-0 md:transition-opacity md:duration-200"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 50%, transparent)' }}>
 
-        {/* Marquee text */}
-        <div style={{ padding: '20px 8px 2px 8px' }}>
-          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '0.7rem', lineHeight: '1.25' }} />
-          <Marquee text={release.title} style={{ color: ACCENT, fontSize: '0.7rem', lineHeight: '1.25' }} />
+        {/* Marquee text + heart */}
+        <div className="flex justify-between items-start" style={{ padding: '16px 8px 2px 8px' }}>
+          <div className="flex-1 min-w-0">
+            <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.15' }} />
+            <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.3rem', lineHeight: '1.15' }} />
+          </div>
+          <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
         </div>
 
         {/* Compact buttons */}
-        <div style={{ padding: '4px 8px 6px 8px' }}>
+        <div style={{ padding: '6px 8px 8px 8px' }}>
           <CompactButtons
             onListen={() => onSelect(release)}
             onCart={() => addItem(release)}
@@ -120,16 +123,16 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
       {/* ── Hover overlay (DESKTOP ONLY): full info + same compact buttons ── */}
       <div className="hidden md:flex absolute inset-0 flex-col justify-between
                       opacity-0 md:transition-opacity md:duration-200 md:group-hover:opacity-100 z-20"
-        style={{ backgroundColor: 'var(--rc-color-bg)', padding: '12px' }}>
+        style={{ backgroundColor: 'var(--rc-color-bg)', padding: '6px 8px 8px 8px' }}>
 
         {/* Top area: info + heart */}
         <div>
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0 mr-2">
-              <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1rem', lineHeight: '1.2' }} />
-              <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1rem', lineHeight: '1.2' }} />
+              <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.6rem', lineHeight: '1.15' }} />
+              <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.6rem', lineHeight: '1.15' }} />
             </div>
-            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={16} />
+            <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={18} />
           </div>
           <p className="font-display text-xs font-bold mt-1" style={{ color: '#FFFFFF' }}>
             {release.labels[0] ?? ''}
@@ -139,7 +142,7 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
           </p>
         </div>
 
-        {/* Bottom area: compact buttons (same size as default) */}
+        {/* Bottom area: compact buttons (same padding as default) */}
         <CompactButtons
           onListen={() => onSelect(release)}
           onCart={() => addItem(release)}
