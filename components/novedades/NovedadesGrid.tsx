@@ -40,7 +40,6 @@ export default function NovedadesGrid({ releases, total, page, perPage }: Noveda
             release={release}
             onSelect={setSelected}
             onPlay={handlePlay}
-            theme="red"
             isNew={false}
           />
         ))}
@@ -82,7 +81,6 @@ export default function NovedadesGrid({ releases, total, page, perPage }: Noveda
           onClose={() => setSelected(null)}
           onPlay={handlePlay}
           onSelect={setSelected}
-          theme="red"
         />
       )}
       {track && (

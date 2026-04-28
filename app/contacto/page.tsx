@@ -29,8 +29,9 @@ export default function ContactoPage() {
 
   return (
     <>
-      <Navigation variant="green" />
-      <main className="relative" style={{ backgroundColor: '#77DD77' }}>
+      <Navigation />
+      {/* Trecho diferencial: fondo amarillo, texto negro */}
+      <main className="relative" style={{ backgroundColor: '#F0E040' }}>
 
         {/* Imagen superior */}
         <div className="relative w-full border-b-2 border-black">
@@ -48,7 +49,7 @@ export default function ContactoPage() {
 
         <div className="max-w-7xl mx-auto">
 
-          {/* Título */}
+          {/* Título: negro sobre amarillo */}
           <div className="p-6 border-b-2 border-black">
             <h1 className="font-display text-4xl md:text-5xl uppercase" style={{ letterSpacing: '-0.05em', color: '#000000' }}>
               {t('contact.title')}
@@ -72,7 +73,7 @@ export default function ContactoPage() {
                 href="https://maps.google.com/?q=Ronda+de+Sant+Pau+19+Barcelona"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors inline-block"
+                className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-yellow-300 transition-colors inline-block"
                 style={{ color: '#000000' }}>
                 {t('btn.viewMap')}
               </a>
@@ -125,7 +126,7 @@ export default function ContactoPage() {
         </div>
       </main>
 
-      <Footer variant="green" />
+      <Footer />
     </>
   )
 }

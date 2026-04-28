@@ -20,14 +20,14 @@ async function getInitialData(): Promise<{ releases: Release[]; total: number; g
 
 function StockSkeleton() {
   return (
-    <main style={{ minHeight: '100vh', backgroundColor: '#1C1C1C' }}>
+    <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
       <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
-        <h2 className="font-display text-center" style={{ color: '#9E9893', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+        <h2 className="font-display text-center" style={{ color: '#F0E040', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
           STOCK
         </h2>
       </div>
       <div className="flex items-center justify-center py-32">
-        <SpinningR size={48} fill="#9E9893" />
+        <SpinningR size={48} fill="#F0E040" />
       </div>
     </main>
   )
@@ -37,13 +37,13 @@ async function StockContent() {
   const { releases, total, genres } = await getInitialData()
 
   return (
-    <main style={{ minHeight: '100vh', backgroundColor: '#1C1C1C' }}>
+    <main style={{ minHeight: '100vh', backgroundColor: '#000000' }}>
       <div className="flex items-center justify-center" style={{ borderTop: '2px solid #FFFFFF', padding: '24px' }}>
-        <h2 className="font-display text-center" style={{ color: '#9E9893', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
+        <h2 className="font-display text-center" style={{ color: '#F0E040', fontSize: 'clamp(3.5rem, 8.4vw, 7rem)', lineHeight: '1' }}>
           STOCK
         </h2>
       </div>
-      <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} accentColor="#9E9893" theme="stock" />
+      <CatalogueView initialReleases={releases} initialTotal={total} genres={genres} />
       <div style={{ height: '48px' }} />
       <StrobeDots />
     </main>
@@ -53,11 +53,11 @@ async function StockContent() {
 export default function StockPage() {
   return (
     <>
-      <Navigation variant="stock" />
+      <Navigation />
       <Suspense fallback={<StockSkeleton />}>
         <StockContent />
       </Suspense>
-      <Footer variant="stock" />
+      <Footer />
     </>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
-// E3-2: onMouseEnter/Leave → CSS :hover
-// E3-12: Arrow touch area enlarged
-// Search bar added for text search across title, artists, labels, catno
+// CatalogueTabs — Filter bar for catalogue grid
+// Identidad única RC: amarillo #F0E040
 
 import { useState, useEffect, useRef } from 'react'
 
@@ -15,6 +14,8 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'artist',     label: 'ARTISTA A–Z' },
 ]
 
+const ACCENT = '#F0E040'
+
 interface CatalogueTabsProps {
   styles:        string[]
   activeStyle:   string | null
@@ -24,8 +25,6 @@ interface CatalogueTabsProps {
   onLabelChange: (l: string | null) => void
   sort:          SortOption
   onSortChange:  (s: SortOption) => void
-  accentColor?:  string  // hex color for active/hover states
-  // Search props
   searchQuery?:     string
   onSearchChange?:  (q: string) => void
 }
@@ -34,7 +33,6 @@ export default function CatalogueTabs({
   styles, activeStyle, onStyleChange,
   labels, activeLabel, onLabelChange,
   sort, onSortChange,
-  accentColor = '#F0E040',
   searchQuery = '',
   onSearchChange,
 }: CatalogueTabsProps) {
@@ -71,7 +69,7 @@ export default function CatalogueTabs({
           <span
             className="font-display text-xs"
             style={{
-              color: searchQuery ? accentColor : '#FFFFFF',
+              color: searchQuery ? ACCENT : '#FFFFFF',
               padding: '0 12px 0 16px',
               opacity: searchQuery ? 1 : 0.5,
               whiteSpace: 'nowrap',
@@ -93,7 +91,7 @@ export default function CatalogueTabs({
               backgroundColor: 'transparent',
               border: 'none',
               outline: 'none',
-              color: searchQuery ? accentColor : '#FFFFFF',
+              color: searchQuery ? ACCENT : '#FFFFFF',
               padding: 0,
               letterSpacing: '0.05em',
             }}
@@ -103,7 +101,7 @@ export default function CatalogueTabs({
               onClick={() => { onSearchChange(''); inputRef.current?.focus() }}
               className="font-display text-xs"
               style={{
-                color: accentColor,
+                color: ACCENT,
                 padding: '0 16px',
                 background: 'none',
                 border: 'none',
@@ -121,27 +119,27 @@ export default function CatalogueTabs({
 
       {/* Filter tabs row */}
       <div className="flex" style={{ height: '48px', borderBottom: '2px solid #FFFFFF' }}>
-        <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight accentColor={accentColor}>
+        <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight>
           {SORT_OPTIONS.map(opt => (
-            <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} accentColor={accentColor} />
+            <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} />
           ))}
         </Dropdown>
-        <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight accentColor={accentColor}>
-          <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} accentColor={accentColor} />
-          {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} accentColor={accentColor} />)}
+        <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight>
+          <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} />
+          {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} />)}
         </Dropdown>
-        <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false} accentColor={accentColor}>
-          <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} accentColor={accentColor} />
-          {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} accentColor={accentColor} />)}
+        <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false}>
+          <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} />
+          {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} />)}
         </Dropdown>
       </div>
     </div>
   )
 }
 
-function Dropdown({ label, isOpen, onToggle, isActive, borderRight, accentColor = '#F0E040', children }: {
+function Dropdown({ label, isOpen, onToggle, isActive, borderRight, children }: {
   label: string; isOpen: boolean; onToggle: () => void
-  isActive: boolean; borderRight: boolean; accentColor: string; children: React.ReactNode
+  isActive: boolean; borderRight: boolean; children: React.ReactNode
 }) {
   return (
     <div style={{ flex: 1, position: 'relative', height: '48px', borderRight: borderRight ? '2px solid #FFFFFF' : 'none' }}>
@@ -149,13 +147,13 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, accentColor 
         onClick={onToggle}
         className="font-display text-xs w-full h-full flex items-center justify-between transition-colors duration-150"
         style={{
-          color: (isActive || isOpen) ? accentColor : '#FFFFFF',
+          color: (isActive || isOpen) ? ACCENT : '#FFFFFF',
           padding: '0 16px',
           backgroundColor: '#000000',
           cursor: 'pointer',
         }}
-        onMouseEnter={e => { e.currentTarget.style.backgroundColor = accentColor; e.currentTarget.style.color = '#000000' }}
-        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = (isActive || isOpen) ? accentColor : '#FFFFFF' }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = ACCENT; e.currentTarget.style.color = '#000000' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = (isActive || isOpen) ? ACCENT : '#FFFFFF' }}
       >
         <span>{label}</span>
         <span className="flex items-center justify-center" style={{ fontSize: '0.55rem', opacity: 0.7, minWidth: '20px', minHeight: '20px' }}>▼</span>
@@ -169,21 +167,21 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, accentColor 
   )
 }
 
-function DropItem({ label, isSelected, onClick, accentColor = '#F0E040' }: { label: string; isSelected: boolean; onClick: () => void; accentColor: string }) {
+function DropItem({ label, isSelected, onClick }: { label: string; isSelected: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       className="font-display text-xs block w-full text-left transition-colors duration-150"
       style={{
-        color: isSelected ? accentColor : '#FFFFFF',
+        color: isSelected ? ACCENT : '#FFFFFF',
         backgroundColor: '#000000',
         padding: '12px 16px',
         borderBottom: '1px solid #1C1C1C',
         minHeight: '44px',
         cursor: 'pointer',
       }}
-      onMouseEnter={e => { e.currentTarget.style.backgroundColor = accentColor; e.currentTarget.style.color = '#000000' }}
-      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = isSelected ? accentColor : '#FFFFFF' }}
+      onMouseEnter={e => { e.currentTarget.style.backgroundColor = ACCENT; e.currentTarget.style.color = '#000000' }}
+      onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = isSelected ? ACCENT : '#FFFFFF' }}
     >
       {label}
     </button>

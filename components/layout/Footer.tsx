@@ -1,18 +1,12 @@
 'use client'
-// E2-2: Conectado al API /api/newsletter (Resend)
-// E3-9: Footer grid-cols-1 on mobile (was grid-cols-2 cramped)
-// E3-20: Newsletter input with proper attributes
+// Footer — Identidad única RC: amarillo #F0E040 fondo, texto negro
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 
-interface FooterProps {
-  variant?: 'yellow' | 'magenta' | 'red' | 'green' | 'stock'
-}
-
-export default function Footer({ variant = 'yellow' }: FooterProps) {
-  const bgColor    = variant === 'magenta' ? '#FF00FF' : variant === 'red' ? '#F03E3E' : variant === 'green' ? '#77DD77' : variant === 'stock' ? '#9E9893' : '#F0E040'
+export default function Footer() {
+  const bgColor    = '#F0E040'
   const borderColor = '#000000'
   const textColor   = '#000000'
 
@@ -52,7 +46,6 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
 
   return (
     <footer style={{ backgroundColor: bgColor, borderTop: `2px solid ${borderColor}` }}>
-      {/* E3-9: grid-cols-1 on mobile, grid-cols-6 on md+ */}
       <div className="grid grid-cols-1 md:grid-cols-6" style={{ minHeight: '120px' }}>
 
         <div className="p-6 md:col-span-2 md:border-r-2" style={{ borderColor }}>
@@ -86,7 +79,6 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
         <div className="p-6 md:col-span-2 border-t-2 md:border-t-0 flex flex-col justify-between">
           <div>
             <p className="font-display text-xs" style={{ color: textColor }}>{t('footer.newsletter')}</p>
-            {/* E3-20: inputMode="email" for mobile keyboard */}
             <form onSubmit={handleNewsletterSubmit} className="flex mt-2">
               <input
                 type="email"
@@ -122,7 +114,6 @@ export default function Footer({ variant = 'yellow' }: FooterProps) {
 
       </div>
 
-      {/* Legal links bar */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 px-6 py-3" style={{ borderTop: `1px solid ${borderColor}` }}>
         {LEGAL_LINKS.map(({ href, label }) => (
           <Link key={href} href={href} className="font-mono text-[10px] hover:underline" style={{ color: textColor }}>

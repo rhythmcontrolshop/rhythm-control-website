@@ -19,14 +19,14 @@ interface RecordModalProps {
   onPlay: (track: PlayerTrack, clipIndex: number) => void
   onSelect: (release: Release) => void
   openTab?: 'tracklist' | 'notes' | 'artist' | 'label'
-  theme?: 'default' | 'magenta' | 'red' | 'green' | 'stock'
 }
 
+const ACCENT = '#F0E040'
 const ACCENT_CONDITIONS = ['M', 'NM']
 
 type TabType = 'tracklist' | 'notes' | 'artist' | 'label'
 
-export default function RecordModal({ release, releases = [], onClose, onPlay, onSelect, openTab, theme = 'default' }: RecordModalProps) {
+export default function RecordModal({ release, releases = [], onClose, onPlay, onSelect, openTab }: RecordModalProps) {
   const { addItem, openCart } = useCart()
   const { t } = useLocale()
   const backdropRef = useRef<HTMLDivElement>(null)
@@ -34,8 +34,6 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
   const [showReserve, setShowReserve] = useState(false)
   const [imageIndex, setImageIndex] = useState(0)
 
-  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'stock' ? '#9E9893' : '#F0E040'
-  const guardiColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'stock' ? '#9E9893' : '#F0E040'
   const isAccentCondition = ACCENT_CONDITIONS.includes(release.condition)
   const tracklist = release.discogs_tracklist?.length
     ? release.discogs_tracklist
@@ -189,21 +187,21 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
           {/* Info — scrollable on both mobile and desktop */}
           <div className="flex-1 p-4 md:p-6 lg:p-8 min-w-0 flex flex-col">
             <p className="font-display" style={{ color: '#FFFFFF', fontSize: '1.8rem', lineHeight: '1.1' }}>{release.artists.join(', ') || '—'}</p>
-            <p className="font-display mt-1" style={{ color: accentColor, fontSize: '1.8rem', lineHeight: '1.1' }}>{release.title}</p>
+            <p className="font-display mt-1" style={{ color: ACCENT, fontSize: '1.8rem', lineHeight: '1.1' }}>{release.title}</p>
             <p className="font-display text-base font-bold mt-2" style={{ color: '#FFFFFF' }}>{release.labels[0]} {release.catno && `· ${release.catno}`}</p>
             <p className="font-meta text-sm mt-1" style={{ color: '#FFFFFF' }}>{[release.year, release.format, release.country].filter(Boolean).join(' · ')}</p>
 
             {(release.bpm || release.key_camelot || release.key) && (
               <div className="flex gap-2 mt-4">
-                {release.bpm && <span className="font-display text-sm px-2 py-1" style={{ backgroundColor: accentColor, color: '#000000' }}>{release.bpm} BPM</span>}
-                {(release.key_camelot ?? release.key) && <span className="font-display text-sm px-2 py-1" style={{ backgroundColor: accentColor, color: '#000000' }}>{release.key_camelot ?? release.key}</span>}
+                {release.bpm && <span className="font-display text-sm px-2 py-1" style={{ backgroundColor: ACCENT, color: '#000000' }}>{release.bpm} BPM</span>}
+                {(release.key_camelot ?? release.key) && <span className="font-display text-sm px-2 py-1" style={{ backgroundColor: ACCENT, color: '#000000' }}>{release.key_camelot ?? release.key}</span>}
               </div>
             )}
 
             <div className="flex items-center justify-between mt-6 pt-6" style={{ borderTop: '1px solid #1C1C1C' }}>
               <div className="flex items-center gap-3">
                 <span className="font-display text-sm px-3 py-1"
-                  style={isAccentCondition ? { backgroundColor: accentColor, color: '#000000' } : { border: '1px solid #FFFFFF', color: '#FFFFFF' }}>
+                  style={isAccentCondition ? { backgroundColor: ACCENT, color: '#000000' } : { border: '1px solid #FFFFFF', color: '#FFFFFF' }}>
                   {release.condition}
                 </span>
               </div>
@@ -227,11 +225,11 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                 </button>
                 <button
                   className="font-display text-sm px-4 transition-colors hover:opacity-80"
-                  style={{ border: `2px solid ${guardiColor}`, color: guardiColor, backgroundColor: 'transparent', minHeight: '44px' }}
+                  style={{ border: `2px solid ${ACCENT}`, color: ACCENT, backgroundColor: 'transparent', minHeight: '44px' }}
                   onClick={() => setShowReserve(true)}>
                   GUARDI
                 </button>
-                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" theme={theme} />
+                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
               </div>
             ) : (
               <div className="flex gap-2 mt-4">
@@ -239,7 +237,7 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                   style={{ border: '1px solid #333', color: '#666', minHeight: '44px' }}>
                   {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
                 </div>
-                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" theme={theme} />
+                <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="modal" />
               </div>
             )}
 
@@ -248,7 +246,7 @@ export default function RecordModal({ release, releases = [], onClose, onPlay, o
                 <div className="flex flex-wrap gap-1 mb-4">
                   {availableTabs.map(tab => (
                     <button key={tab.key} className="font-display text-xs px-3 py-2"
-                      style={{ backgroundColor: activeTab === tab.key ? accentColor : 'transparent', color: activeTab === tab.key ? '#000000' : '#FFFFFF', border: activeTab === tab.key ? 'none' : '1px solid #FFFFFF', minHeight: '44px' }}
+                      style={{ backgroundColor: activeTab === tab.key ? ACCENT : 'transparent', color: activeTab === tab.key ? '#000000' : '#FFFFFF', border: activeTab === tab.key ? 'none' : '1px solid #FFFFFF', minHeight: '44px' }}
                       onClick={() => setActiveTab(tab.key)}>
                       {tab.label}
                     </button>

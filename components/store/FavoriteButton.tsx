@@ -1,12 +1,12 @@
 'use client'
 // components/store/FavoriteButton.tsx
-// E4-3: Usa FavoritesContext para evitar N+1 API calls.
-// Si el contexto está disponible (páginas con grid), lo usa.
-// Si no (página individual), hace fetch propio como fallback.
+// Identidad única RC: corazón blanco perfil, amarillo #F0E040 seleccionado
 
 import { useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { useFavorites } from '@/context/FavoritesContext'
+
+const ACCENT = '#F0E040'
 
 interface FavoriteButtonProps {
   releaseId: string
@@ -14,7 +14,6 @@ interface FavoriteButtonProps {
   initialFavorited?: boolean
   size?: number
   variant?: 'card' | 'modal'
-  theme?: 'default' | 'magenta' | 'red' | 'green' | 'stock'
 }
 
 export default function FavoriteButton({
@@ -23,38 +22,32 @@ export default function FavoriteButton({
   initialFavorited = false,
   size = 18,
   variant = 'card',
-  theme = 'default',
 }: FavoriteButtonProps) {
   const { t } = useLocale()
   const favCtx = useFavorites()
 
-  // Si hay contexto, usar su estado (batch). Si no, estado local + fetch propio.
   const isFavoritedFromCtx = favCtx && discogsReleaseId
     ? favCtx.favorites.has(discogsReleaseId)
-    : null  // null = no hay contexto, usar local
+    : null
 
   const [localFavorited, setLocalFavorited] = useState(initialFavorited)
   const [loading, setLoading] = useState(false)
   const [hovering, setHovering] = useState(false)
 
   const favorited = isFavoritedFromCtx !== null ? isFavoritedFromCtx : localFavorited
-  const accentColor = theme === 'magenta' ? '#FF00FF' : theme === 'red' ? '#F03E3E' : theme === 'green' ? '#77DD77' : theme === 'stock' ? '#9E9893' : '#F0E040'
 
   async function toggle(e: React.MouseEvent) {
     e.stopPropagation()
     e.preventDefault()
     if (loading) return
 
-    // Si hay contexto, delegar al batch toggle
     if (favCtx && discogsReleaseId) {
       setLoading(true)
-      const result = await favCtx.toggle(releaseId, discogsReleaseId, favorited)
-      // El contexto ya actualizó favorites Set, así que re-renderiza automáticamente
+      await favCtx.toggle(releaseId, discogsReleaseId, favorited)
       setLoading(false)
       return
     }
 
-    // Fallback sin contexto: fetch propio
     setLoading(true)
     try {
       if (favorited) {
@@ -76,9 +69,9 @@ export default function FavoriteButton({
     setLoading(false)
   }
 
-  // Determine visual state
-  const fillColor = favorited ? accentColor : (hovering ? accentColor : 'none')
-  const strokeColor = favorited ? accentColor : (hovering ? accentColor : '#FFFFFF')
+  // Perfil blanco, seleccionado todo amarillo
+  const fillColor = favorited ? ACCENT : (hovering ? ACCENT : 'none')
+  const strokeColor = favorited ? ACCENT : (hovering ? ACCENT : '#FFFFFF')
 
   const heartSvg = (
     <svg
@@ -128,9 +121,9 @@ export default function FavoriteButton({
       onMouseLeave={() => setHovering(false)}
       className="flex items-center gap-2 font-display text-xs px-4 py-2 transition-colors hover:opacity-80 shrink-0"
       style={{
-        border: favorited ? `2px solid ${accentColor}` : '2px solid #FFFFFF',
-        color: favorited ? accentColor : '#FFFFFF',
-        backgroundColor: favorited ? `${accentColor}1a` : 'transparent',
+        border: favorited ? `2px solid ${ACCENT}` : '2px solid #FFFFFF',
+        color: favorited ? ACCENT : '#FFFFFF',
+        backgroundColor: favorited ? `${ACCENT}1a` : 'transparent',
         cursor: 'pointer',
       }}
       aria-label={favorited ? t('btn.inFavorites') : t('btn.favorite')}

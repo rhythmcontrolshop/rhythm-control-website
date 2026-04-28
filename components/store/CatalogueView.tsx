@@ -13,12 +13,10 @@ import type { Release, PlayerTrack, PaginatedResponse } from '@/types'
 interface CatalogueViewProps {
   initialReleases: Release[]
   initialTotal:    number
-  genres:          string[]   // mantenido por compatibilidad con page.tsx
-  accentColor?:    string     // color for tabs, cards, etc. (default: yellow #F0E040)
-  theme?:          'default' | 'magenta' | 'red' | 'green' | 'stock'  // theme for cards & modal
+  genres:          string[]
 }
 
-export default function CatalogueView({ initialReleases, initialTotal, accentColor = '#F0E040', theme = 'default' }: CatalogueViewProps) {
+export default function CatalogueView({ initialReleases, initialTotal, genres }: CatalogueViewProps) {
   const [releases,  setReleases]  = useState<Release[]>(initialReleases)
   const [total,     setTotal]     = useState(initialTotal)
   const [loading,   setLoading]   = useState(false)
@@ -135,7 +133,6 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
         styles={styles}       activeStyle={style}   onStyleChange={handleStyleChange}
         labels={labels}       activeLabel={label}   onLabelChange={handleLabelChange}
         sort={sort}           onSortChange={handleSortChange}
-        accentColor={accentColor}
         searchQuery={searchQ} onSearchChange={handleSearchChange}
       />
 
@@ -144,7 +141,6 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
         loading={loading || isPending}
         onSelect={r => handleSelect(r)}
         onPlay={handlePlay}
-        theme={theme}
       />
 
       {totalPages > 1 && !loading && (
@@ -178,7 +174,6 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
           onPlay={handlePlay}
           onSelect={r => handleSelect(r)}
           openTab={openTab}
-          theme={theme}
         />
       )}
 

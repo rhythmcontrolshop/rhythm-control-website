@@ -7,24 +7,25 @@ import { SpinningR }    from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
-const RedStripes = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
+// Yellow diagonal stripes pattern (RC identity)
+const YellowStripes = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
     version="1.1"
-    viewBox="0 0 100 100" 
+    viewBox="0 0 100 100"
     preserveAspectRatio="xMidYMid slice"
     className="absolute inset-0 w-full h-full"
   >
     <rect width="100%" height="100%" fill="#000000"/>
     <defs>
-      <pattern 
-        id="diagonal-stripes" 
-        patternUnits="userSpaceOnUse" 
-        width="6" 
+      <pattern
+        id="diagonal-stripes"
+        patternUnits="userSpaceOnUse"
+        width="6"
         height="6"
         patternTransform="rotate(45)"
       >
-        <rect width="3" height="6" fill="#F03E3E"/>
+        <rect width="3" height="6" fill="#F0E040" opacity="0.18"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#diagonal-stripes)"/>
@@ -34,7 +35,7 @@ const RedStripes = () => (
 function NovedadesSkeleton() {
   return (
     <div className="relative z-10">
-      <header className="border-b-2 border-black">
+      <header className="border-b-2 border-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
           <div className="hidden md:block" />
           <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
@@ -50,7 +51,7 @@ function NovedadesSkeleton() {
           <div className="hidden md:block" />
           <div className="col-span-1 md:col-span-4 bg-black p-[2px]">
             <div className="flex items-center justify-center py-32">
-              <SpinningR size={48} fill="#F03E3E" />
+              <SpinningR size={48} fill="#F0E040" />
             </div>
           </div>
           <div className="hidden md:block" />
@@ -60,10 +61,8 @@ function NovedadesSkeleton() {
   )
 }
 
-// E2-3: Novedades con paginación server-side
 const NOVEDADES_PER_PAGE = 24
 
-// Columnas proyectadas para novedades (sin tracklist, comments, youtube IDs)
 const NOVEDADES_COLUMNS = [
   'id', 'title', 'artists', 'price', 'cover_image', 'condition',
   'format', 'genres', 'styles', 'labels', 'year', 'country',
@@ -94,7 +93,7 @@ async function NovedadesContent({ searchParams }: { searchParams: Promise<{ page
 
   return (
     <div className="relative z-10">
-      <header className="border-b-2 border-black">
+      <header className="border-b-2 border-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-6">
           <div className="hidden md:block" />
           <div className="col-span-1 md:col-span-4 p-4 md:p-6 flex items-center justify-center">
@@ -104,8 +103,8 @@ async function NovedadesContent({ searchParams }: { searchParams: Promise<{ page
           </div>
           <div className="hidden md:block" />
         </div>
-        <div className="border-t-2 border-black bg-black py-2">
-          <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품 · NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#FFFFFF', fontSize: '1.2rem', lineHeight: '1.2' }} />
+        <div className="border-t-2 border-white bg-black py-2">
+          <Marquee text="NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품 · NOVETATS · NOVEDADES · NEW · NEUHEITEN · NOUVEAUTÉS · NOVITÀ · 新着 · НОВИНКИ · 신상품" style={{ color: '#F0E040', fontSize: '1.2rem', lineHeight: '1.2' }} />
         </div>
       </header>
       <section className="p-4 md:p-8">
@@ -133,16 +132,16 @@ export default function NovedadesPage({
 }) {
   return (
     <>
-      <Navigation variant="red" />
-      <main className="relative min-h-screen" style={{ backgroundColor: '#F03E3E' }}>
+      <Navigation />
+      <main className="relative min-h-screen" style={{ backgroundColor: '#000000' }}>
         <div className="absolute inset-0 z-0">
-          <RedStripes />
+          <YellowStripes />
         </div>
         <Suspense fallback={<NovedadesSkeleton />}>
           <NovedadesContent searchParams={searchParams} />
         </Suspense>
       </main>
-      <Footer variant="red" />
+      <Footer />
     </>
   )
 }
