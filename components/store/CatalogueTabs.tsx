@@ -76,14 +76,14 @@ export default function CatalogueTabs({
               userSelect: 'none',
             }}
           >
-            {searchQuery ? String.fromCharCode(10005) : String.fromCharCode(128269)}
+            {searchQuery ? '✕' : '⌕'}
           </span>
           <input
             ref={inputRef}
             type="text"
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
-            placeholder="BUSCAR DISCO..."
+            placeholder="BUSCAR DISCO…"
             className="font-display text-xs"
             style={{
               flex: 1,
@@ -91,7 +91,7 @@ export default function CatalogueTabs({
               backgroundColor: 'transparent',
               border: 'none',
               outline: 'none',
-              color: searchQuery ? ACCENT : '#FFFFFF',
+              color: '#FFFFFF',
               padding: 0,
               letterSpacing: '0.05em',
             }}

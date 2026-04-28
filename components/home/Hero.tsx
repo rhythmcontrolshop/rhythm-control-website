@@ -93,7 +93,10 @@ function MixContent({ onImage }: { onImage: (f: { url: string; title: string }) 
         {MIX.dj_image ? (<><Image src={MIX.dj_image} alt={MIX.dj} fill style={{ objectFit: 'cover', objectPosition: 'top center' }} sizes="(min-width: 768px) 16vw, 0px" priority /></>) : (<FlyerPlaceholder title={MIX.dj} date={getMixLabel()} code="RC-MIX" />)}
       </div>
       <div className="col-span-1 md:col-span-2 flex flex-col bg-black">
-        <div style={{ padding: '16px', flexShrink: 0 }}><Marquee text={MIX.dj} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2' }} /></div>
+        <div style={{ padding: '16px', flexShrink: 0 }}>
+          <Marquee text={MIX.dj} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.2' }} />
+          <Marquee text={MIX.bio.replace(/\{\{|\}\}/g, '')} style={{ color: '#FFFFFF', fontSize: '0.75rem', lineHeight: '1.4', marginTop: '4px' }} />
+        </div>
         <div style={{ flex: 1, padding: '10px 16px' }}><p className="font-meta font-bold" style={{ color: '#FFFFFF', fontSize: '0.68rem', lineHeight: 1.8 }}>{parseBio(MIX.bio)}</p></div>
         <div className="flex gap-3" style={{ padding: '12px 16px', borderTop: '1px solid #1C1C1C' }}>
           {MIX.mixcloud && <a href={MIX.mixcloud} target="_blank" rel="noopener noreferrer" className="font-display" style={{ color: '#000000', backgroundColor: '#F0E040', fontSize: '0.6rem', padding: '7px 14px', textDecoration: 'none' }}>MIXCLOUD →</a>}

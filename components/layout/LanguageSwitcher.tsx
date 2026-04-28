@@ -22,8 +22,10 @@ export default function LanguageSwitcher() {
     <div ref={ref} style={{ position: 'relative', width: '100%', height: '100%', zIndex: 200 }}>
       <button
         onClick={() => setOpen(prev => !prev)}
-        className="font-display text-xs w-full h-full flex items-center justify-between hover:bg-white hover:text-black active:bg-white active:text-black transition-colors duration-150"
-        style={{ padding: '0 12px', color: '#22C55E', minHeight: '44px' }}
+        className="font-display text-xs w-full h-full flex items-center justify-between transition-colors duration-150"
+        style={{ padding: '0 12px', color: '#FFFFFF', minHeight: '44px' }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFFFFF' }}
       >
         <span>{currentLabel}</span>
         <span style={{ fontSize: '0.55rem', opacity: 0.7, marginLeft: '4px' }}>▼</span>
@@ -44,7 +46,7 @@ export default function LanguageSwitcher() {
             <button
               key={l}
               onClick={() => { setLocale(l); setOpen(false) }}
-              className="font-display text-xs block w-full text-left hover:bg-white hover:text-black active:bg-white active:text-black transition-colors duration-150"
+              className="font-display text-xs block w-full text-left transition-colors duration-150"
               style={{
                 color: locale === l ? '#F0E040' : '#FFFFFF',
                 backgroundColor: locale === l ? 'rgba(240,224,64,0.08)' : '#000000',

@@ -6,7 +6,7 @@ export default function LogoutButton() {
     <form action={logout}>
       <button
         type="submit"
-        className="font-display text-xs w-full py-3 tracking-widest transition-colors duration-200 hover:bg-[#ef4444] hover:text-white active:bg-[#ef4444] active:text-white"
+        className="font-display text-xs w-full py-3 tracking-widest transition-colors duration-200 hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black"
         style={{
           backgroundColor: '#000000',
           color: '#999999',

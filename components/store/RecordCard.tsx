@@ -139,15 +139,13 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
           </p>
         </div>
 
-        {/* Bottom area: compact buttons */}
+        {/* Bottom area: compact buttons (same size as default) */}
         <CompactButtons
           onListen={() => onSelect(release)}
           onCart={() => addItem(release)}
           price={priceStr}
           isAvailable={isAvailable}
           statusLabel={statusLabel}
-          fontSize="0.6rem"
-          minHeight="30px"
         />
       </div>
     </article>

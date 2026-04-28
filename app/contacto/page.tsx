@@ -73,8 +73,11 @@ export default function ContactoPage() {
                 href="https://maps.google.com/?q=Ronda+de+Sant+Pau+19+Barcelona"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-display text-xs px-4 py-2 border-2 border-black hover:bg-black hover:text-yellow-300 transition-colors inline-block"
-                style={{ color: '#000000' }}>
+                className="font-display text-xs px-4 py-2 border-2 border-black inline-block"
+                style={{ color: '#000000', backgroundColor: '#F0E040', transition: 'background-color 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#F0E040' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000' }}
+              >
                 {t('btn.viewMap')}
               </a>
             </div>

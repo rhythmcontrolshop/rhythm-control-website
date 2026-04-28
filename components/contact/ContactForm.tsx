@@ -63,7 +63,11 @@ export default function ContactForm() {
       {status === 'error' && (
         <p className="font-meta text-xs" style={{ color: '#ef4444' }}>{t('contact.error')}</p>
       )}
-      <button type="submit" disabled={status === 'sending'} className="font-display text-xs py-3 bg-black border-2 border-black text-[#22C55E] hover:bg-[#22C55E] hover:text-black hover:border-black transition-colors disabled:opacity-50">
+      <button type="submit" disabled={status === 'sending'} className="font-display text-xs py-3 border-2 border-black transition-colors disabled:opacity-50"
+        style={{ backgroundColor: '#F0E040', color: '#000000', cursor: 'pointer' }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#000000'; e.currentTarget.style.color = '#F0E040'; e.currentTarget.style.borderColor = '#000000' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F0E040'; e.currentTarget.style.color = '#000000'; e.currentTarget.style.borderColor = '#000000' }}
+      >
         {status === 'sending' ? t('contact.sending') : t('contact.send')}
       </button>
     </form>
