@@ -1,6 +1,7 @@
 // lib/discogs/sync.ts
 // Lógica de sincronización Discogs → Supabase.
 // Obtiene el inventario completo paginado y hace upsert en la tabla releases.
+// Reads username from site_settings DB first, falls back to env var.
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getInventory }      from './client'
@@ -15,9 +16,31 @@ export interface SyncResult {
   error?:     string
 }
 
+async function getDiscogsUsername(): Promise<string> {
+  // Try DB first
+  try {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'discogs_username')
+      .single()
+    if (data?.value) {
+      // value is stored as JSON string, e.g. "\"rhythmcontrolshop\""
+      const val = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
+      if (val && typeof val === 'string' && val.trim()) return val.trim()
+    }
+  } catch { /* fall through to env var */ }
+
+  // Fallback to env var
+  const username = process.env.DISCOGS_USERNAME
+  if (!username) throw new Error('DISCOGS_USERNAME no configurado. Ajustalo en Admin → Ajustes → Discogs o como variable de entorno.')
+  return username
+}
+
 export async function syncDiscogsInventory(): Promise<SyncResult> {
   const supabase  = createAdminClient()
-  const username  = process.env.DISCOGS_USERNAME!
+  const username  = await getDiscogsUsername()
 
   // Crear registro del job
   const { data: job, error: jobError } = await supabase

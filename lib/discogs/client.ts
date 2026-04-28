@@ -1,13 +1,64 @@
 // lib/discogs/client.ts
 // Cliente para la API de Discogs. Autenticación via Personal Access Token.
+// Reads token from site_settings DB first, falls back to DISCOGS_ACCESS_TOKEN env var.
 
 const BASE_URL = 'https://api.discogs.com'
 
-function getHeaders(): HeadersInit {
+// Cached token from DB — avoids repeated queries within a sync run
+let _cachedToken: string | null = null
+
+async function getToken(): Promise<string> {
+  // Return cached value if available
+  if (_cachedToken) return _cachedToken
+
+  // Try reading from site_settings DB
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'discogs_token')
+      .single()
+    if (data?.value) {
+      const val = typeof data.value === 'string' ? JSON.parse(data.value) : data.value
+      if (val && typeof val === 'string' && val.trim()) {
+        _cachedToken = val.trim()
+        return _cachedToken
+      }
+    }
+  } catch { /* fall through to env var */ }
+
+  // Fallback to env var (supports both names used across the codebase)
+  const token = process.env.DISCOGS_ACCESS_TOKEN || process.env.DISCOGS_TOKEN
+  if (token) {
+    _cachedToken = token
+    return token
+  }
+
+  throw new Error('Token de Discogs no configurado. Ajustalo en Admin → Ajustes → Discogs o como variable de entorno DISCOGS_ACCESS_TOKEN.')
+}
+
+function getHeadersSync(): HeadersInit {
+  // For non-async contexts, use env var directly
+  const token = process.env.DISCOGS_ACCESS_TOKEN || process.env.DISCOGS_TOKEN || ''
   return {
-    Authorization: `Discogs token=${process.env.DISCOGS_ACCESS_TOKEN}`,
+    Authorization: `Discogs token=${token}`,
     'User-Agent': 'RhythmControl/1.0 +https://rhythmcontrol.es',
     Accept: 'application/vnd.discogs.v2.plaintext+json',
+  }
+}
+
+async function getHeaders(): Promise<HeadersInit> {
+  try {
+    const token = await getToken()
+    return {
+      Authorization: `Discogs token=${token}`,
+      'User-Agent': 'RhythmControl/1.0 +https://rhythmcontrol.es',
+      Accept: 'application/vnd.discogs.v2.plaintext+json',
+    }
+  } catch {
+    return getHeadersSync()
   }
 }
 
@@ -25,7 +76,7 @@ async function request<T>(
   }
 
   const res = await fetch(url.toString(), {
-    headers: getHeaders(),
+    headers: await getHeaders(),
     next: { revalidate: 0 },
   })
 
