@@ -9,10 +9,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json()
 
   // Solo permitir campos válidos
-  const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web', 'city', 'start_time', 'end_time', 'ticket_url', 'description', 'is_featured']
+  const allowed = ['date', 'type', 'title', 'venue', 'lineup', 'flyer_url', 'web', 'city', 'country', 'start_time', 'end_time', 'ticket_url', 'description', 'is_featured']
   const filtered: Record<string, unknown> = {}
   for (const key of allowed) {
     if (body[key] !== undefined) filtered[key] = body[key]
+  }
+
+  // Normalize type
+  if (filtered.type && typeof filtered.type === 'string') {
+    const VALID_TYPES = ['dj_set', 'live', 'session', 'all_night', 'release_party', 'in_store', 'other']
+    const normalized = (filtered.type as string).toLowerCase().replace(/\s+/g, '_')
+    if (!VALID_TYPES.includes(normalized)) {
+      return NextResponse.json({ error: `Tipo de evento inválido. Válidos: ${VALID_TYPES.join(', ')}` }, { status: 400 })
+    }
+    filtered.type = normalized
   }
 
   if (Object.keys(filtered).length === 0) {

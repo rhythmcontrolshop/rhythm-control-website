@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-interface Event { id: string; date: string; type: string; title: string; venue: string; lineup: string[]; flyer_url: string; web: string }
+interface Event { id: string; date: string; type: string; title: string; venue: string; city: string; lineup: string[]; flyer_url: string; web: string }
 
 export default function AgendaManager() {
   const [events, setEvents] = useState<Event[]>([])
@@ -11,7 +11,7 @@ export default function AgendaManager() {
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [form, setForm] = useState({ date: '', type: 'DJ SET', title: '', venue: '', lineup: '', flyer_url: '', web: '' })
+  const [form, setForm] = useState({ date: '', type: 'dj_set', title: '', venue: '', city: 'Barcelona', lineup: '', flyer_url: '', web: '' })
 
   useEffect(() => { fetchEvents() }, [])
 
@@ -38,7 +38,7 @@ export default function AgendaManager() {
   }
 
   const resetForm = () => {
-    setForm({ date: '', type: 'DJ SET', title: '', venue: '', lineup: '', flyer_url: '', web: '' })
+    setForm({ date: '', type: 'dj_set', title: '', venue: '', city: 'Barcelona', lineup: '', flyer_url: '', web: '' })
     setEditing(null)
     setMsg(null)
     setErrorMsg(null)
@@ -62,7 +62,12 @@ export default function AgendaManager() {
     setMsg(null)
     setErrorMsg(null)
 
-    const payload = { ...form, lineup: form.lineup.split(',').map(s => s.trim()).filter(Boolean) }
+    const payload = {
+      ...form,
+      lineup: form.lineup.split(',').map(s => s.trim()).filter(Boolean),
+      // Ensure type is lowercase with underscores for DB constraint
+      type: form.type.toLowerCase().replace(/\s+/g, '_'),
+    }
     const url = editing ? `/api/admin/events/${editing.id}` : '/api/admin/events'
     const method = editing ? 'PUT' : 'POST'
 
@@ -95,6 +100,7 @@ export default function AgendaManager() {
       type: event.type,
       title: event.title,
       venue: event.venue,
+      city: event.city || 'Barcelona',
       lineup: event.lineup?.join(', ') || '',
       flyer_url: event.flyer_url || '',
       web: event.web || ''
@@ -143,12 +149,19 @@ export default function AgendaManager() {
 
         <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="p-2 text-xs focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000', backgroundColor: '#FFFFFF' }} required />
         <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className="p-2 text-xs focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000', backgroundColor: '#FFFFFF' }}>
-          <option>DJ SET</option><option>LIVE</option><option>SESIÓN</option><option>ALL NIGHT</option>
+          <option value="dj_set">DJ SET</option>
+          <option value="live">LIVE</option>
+          <option value="session">SESIÓN</option>
+          <option value="all_night">ALL NIGHT</option>
+          <option value="release_party">RELEASE PARTY</option>
+          <option value="in_store">IN-STORE</option>
+          <option value="other">OTRO</option>
         </select>
 
         <input type="text" placeholder="TÍTULO" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="p-2 text-xs col-span-full focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000' }} required />
         <input type="text" placeholder="VENUE" value={form.venue} onChange={e => setForm(f => ({ ...f, venue: e.target.value }))} className="p-2 text-xs focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000' }} />
         <input type="text" placeholder="LINEUP (separado por comas)" value={form.lineup} onChange={e => setForm(f => ({ ...f, lineup: e.target.value }))} className="p-2 text-xs focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000' }} />
+        <input type="text" placeholder="CIUDAD" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="p-2 text-xs focus:outline-none" style={{ border: '1px solid #d1d5db', color: '#000000' }} />
 
         <div className="col-span-full">
           <label className="text-xs block mb-1" style={{ color: '#6b7280' }}>FLYER (Subir Imagen)</label>
