@@ -1,6 +1,6 @@
 'use client'
 // RecordCard — Catálogo grid card
-// Refactored: 4/8px spacing grid, improved mobile title visibility
+// Marquee + action buttons always visible, hover reveals full info overlay on desktop
 
 import { memo }       from 'react'
 import Image          from 'next/image'
@@ -35,7 +35,7 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
         <div className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
           style={{ backgroundColor: accentColor }} />
 
-        {/* Cover image — always visible, fades on hover (desktop only) */}
+        {/* Cover image — always visible, fades on hover (desktop) */}
         <div className="absolute inset-0 md:transition-opacity md:duration-250 md:group-hover:opacity-0">
           {release.cover_image
             ? <Image src={release.cover_image} alt={`${artist} — ${release.title}`}
@@ -50,33 +50,30 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
               </span>
             </div>
           )}
+        </div>
 
-          {/* Gradient overlay with artist/title — always visible, 4/8px spacing */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pt-12 pb-3"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)' }}>
-            <p className="font-display text-sm uppercase truncate leading-tight"
-              style={{ color: 'var(--rc-color-text)' }}>
-              {artist}
-            </p>
-            <p className="font-display text-sm uppercase truncate leading-tight mt-0.5"
-              style={{ color: accentColor }}>
-              {release.title}
-            </p>
+        {/* ── Bottom overlay: Marquee + action buttons — ALWAYS visible ── */}
+        <div className="absolute bottom-0 left-0 right-0 z-10"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 55%, transparent)' }}>
+
+          {/* Marquee text */}
+          <div className="px-3 pt-10 pb-1">
+            <Marquee text={artist}        style={{ color: 'var(--rc-color-text)', fontSize: '0.875rem', lineHeight: '1.3' }} />
+            <Marquee text={release.title} style={{ color: accentColor, fontSize: '0.875rem', lineHeight: '1.3' }} />
           </div>
 
-          {/* Mobile-only action bar — always visible */}
-          {isAvailable && (
-            <div className="md:hidden absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1 z-10"
-              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 30%, transparent)' }}>
+          {/* Action buttons — always visible */}
+          {isAvailable ? (
+            <div className="flex items-center gap-2 px-3 pb-3">
               <button
-                className="flex items-center justify-center font-display text-xs px-2 active:opacity-70"
-                style={{ backgroundColor: accentHex, color: '#000000', minHeight: '36px', minWidth: '36px' }}
+                className="flex items-center justify-center font-display text-xs px-3 transition-opacity hover:opacity-80 active:opacity-70"
+                style={{ backgroundColor: accentHex, color: '#000000', minHeight: '36px', minWidth: '36px', cursor: 'pointer' }}
                 onClick={e => { e.stopPropagation(); onSelect(release) }}>
-                ESCUCHAR
+                {t('btn.listen')}
               </button>
               <button
-                className="flex items-center justify-center gap-1 font-display text-xs px-2 active:opacity-70"
-                style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '36px' }}
+                className="flex-1 flex items-center justify-center gap-1 font-display text-xs px-2 transition-opacity hover:opacity-80 active:opacity-70"
+                style={{ border: '1px solid #FFFFFF', color: '#FFFFFF', minHeight: '36px', cursor: 'pointer' }}
                 onClick={e => { e.stopPropagation(); addItem(release) }}>
                 <span style={{ fontWeight: 700 }}>
                   {release.price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
@@ -87,10 +84,17 @@ const RecordCard = memo(function RecordCard({ release, onSelect, theme = 'defaul
                 </svg>
               </button>
             </div>
+          ) : (
+            <div className="px-3 pb-3">
+              <span className="font-display text-xs px-3 py-1"
+                style={{ border: '1px solid #333', color: '#FFFFFF' }}>
+                {status === 'reserved' ? t('catalogue.reserved') : t('catalogue.sold')}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Hover state (desktop only) — 4/8px spacing */}
+        {/* ── Hover state (desktop only) — full info overlay ── */}
         <div className="hidden md:flex absolute inset-0 flex-col justify-between p-4 opacity-0 md:transition-opacity md:duration-250 md:group-hover:opacity-100"
           style={{ backgroundColor: 'var(--rc-color-bg)' }}>
           <div className="ml-1">

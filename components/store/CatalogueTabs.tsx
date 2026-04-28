@@ -61,6 +61,7 @@ export default function CatalogueTabs({
       {onSearchChange && (
         <div style={{
           height: '48px',
+          borderTop: '2px solid #FFFFFF',
           borderBottom: '2px solid #FFFFFF',
           display: 'flex',
           alignItems: 'center',
