@@ -38,14 +38,14 @@ export default function Navigation({ variant = 'default' }: { variant?: 'default
 
       {/* ── Logo row — responsive padding ── */}
       <div className="px-4 py-3 md:px-6 md:py-4" style={{ borderBottom: `2px solid ${borderCol}` }}>
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative', maxWidth: '100%', height: '48px' }} className="group">
+        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative', maxWidth: '100%', height: '48px', overflow: 'hidden' }} className="group">
           {/* Logo — fades out on hover (desktop) */}
           <div className="transition-opacity duration-200 md:group-hover:opacity-0 flex items-center" style={{ height: '48px', lineHeight: 0 }}>
             <RhythmControlLogo height="48px" fill={logoColor} />
           </div>
-          {/* BARCELONA — centered both vertically and horizontally within logo bounds */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <span style={{ color: logoColor, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: 'clamp(1.5rem, 6vw, 3rem)', fontWeight: '900', letterSpacing: '-0.04em', lineHeight: '1', whiteSpace: 'nowrap' }}>
+          {/* BARCELONA — only visible on desktop hover, hidden on mobile */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none overflow-hidden">
+            <span style={{ color: logoColor, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.04em', lineHeight: '1', whiteSpace: 'nowrap' }}>
               BARCELONA
             </span>
           </div>

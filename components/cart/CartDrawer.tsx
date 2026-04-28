@@ -43,7 +43,7 @@ export default function CartDrawer() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={toggleCart} />
       <div
         ref={drawerRef}
-        className="relative w-full max-w-md h-full bg-white shadow-xl flex flex-col border-l-2 border-black text-black"
+        className="relative w-full h-full bg-white shadow-xl flex flex-col border-l-2 border-black text-black"
         style={{
           paddingRight: 'env(safe-area-inset-right, 0px)',
           transform: translateX > 0 ? `translateX(${translateX}px)` : undefined,

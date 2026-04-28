@@ -22,7 +22,7 @@ export default function LanguageSwitcher() {
     <div ref={ref} style={{ position: 'relative', width: '100%', height: '100%', zIndex: 200 }}>
       <button
         onClick={() => setOpen(prev => !prev)}
-        className="font-display text-xs w-full h-full flex items-center justify-between hover:opacity-80 transition-opacity duration-150"
+        className="font-display text-xs w-full h-full flex items-center justify-between hover:bg-white hover:text-black active:bg-white active:text-black transition-colors duration-150"
         style={{ padding: '0 12px', color: '#22C55E', minHeight: '44px' }}
       >
         <span>{currentLabel}</span>
@@ -32,18 +32,19 @@ export default function LanguageSwitcher() {
         <div style={{
           position: 'absolute',
           top: '100%',
-          left: '-2px',
-          right: '-2px',
+          left: '0',
+          right: '0',
           backgroundColor: '#000000',
           border: '2px solid #FFFFFF',
           borderTop: 'none',
           zIndex: 200,
+          width: '100%',
         }}>
           {locales.map(l => (
             <button
               key={l}
               onClick={() => { setLocale(l); setOpen(false) }}
-              className="font-display text-xs block w-full text-left hover:bg-[#F0E040] hover:text-black active:bg-[#F0E040] active:text-black transition-colors duration-150"
+              className="font-display text-xs block w-full text-left hover:bg-white hover:text-black active:bg-white active:text-black transition-colors duration-150"
               style={{
                 color: locale === l ? '#F0E040' : '#FFFFFF',
                 backgroundColor: locale === l ? 'rgba(240,224,64,0.08)' : '#000000',
