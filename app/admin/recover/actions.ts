@@ -14,10 +14,15 @@ export async function recoverPassword(formData: FormData) {
     redirect('/admin/recover?error=missing-email')
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  let siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   if (!siteUrl) {
     redirect('/admin/recover?error=misconfigured')
   }
+  // Ensure protocol prefix — without it Supabase treats it as a relative path
+  if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+    siteUrl = `https://${siteUrl}`
+  }
+  siteUrl = siteUrl.replace(/\/+$/, '') // strip trailing slashes
 
   // ── Generate recovery link via Supabase Admin API ──
   // This gives us the link that Supabase would normally email,
