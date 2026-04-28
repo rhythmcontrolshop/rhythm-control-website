@@ -76,7 +76,7 @@ function TopContent({ releases, onSelect, onPlay }: { releases: Release[]; onSel
       {releases.map((release, i) => (
         <div key={release.discogs_listing_id} className="relative bg-black">
           {/* Badge overlay — STAFF PICK / NEW! / ON HYPE cycling through top releases */}
-          <span className="font-display" style={{ position: 'absolute', top: '6px', right: '6px', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.5rem', padding: '2px 6px', zIndex: 10 }}>{BADGES[i % BADGES.length]}</span>
+          <span className="font-display" style={{ position: 'absolute', top: '6px', right: '6px', backgroundColor: '#F0E040', color: '#000000', fontSize: '0.5rem', padding: '2px 6px', zIndex: 50 }}>{BADGES[i % BADGES.length]}</span>
           <RecordCard release={release} onSelect={onSelect} onPlay={onPlay} />
         </div>
       ))}
