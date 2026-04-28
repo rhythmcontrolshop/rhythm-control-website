@@ -3,6 +3,7 @@
 import { redirect }       from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient }   from '@/lib/supabase/server'
+import { sendWelcomeEmail } from '@/lib/resend'
 
 export async function registerCustomer(formData: FormData) {
   const supabase = await createClient()
@@ -35,6 +36,18 @@ export async function registerCustomer(formData: FormData) {
   }
 
   // El trigger en Supabase crea el perfil automáticamente
+
+  // ── Send welcome email via Resend ──
+  if (data.user) {
+    const displayName = username || email.split('@')[0]
+    sendWelcomeEmail({
+      customerName: displayName,
+      customerEmail: email,
+    }).catch(err => {
+      console.error('Welcome email failed (non-blocking):', err)
+    })
+  }
+
   revalidatePath('/', 'layout')
   redirect('/cuenta?welcome=true')
 }

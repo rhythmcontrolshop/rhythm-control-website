@@ -1,36 +1,40 @@
 'use client'
 
 // app/(pos)/pos/page.tsx
-// POS — White theme with mockup data + cash register sessions
+// POS — White theme with real inventory data + cash register sessions
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
-interface MockupRecord {
+interface InventoryItem {
   id: string
-  artist: string
   title: string
+  artists: string[]
   condition: string
+  sleeve_condition: string
   format: string
   price: number
-  stock: number
-  initials: string
-  color: string
+  price_physical: number
+  quantity: number
+  thumb: string
+  barcode: string
+  genres: string[]
+  styles: string[]
 }
 
 interface TicketItem {
   id: string
-  artist: string
+  release_id: string
   title: string
+  artists: string[]
   condition: string
   format: string
-  price: number
-  priceBase: number
+  price_base: number
+  price_channel: number
+  quantity: number
   stock: number
-  qty: number
-  initials: string
-  color: string
+  thumb: string
 }
 
 interface Session {
@@ -42,21 +46,6 @@ interface Session {
 }
 
 type PaymentMethod = 'cash' | 'card' | 'bizum'
-
-// ─── Mockup Data ──────────────────────────────────────────────────────────
-
-const MOCKUP_RECORDS: MockupRecord[] = [
-  { id: 'mock-001', artist: 'Aphex Twin', title: 'Selected Ambient Works 85-92', condition: 'NM', format: 'LP', price: 28.00, stock: 2, initials: 'AT', color: '#E8D5B7' },
-  { id: 'mock-002', artist: 'Boards of Canada', title: 'Music Has The Right To Children', condition: 'NM', format: 'LP', price: 32.00, stock: 1, initials: 'BOC', color: '#B7D5E8' },
-  { id: 'mock-003', artist: 'Burial', title: 'Untrue', condition: 'VG+', format: 'LP', price: 45.00, stock: 1, initials: 'BU', color: '#1a1a2e' },
-  { id: 'mock-004', artist: 'DJ Shadow', title: 'Endtroducing.....', condition: 'NM', format: '2xLP', price: 26.00, stock: 3, initials: 'DJS', color: '#D4C5A9' },
-  { id: 'mock-005', artist: 'Massive Attack', title: 'Blue Lines', condition: 'NM', format: 'LP', price: 24.00, stock: 2, initials: 'MA', color: '#5B7DB1' },
-  { id: 'mock-006', artist: 'Portishead', title: 'Dummy', condition: 'VG+', format: 'LP', price: 30.00, stock: 1, initials: 'PT', color: '#8B8BAE' },
-  { id: 'mock-007', artist: 'Kraftwerk', title: 'Trans-Europe Express', condition: 'NM', format: 'LP', price: 22.00, stock: 2, initials: 'KW', color: '#C4C4C4' },
-  { id: 'mock-008', artist: 'Daft Punk', title: 'Discovery', condition: 'NM', format: '2xLP', price: 35.00, stock: 1, initials: 'DP', color: '#D4AF37' },
-  { id: 'mock-009', artist: 'Autechre', title: 'Tri Repetae', condition: 'VG', format: '2xLP', price: 38.00, stock: 1, initials: 'AE', color: '#4A4A4A' },
-  { id: 'mock-010', artist: 'Four Tet', title: 'Rounds', condition: 'NM', format: 'LP', price: 20.00, stock: 3, initials: 'FT', color: '#A8D5BA' },
-]
 
 // ─── Component ────────────────────────────────────────────────────────────
 
@@ -72,18 +61,20 @@ export default function POSPage() {
 
   // ── POS state ────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredResults, setFilteredResults] = useState<MockupRecord[]>(MOCKUP_RECORDS)
+  const [searchResults, setSearchResults] = useState<InventoryItem[]>([])
+  const [searching, setSearching] = useState(false)
   const [ticket, setTicket] = useState<TicketItem[]>([])
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
   const [cashReceived, setCashReceived] = useState('')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [successSaleId, setSuccessSaleId] = useState('')
+  const [successSaleNumber, setSuccessSaleNumber] = useState('')
   const [discount, setDiscount] = useState(0)
   const [error, setError] = useState('')
 
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Check for active session on mount ─────────────────────────────
   useEffect(() => {
@@ -146,46 +137,66 @@ export default function POSPage() {
     if (session) searchInputRef.current?.focus()
   }, [session])
 
-  // ── Client-side search ────────────────────────────────────────────
-  const filterRecords = useCallback((query: string) => {
-    if (!query.trim()) { setFilteredResults(MOCKUP_RECORDS); return }
-    const q = query.toLowerCase().trim()
-    setFilteredResults(MOCKUP_RECORDS.filter(r =>
-      r.artist.toLowerCase().includes(q) || r.title.toLowerCase().includes(q) || r.format.toLowerCase().includes(q)
-    ))
+  // ── Search inventory (server-side, debounced) ─────────────────────
+  const searchInventory = useCallback(async (query: string) => {
+    if (!query.trim()) { setSearchResults([]); setSearching(false); return }
+    setSearching(true)
+    try {
+      const res = await fetch(`/api/pos/inventory?q=${encodeURIComponent(query)}&limit=30`)
+      if (res.ok) {
+        const data = await res.json()
+        setSearchResults(data.items ?? [])
+      }
+    } catch { /* ignore */ }
+    setSearching(false)
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => filterRecords(searchQuery), 150)
-    return () => clearTimeout(timer)
-  }, [searchQuery, filterRecords])
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => searchInventory(searchQuery), 250)
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+  }, [searchQuery, searchInventory])
 
   // ── Ticket management ─────────────────────────────────────────────
-  function addToTicket(record: MockupRecord) {
+  function addToTicket(item: InventoryItem) {
     setTicket(prev => {
-      const existing = prev.find(t => t.id === record.id)
+      const existing = prev.find(t => t.id === item.id)
       if (existing) {
-        if (existing.qty < record.stock) return prev.map(t => t.id === record.id ? { ...t, qty: t.qty + 1 } : t)
-        return prev
+        if (existing.quantity < item.quantity) {
+          return prev.map(t => t.id === item.id ? { ...t, quantity: t.quantity + 1 } : t)
+        }
+        return prev // Already at max stock
       }
       return [...prev, {
-        id: record.id, artist: record.artist, title: record.title, condition: record.condition,
-        format: record.format, price: Math.round(record.price * 0.95 * 100) / 100,
-        priceBase: record.price, stock: record.stock, qty: 1, initials: record.initials, color: record.color,
+        id: item.id,
+        release_id: item.id,
+        title: item.title,
+        artists: item.artists,
+        condition: item.condition,
+        format: item.format,
+        price_base: item.price,
+        price_channel: item.price_physical,
+        quantity: 1,
+        stock: item.quantity,
+        thumb: item.thumb,
       }]
     })
+    setSearchQuery('')
+    setSearchResults([])
     searchInputRef.current?.focus()
   }
 
-  function removeFromTicket(id: string) { setTicket(prev => prev.filter(t => t.id !== id)) }
+  function removeFromTicket(id: string) {
+    setTicket(prev => prev.filter(t => t.id !== id))
+  }
 
   function updateTicketQty(id: string, qty: number) {
     if (qty < 1) { removeFromTicket(id); return }
-    setTicket(prev => prev.map(t => t.id === id ? { ...t, qty: Math.min(qty, t.stock) } : t))
+    setTicket(prev => prev.map(t => t.id === id ? { ...t, quantity: Math.min(qty, t.stock) } : t))
   }
 
   // ── Calculations ──────────────────────────────────────────────────
-  const subtotal = ticket.reduce((sum, t) => sum + t.price * t.qty, 0)
+  const subtotal = ticket.reduce((sum, t) => sum + t.price_channel * t.quantity, 0)
   const discountAmount = subtotal * (discount / 100)
   const totalAfterDiscount = subtotal - discountAmount
   const taxRate = 0.04
@@ -194,16 +205,58 @@ export default function POSPage() {
   const cashReceivedNum = parseFloat(cashReceived) || 0
   const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashReceivedNum - total) : 0
 
-  // ── Simulated checkout ────────────────────────────────────────────
+  // ── Real checkout ────────────────────────────────────────────────
   async function handleCheckout() {
     if (ticket.length === 0) return
-    if (paymentMethod === 'cash' && cashReceivedNum < total) { setError('Efectivo insuficiente'); return }
-    setCheckoutLoading(true); setError('')
-    await new Promise(resolve => setTimeout(resolve, 800))
-    const saleId = `RC-${Date.now().toString(36).toUpperCase().slice(-6)}`
-    setSuccessSaleId(saleId)
-    setShowCheckout(false); setShowSuccess(true)
-    setTicket([]); setCashReceived(''); setDiscount(0)
+    if (paymentMethod === 'cash' && cashReceivedNum < total) {
+      setError('Efectivo insuficiente')
+      return
+    }
+
+    setCheckoutLoading(true)
+    setError('')
+
+    try {
+      const body = {
+        items: ticket.map(t => ({
+          release_id: t.release_id,
+          title: t.title,
+          artists: t.artists,
+          condition: t.condition,
+          price_base: t.price_base,
+          price_channel: t.price_channel,
+          quantity: t.quantity,
+        })),
+        payment_method: paymentMethod,
+        session_id: session?.id,
+        discount_percentage: discount,
+        cash_received: paymentMethod === 'cash' ? cashReceivedNum : null,
+      }
+
+      const res = await fetch('/api/pos/sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Error al procesar la venta')
+        setCheckoutLoading(false)
+        return
+      }
+
+      setSuccessSaleNumber(data.sale_number || '')
+      setShowCheckout(false)
+      setShowSuccess(true)
+      setTicket([])
+      setCashReceived('')
+      setDiscount(0)
+    } catch {
+      setError('Error de conexión con el servidor')
+    }
+
     setCheckoutLoading(false)
   }
 
@@ -219,7 +272,7 @@ export default function POSPage() {
   }, [ticket.length, showCheckout, showSuccess])
 
   function isInTicket(id: string) { return ticket.some(t => t.id === id) }
-  function getTicketQty(id: string) { return ticket.find(t => t.id === id)?.qty ?? 0 }
+  function getTicketQty(id: string) { return ticket.find(t => t.id === id)?.quantity ?? 0 }
 
   // ─── RENDER ────────────────────────────────────────────────────────────
 
@@ -341,33 +394,61 @@ export default function POSPage() {
             <span className="font-mono text-[10px] px-1.5 py-0.5 flex-shrink-0" style={{ backgroundColor: '#F3F4F6', color: '#9CA3AF' }}>F2</span>
             <div className="flex-1 relative">
               <input ref={searchInputRef} type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar disco, artista..." className="w-full font-mono text-sm focus:outline-none"
+                placeholder="Buscar disco, artista, código de barras..." className="w-full font-mono text-sm focus:outline-none"
                 style={{ border: '1px solid #E5E7EB', color: '#000000', padding: '11px 14px', backgroundColor: '#F9FAFB' }} />
               {searchQuery && (
-                <button onClick={() => { setSearchQuery(''); searchInputRef.current?.focus() }}
+                <button onClick={() => { setSearchQuery(''); setSearchResults([]); searchInputRef.current?.focus() }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center" style={{ color: '#9CA3AF', cursor: 'pointer' }}>✕</button>
               )}
             </div>
           </div>
-          <p className="font-mono text-[10px] mt-2" style={{ color: '#9CA3AF' }}>{filteredResults.length} disco{filteredResults.length !== 1 ? 's' : ''}</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="font-mono text-[10px]" style={{ color: '#9CA3AF' }}>
+              {searching ? 'Buscando...' : searchQuery ? `${searchResults.length} resultado${searchResults.length !== 1 ? 's' : ''}` : 'Escribe para buscar en el inventario'}
+            </p>
+            <p className="font-mono text-[10px]" style={{ color: '#D1D5DB' }}>Precio tienda (×0.95)</p>
+          </div>
         </div>
 
         {/* Results */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-          {filteredResults.map(record => {
+          {searchResults.length === 0 && searchQuery && !searching && (
+            <div className="text-center py-12">
+              <p className="font-mono text-xs" style={{ color: '#9CA3AF' }}>Sin resultados para &ldquo;{searchQuery}&rdquo;</p>
+            </div>
+          )}
+          {searchResults.length === 0 && !searchQuery && (
+            <div className="text-center py-12">
+              <p className="font-mono text-xs" style={{ color: '#9CA3AF' }}>Busca un disco por título, artista o código de barras</p>
+              <p className="font-mono text-[10px] mt-1" style={{ color: '#D1D5DB' }}>F2 buscar · F9 cobrar</p>
+            </div>
+          )}
+          {searchResults.map(record => {
             const inTicket = isInTicket(record.id)
+            const ticketQty = getTicketQty(record.id)
             return (
               <button key={record.id} onClick={() => addToTicket(record)}
                 className="w-full flex items-center gap-3 p-3 text-left transition-all min-h-[64px]"
                 style={{ border: inTicket ? '2px solid #F0E040' : '1px solid #E5E7EB', backgroundColor: inTicket ? '#FEFCE8' : '#FFFFFF', cursor: 'pointer' }}>
-                <div className="w-11 h-11 flex-shrink-0 flex items-center justify-center font-display text-[10px]" style={{ backgroundColor: record.color, color: '#FFFFFF' }}>{record.initials}</div>
+                <div className="w-11 h-11 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#F3F4F6' }}>
+                  {record.thumb ? (
+                    <img src={record.thumb} alt="" className="w-full h-full object-cover" style={{ minHeight: '44px' }} />
+                  ) : (
+                    <span className="font-display text-[10px]" style={{ color: '#9CA3AF' }}>♪</span>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-display text-[11px] truncate" style={{ color: '#000000' }}>{record.artist} — {record.title}</p>
-                  <p className="font-mono text-[10px] mt-0.5" style={{ color: '#6B7280' }}>{record.condition} · {record.format} · Stock: {record.stock}</p>
+                  <p className="font-display text-[11px] truncate" style={{ color: '#000000' }}>{record.artists.join(', ')} — {record.title}</p>
+                  <p className="font-mono text-[10px] mt-0.5" style={{ color: '#6B7280' }}>
+                    {record.condition}{record.sleeve_condition ? ` / ${record.sleeve_condition}` : ''} · {record.format} · Stock: {record.quantity}
+                  </p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>{record.price.toFixed(2)} €</p>
-                  {inTicket && <span className="font-mono text-[10px] px-1.5 py-0.5" style={{ backgroundColor: '#F0E040', color: '#000000' }}>×{getTicketQty(record.id)}</span>}
+                  <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>{record.price_physical.toFixed(2)} €</p>
+                  {record.price_physical !== record.price && (
+                    <p className="font-mono text-[9px] line-through" style={{ color: '#D1D5DB' }}>{record.price.toFixed(2)}</p>
+                  )}
+                  {inTicket && <span className="font-mono text-[10px] px-1.5 py-0.5" style={{ backgroundColor: '#F0E040', color: '#000000' }}>×{ticketQty}</span>}
                 </div>
               </button>
             )
@@ -382,7 +463,7 @@ export default function POSPage() {
             <h2 className="font-display text-xs" style={{ color: '#000000', letterSpacing: '0.08em' }}>TICKET</h2>
             {ticket.length > 0 && (
               <span className="font-mono text-[10px] px-1.5 py-0.5" style={{ backgroundColor: '#F0E040', color: '#000000' }}>
-                {ticket.reduce((s, t) => s + t.qty, 0)} ud{ticket.reduce((s, t) => s + t.qty, 0) !== 1 ? 's' : ''}
+                {ticket.reduce((s, t) => s + t.quantity, 0)} ud{ticket.reduce((s, t) => s + t.quantity, 0) !== 1 ? 's' : ''}
               </span>
             )}
           </div>
@@ -404,18 +485,24 @@ export default function POSPage() {
             <div className="p-4 space-y-2">
               {ticket.map(item => (
                 <div key={item.id} className="flex items-center gap-3 p-3" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB' }}>
-                  <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center font-display text-[9px]" style={{ backgroundColor: item.color, color: '#FFFFFF' }}>{item.initials}</div>
+                  <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#F3F4F6' }}>
+                    {item.thumb ? (
+                      <img src={item.thumb} alt="" className="w-full h-full object-cover" style={{ minHeight: '36px' }} />
+                    ) : (
+                      <span className="font-display text-[9px]" style={{ color: '#9CA3AF' }}>♪</span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display text-[10px] truncate" style={{ color: '#000000' }}>{item.artist} — {item.title}</p>
-                    <p className="font-mono text-[10px]" style={{ color: '#6B7280' }}>{item.price.toFixed(2)} €/ud</p>
+                    <p className="font-display text-[10px] truncate" style={{ color: '#000000' }}>{item.artists.join(', ')} — {item.title}</p>
+                    <p className="font-mono text-[10px]" style={{ color: '#6B7280' }}>{item.price_channel.toFixed(2)} €/ud · {item.condition} · {item.format}</p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => updateTicketQty(item.id, item.qty - 1)} className="w-9 h-9 flex items-center justify-center font-mono text-sm" style={{ border: '1px solid #E5E7EB', color: '#000000', backgroundColor: '#FFFFFF', cursor: 'pointer', minHeight: '44px', minWidth: '44px' }}>−</button>
-                    <span className="font-mono text-sm w-8 text-center" style={{ color: '#000000' }}>{item.qty}</span>
-                    <button onClick={() => updateTicketQty(item.id, item.qty + 1)} className="w-9 h-9 flex items-center justify-center font-mono text-sm" style={{ border: '1px solid #E5E7EB', color: item.qty >= item.stock ? '#D1D5DB' : '#000000', cursor: item.qty >= item.stock ? 'not-allowed' : 'pointer', opacity: item.qty >= item.stock ? 0.4 : 1, minHeight: '44px', minWidth: '44px' }}>+</button>
+                    <button onClick={() => updateTicketQty(item.id, item.quantity - 1)} className="w-9 h-9 flex items-center justify-center font-mono text-sm" style={{ border: '1px solid #E5E7EB', color: '#000000', backgroundColor: '#FFFFFF', cursor: 'pointer', minHeight: '44px', minWidth: '44px' }}>−</button>
+                    <span className="font-mono text-sm w-8 text-center" style={{ color: '#000000' }}>{item.quantity}</span>
+                    <button onClick={() => updateTicketQty(item.id, item.quantity + 1)} className="w-9 h-9 flex items-center justify-center font-mono text-sm" style={{ border: '1px solid #E5E7EB', color: item.quantity >= item.stock ? '#D1D5DB' : '#000000', cursor: item.quantity >= item.stock ? 'not-allowed' : 'pointer', opacity: item.quantity >= item.stock ? 0.4 : 1, minHeight: '44px', minWidth: '44px' }}>+</button>
                   </div>
                   <div className="text-right flex-shrink-0 w-20">
-                    <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>{(item.price * item.qty).toFixed(2)} €</p>
+                    <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>{(item.price_channel * item.quantity).toFixed(2)} €</p>
                   </div>
                   <button onClick={() => removeFromTicket(item.id)} className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ color: '#EF4444', cursor: 'pointer', minHeight: '44px', minWidth: '44px' }}>✕</button>
                 </div>
@@ -533,9 +620,8 @@ export default function POSPage() {
             <div className="px-6 py-8">
               <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: '#F0FDF4' }}><span style={{ fontSize: '32px' }}>✓</span></div>
               <p className="font-display text-lg mb-2" style={{ color: '#16A34A', letterSpacing: '0.04em' }}>VENTA COMPLETADA</p>
-              <p className="font-mono text-sm mb-1" style={{ color: '#000000' }}>{successSaleId}</p>
-              <p className="font-mono text-[10px] mb-6" style={{ color: '#9CA3AF' }}>Demo — venta simulada</p>
-              <button onClick={() => setShowSuccess(false)} className="w-full py-3 font-display text-sm min-h-[44px]" style={{ backgroundColor: '#F0E040', color: '#000000', cursor: 'pointer', letterSpacing: '0.08em' }}>CONTINUAR · ESC</button>
+              <p className="font-mono text-sm mb-1" style={{ color: '#000000' }}>{successSaleNumber}</p>
+              <button onClick={() => setShowSuccess(false)} className="w-full py-3 font-display text-sm mt-6 min-h-[44px]" style={{ backgroundColor: '#F0E040', color: '#000000', cursor: 'pointer', letterSpacing: '0.08em' }}>CONTINUAR · ESC</button>
             </div>
           </div>
         </div>

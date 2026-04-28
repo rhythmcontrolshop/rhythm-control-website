@@ -4,7 +4,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { getPriceChannels, calculateChannelPrice, VAT_RATE } from '@/lib/pricing'
+import { VAT_RATE } from '@/lib/pricing'
 
 const SaleItemSchema = z.object({
   release_id: z.string().uuid(),
@@ -19,6 +19,7 @@ const SaleItemSchema = z.object({
 const SaleBodySchema = z.object({
   items: z.array(SaleItemSchema).min(1).max(50),
   payment_method: z.enum(['cash', 'card', 'bizum']),
+  session_id: z.string().uuid().optional(),
   discount_percentage: z.number().min(0).max(100).default(0),
   cash_received: z.number().nullable().optional(),
   customer_email: z.string().email().optional(),
@@ -56,7 +57,23 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    const { items, payment_method, discount_percentage, cash_received, customer_email, customer_name, notes } = parsed.data
+    const {
+      items, payment_method, session_id, discount_percentage,
+      cash_received, customer_email, customer_name, notes,
+    } = parsed.data
+
+    // ── Si se pasa session_id, verificar que la sesión está abierta ──
+    if (session_id) {
+      const { data: session } = await admin
+        .from('pos_sessions')
+        .select('id, status')
+        .eq('id', session_id)
+        .single()
+
+      if (!session || session.status !== 'open') {
+        return Response.json({ error: 'Sesión de caja no válida o cerrada' }, { status: 409 })
+      }
+    }
 
     // ── Validar stock disponible ─────────────────────────────────────
     const releaseIds = items.map(i => i.release_id)
@@ -99,6 +116,9 @@ export async function POST(request: Request) {
     const totalAfterDiscount = subtotal - discountAmount
     const taxAmount = Math.round(totalAfterDiscount * VAT_RATE / (1 + VAT_RATE) * 100) / 100
     const total = totalAfterDiscount
+    const changeAmount = (payment_method === 'cash' && cash_received && cash_received >= total)
+      ? Math.round((cash_received - total) * 100) / 100
+      : 0
 
     // ── Crear venta POS ─────────────────────────────────────────────
     const { data: sale, error: saleError } = await admin
@@ -106,11 +126,16 @@ export async function POST(request: Request) {
       .insert({
         sale_number: saleNumber,
         operator_id: user.id,
+        session_id: session_id || null,
         subtotal,
         tax_rate: VAT_RATE,
         tax_amount: taxAmount,
+        discount_pct: discount_percentage,
+        discount_amount: discountAmount,
         total,
         payment_method,
+        cash_received: cash_received ?? null,
+        change_amount: changeAmount || null,
         customer_email: customer_email || null,
         customer_name: customer_name || null,
         notes: notes || (discount_percentage > 0 ? `Descuento ${discount_percentage}%` : null),
@@ -151,9 +176,7 @@ export async function POST(request: Request) {
       total: total.toFixed(2),
       payment_method,
       cash_received: cash_received?.toFixed(2) ?? null,
-      change: payment_method === 'cash' && cash_received
-        ? (cash_received - total).toFixed(2)
-        : null,
+      change: changeAmount ? changeAmount.toFixed(2) : null,
     })
 
   } catch (err: any) {
