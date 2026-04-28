@@ -11,81 +11,96 @@ export default function AdminResetPassword() {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [verifying, setVerifying] = useState(true)
 
   useEffect(() => {
     const supabase = createClient()
     supabaseRef.current = supabase
 
-    async function exchangeCode() {
-      // Strategy 1: PKCE code flow (recommended by Supabase for SSR)
-      // Supabase sends ?code=xxx in the redirect URL
-      const searchParams = new URLSearchParams(window.location.search)
-      const code = searchParams.get('code')
+    let settled = false
 
-      if (code) {
-        try {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) {
-            setError('Enlace inválido o expirado.')
-            setVerifying(false)
-            return
+    async function checkSession() {
+      // ── Strategy 1: Check if the Supabase client already has a recovery session ──
+      // createBrowserClient auto-processes the hash fragment #access_token=...&type=recovery
+      // on initialization, so by the time this runs, the session may already be set.
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (session) {
+          // Check if this is a recovery session (user clicked password reset link)
+          // The Supabase client sets the session from the hash automatically.
+          // We verify it's valid by checking the token expiry.
+          const tokenExp = session.expires_at ? session.expires_at * 1000 : 0
+          const isExpired = tokenExp < Date.now()
+
+          if (!isExpired) {
+            // Session is valid — check if we arrived via a recovery link
+            // by looking at the URL hash or search params
+            const hash = window.location.hash
+            const search = window.location.search
+            const isRecoveryFlow = hash.includes('type=recovery') || search.includes('code=')
+
+            if (isRecoveryFlow) {
+              setReady(true)
+              settled = true
+              // Clean URL
+              window.history.replaceState(null, '', window.location.pathname)
+              return
+            }
           }
-          setReady(true)
-          setVerifying(false)
-          // Clean URL
-          window.history.replaceState(null, '', window.location.pathname)
-          return
-        } catch {
-          // Fall through to hash parsing
         }
+      } catch {
+        // getSession failed, continue to other strategies
       }
 
-      // Strategy 2: Hash fragment flow (legacy, still used by password reset emails)
+      // ── Strategy 2: Listen for PASSWORD_RECOVERY event ──
+      // The Supabase client fires this event when it processes a recovery hash
+      // This handles the case where the hash is processed after our initial getSession check
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY' && session && !settled) {
+          settled = true
+          setReady(true)
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+      })
+
+      // ── Strategy 3: Manual hash parsing (fallback) ──
+      // In case the auto-processing didn't fire the event yet
       const hash = window.location.hash.substring(1)
       const params = new URLSearchParams(hash)
       const accessToken  = params.get('access_token')
       const refreshToken = params.get('refresh_token')
       const type         = params.get('type')
 
-      if (type === 'recovery' && accessToken && refreshToken) {
-        try {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-          if (sessionError) {
-            setError('Enlace inválido o expirado.')
-            setVerifying(false)
-            return
+      if (type === 'recovery' && accessToken && refreshToken && !settled) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ error: sessionError }) => {
+          if (!settled) {
+            if (sessionError) {
+              settled = true
+              setError('Enlace inválido o expirado.')
+            } else {
+              settled = true
+              setReady(true)
+              window.history.replaceState(null, '', window.location.pathname)
+            }
           }
-          setReady(true)
-          setVerifying(false)
-          // Clean the hash from URL without reload
-          window.history.replaceState(null, '', window.location.pathname)
-          return
-        } catch {
-          setError('Enlace inválido o expirado.')
-          setVerifying(false)
-          return
-        }
+        }).catch(() => {
+          if (!settled) {
+            settled = true
+            setError('Enlace inválido o expirado.')
+          }
+        })
       }
 
-      // Strategy 3: Listen for auth state change event
-      // If the Supabase client already processed the hash before this component mounted
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setReady(true)
-          setVerifying(false)
-          window.history.replaceState(null, '', window.location.pathname)
-        }
-      })
-
-      // Timeout: if no recovery event after 6 seconds, show error
+      // ── Timeout: if nothing worked after 8 seconds ──
       const timeout = setTimeout(() => {
-        setError('Enlace inválido o expirado.')
-        setVerifying(false)
-      }, 6000)
+        if (!settled) {
+          settled = true
+          setError('Enlace inválido o expirado.')
+        }
+      }, 8000)
 
       return () => {
         subscription.unsubscribe()
@@ -93,7 +108,7 @@ export default function AdminResetPassword() {
       }
     }
 
-    exchangeCode()
+    checkSession()
   }, [])
 
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
@@ -141,8 +156,6 @@ export default function AdminResetPassword() {
               Solicitar nuevo enlace
             </a>
           </div>
-        ) : verifying ? (
-          <p className="text-xs text-center" style={{ color: '#6b7280' }}>Verificando enlace…</p>
         ) : !ready ? (
           <p className="text-xs text-center" style={{ color: '#6b7280' }}>Verificando enlace…</p>
         ) : (
@@ -169,8 +182,6 @@ export default function AdminResetPassword() {
                 style={{ border: '1px solid #d1d5db', color: '#000000' }}
               />
             </div>
-
-            {error && <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>}
 
             <button
               type="submit" disabled={loading}
