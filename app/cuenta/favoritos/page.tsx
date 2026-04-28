@@ -30,6 +30,9 @@ export default async function FavoritosPage() {
 
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <a href="/cuenta" className="font-meta text-xs" style={{ color: '#F0E040', textDecoration: 'none' }}>← CUENTA</a>
+      </div>
       <h1 className="font-display text-3xl mb-10" style={{ color: '#FFFFFF' }}>MIS FAVORITOS</h1>
 
       {(!favorites || favorites.length === 0) ? (

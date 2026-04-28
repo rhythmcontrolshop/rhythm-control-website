@@ -12,19 +12,13 @@ export default async function CuentaPage() {
     .eq('id', user!.id)
     .single()
 
-  const { count: favoritesCount } = await supabase
-    .from('wantlist')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user!.id)
-
-  const { count: ordersCount } = await supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user!.id)
-
   const { data: orders } = await supabase
     .from('orders')
-    .select('id, order_number, total, status, created_at')
+    .select(`
+      id, order_number, total, status, created_at,
+      shipping_cost, shipping_method, pickup_code,
+      order_items(id)
+    `)
     .eq('user_id', user!.id)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -40,19 +34,7 @@ export default async function CuentaPage() {
         <h1 className="font-display text-2xl" style={{ color: '#F0E040' }}>{displayName}</h1>
       </div>
 
-      {/* Stats row — compact, no cards */}
-      <div className="flex gap-6 mb-10">
-        <div>
-          <p className="font-meta text-[0.6rem]" style={{ color: '#999' }}>PEDIDOS</p>
-          <p className="font-display text-2xl" style={{ color: '#FFFFFF' }}>{ordersCount ?? 0}</p>
-        </div>
-        <div>
-          <p className="font-meta text-[0.6rem]" style={{ color: '#999' }}>FAVORITOS</p>
-          <p className="font-display text-2xl" style={{ color: '#FFFFFF' }}>{favoritesCount ?? 0}</p>
-        </div>
-      </div>
-
-      {/* Recent orders */}
+      {/* Recent orders — main content */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <p className="font-meta text-xs" style={{ color: '#FFFFFF' }}>PEDIDOS RECIENTES</p>

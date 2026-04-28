@@ -61,6 +61,8 @@ export default function PedidosPage() {
   const [total, setTotal]       = useState(0)
   const [page, setPage]         = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [syncing, setSyncing]   = useState(false)
+  const [syncMsg, setSyncMsg]   = useState<string | null>(null)
 
   // Filtros
   const [search, setSearch]             = useState('')
@@ -102,18 +104,47 @@ export default function PedidosPage() {
   const paidCount = stats?.statusCounts?.paid ?? 0
   const processingCount = (stats?.statusCounts?.processing ?? 0) + (stats?.statusCounts?.confirmed ?? 0)
 
+  async function syncStripe() {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const res = await fetch('/api/admin/orders/sync-stripe', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setSyncMsg(data.synced > 0 ? `${data.synced} pedido(s) sincronizado(s) con Stripe` : (data.message || 'No se encontraron pedidos pendientes'))
+        fetchOrders() // Refresh list
+      } else {
+        setSyncMsg(data.error || 'Error al sincronizar')
+      }
+    } catch {
+      setSyncMsg('Error de conexión al sincronizar con Stripe')
+    }
+    setSyncing(false)
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6"
         style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
         <h1 className="text-xl font-bold" style={{ color: '#000000' }}>PEDIDOS</h1>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
           <span className="text-xs" style={{ color: '#f59e0b' }}>{pendingCount} pendiente(s)</span>
           <span className="text-xs" style={{ color: '#22c55e' }}>{paidCount} pagado(s)</span>
           <span className="text-xs" style={{ color: '#3b82f6' }}>{processingCount} en proceso</span>
+          <button onClick={syncStripe} disabled={syncing}
+            className="text-xs px-3 py-1 transition-colors hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: '#6366f1', color: '#FFFFFF', cursor: 'pointer' }}>
+            {syncing ? 'SINCRONIZANDO...' : 'SYNC STRIPE'}
+          </button>
         </div>
       </div>
+
+      {syncMsg && (
+        <div className="mb-4 p-3" style={{ border: '1px solid #6366f1', backgroundColor: '#eef2ff' }}>
+          <p className="text-xs" style={{ color: '#4338ca' }}>{syncMsg}</p>
+        </div>
+      )}
 
       {/* Stats cards */}
       {stats && (
