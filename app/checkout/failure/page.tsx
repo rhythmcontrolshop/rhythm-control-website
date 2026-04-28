@@ -1,7 +1,8 @@
 // app/checkout/failure/page.tsx
 // Página de pago fallido — Redsys redirige aquí cuando el pago no se completa
+// E2: Usa releaseOrderStock() compartido en vez de lógica inline
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import { releaseOrderStock } from '@/lib/checkout/release-order-stock'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -14,35 +15,10 @@ export default async function CheckoutFailurePage({ searchParams }: SearchParams
   const params = await searchParams
   const orderNumber = params.order ?? ''
 
-  // Intentar liberar stock si la orden existe
+  // Liberar stock si la orden existe y está pendiente
   if (orderNumber) {
     try {
-      const supabase = createAdminClient()
-      const { data: order } = await supabase
-        .from('orders')
-        .select('id, payment_status, status')
-        .eq('order_number', orderNumber)
-        .single()
-
-      if (order && order.payment_status === 'pending') {
-        // Liberar stock reservado
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('release_id')
-          .eq('order_id', order.id)
-
-        if (items?.length) {
-          await supabase
-            .from('releases')
-            .update({ status: 'active' })
-            .in('id', items.map(i => i.release_id).filter(Boolean))
-        }
-
-        await supabase
-          .from('orders')
-          .update({ status: 'cancelled', payment_status: 'failed' })
-          .eq('id', order.id)
-      }
+      await releaseOrderStock(orderNumber)
     } catch {
       // No bloquear la página
     }
