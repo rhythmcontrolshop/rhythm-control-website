@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS events (
                CHECK (type IN ('dj_set', 'live', 'release_party', 'in_store', 'other')),
   flyer_url    text,
   ticket_url   text,
+  web          text,
   lineup       text[] NOT NULL DEFAULT '{}',
   description  text,
   is_featured  boolean NOT NULL DEFAULT false,

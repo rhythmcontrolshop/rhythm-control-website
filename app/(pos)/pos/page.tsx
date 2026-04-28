@@ -1,55 +1,171 @@
 'use client'
 
 // app/(pos)/pos/page.tsx
-// Interfaz principal del POS — búsqueda, ticket, cobro
+// Interfaz principal del POS — WHITE THEME with mockup data for demo
+// Búsqueda client-side, ticket builder, cobro simulado
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Image from 'next/image'
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Mockup Data ────────────────────────────────────────────────────────────
 
-interface POSItem {
+interface MockupRecord {
   id: string
-  discogs_listing_id: number
+  artist: string
   title: string
-  artists: string[]
-  condition: string
-  format: string
-  price_base: number
-  price_channel: number  // precio physical (×0.95)
-  cover_image: string
-  barcode: string | null
-  quantity: number       // stock disponible
-  ticketQty: number      // unidades en el ticket
-}
-
-interface SearchResult {
-  id: string
-  title: string
-  artists: string[]
   condition: string
   format: string
   price: number
-  cover_image: string
-  barcode: string | null
-  quantity: number
+  stock: number
+  initials: string
+  color: string
 }
 
-type PaymentMethod = 'cash' | 'card' | 'bizum'
+const MOCKUP_RECORDS: MockupRecord[] = [
+  {
+    id: 'mock-001',
+    artist: 'Aphex Twin',
+    title: 'Selected Ambient Works 85-92',
+    condition: 'NM',
+    format: 'LP',
+    price: 28.00,
+    stock: 2,
+    initials: 'AT',
+    color: '#E8D5B7',
+  },
+  {
+    id: 'mock-002',
+    artist: 'Boards of Canada',
+    title: 'Music Has The Right To Children',
+    condition: 'NM',
+    format: 'LP',
+    price: 32.00,
+    stock: 1,
+    initials: 'BOC',
+    color: '#B7D5E8',
+  },
+  {
+    id: 'mock-003',
+    artist: 'Burial',
+    title: 'Untrue',
+    condition: 'VG+',
+    format: 'LP',
+    price: 45.00,
+    stock: 1,
+    initials: 'BU',
+    color: '#1a1a2e',
+  },
+  {
+    id: 'mock-004',
+    artist: 'DJ Shadow',
+    title: 'Endtroducing.....',
+    condition: 'NM',
+    format: '2xLP',
+    price: 26.00,
+    stock: 3,
+    initials: 'DJS',
+    color: '#D4C5A9',
+  },
+  {
+    id: 'mock-005',
+    artist: 'Massive Attack',
+    title: 'Blue Lines',
+    condition: 'NM',
+    format: 'LP',
+    price: 24.00,
+    stock: 2,
+    initials: 'MA',
+    color: '#5B7DB1',
+  },
+  {
+    id: 'mock-006',
+    artist: 'Portishead',
+    title: 'Dummy',
+    condition: 'VG+',
+    format: 'LP',
+    price: 30.00,
+    stock: 1,
+    initials: 'PT',
+    color: '#8B8BAE',
+  },
+  {
+    id: 'mock-007',
+    artist: 'Kraftwerk',
+    title: 'Trans-Europe Express',
+    condition: 'NM',
+    format: 'LP',
+    price: 22.00,
+    stock: 2,
+    initials: 'KW',
+    color: '#C4C4C4',
+  },
+  {
+    id: 'mock-008',
+    artist: 'Daft Punk',
+    title: 'Discovery',
+    condition: 'NM',
+    format: '2xLP',
+    price: 35.00,
+    stock: 1,
+    initials: 'DP',
+    color: '#D4AF37',
+  },
+  {
+    id: 'mock-009',
+    artist: 'Autechre',
+    title: 'Tri Repetae',
+    condition: 'VG',
+    format: '2xLP',
+    price: 38.00,
+    stock: 1,
+    initials: 'AE',
+    color: '#4A4A4A',
+  },
+  {
+    id: 'mock-010',
+    artist: 'Four Tet',
+    title: 'Rounds',
+    condition: 'NM',
+    format: 'LP',
+    price: 20.00,
+    stock: 3,
+    initials: 'FT',
+    color: '#A8D5BA',
+  },
+]
+
+// ─── Ticket Item ────────────────────────────────────────────────────────────
+
+interface TicketItem {
+  id: string
+  artist: string
+  title: string
+  condition: string
+  format: string
+  price: number // precio physical (×0.95)
+  priceBase: number
+  stock: number
+  qty: number
+  initials: string
+  color: string
+}
+
+type PaymentMethod = 'card' | 'cash' | 'bizum'
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function POSPage() {
   // ── State ────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [ticket, setTicket] = useState<POSItem[]>([])
+  const [filteredResults, setFilteredResults] = useState<MockupRecord[]>(MOCKUP_RECORDS)
+  const [ticket, setTicket] = useState<TicketItem[]>([])
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
   const [cashReceived, setCashReceived] = useState('')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [lastSaleNumber, setLastSaleNumber] = useState<string | null>(null)
-  const [error, setError] = useState('')
   const [showCheckout, setShowCheckout] = useState(false)
-  const [discount, setDiscount] = useState(0) // percentage
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successSaleId, setSuccessSaleId] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [error, setError] = useState('')
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -58,68 +174,64 @@ export default function POSPage() {
     searchInputRef.current?.focus()
   }, [])
 
-  // ── Search ────────────────────────────────────────────────────────
-  const doSearch = useCallback(async (query: string) => {
+  // ── Client-side search ─────────────────────────────────────────
+  const filterRecords = useCallback((query: string) => {
     if (!query.trim()) {
-      setSearchResults([])
+      setFilteredResults(MOCKUP_RECORDS)
       return
     }
-    setSearching(true)
-    try {
-      const res = await fetch(`/api/admin/inventory?search=${encodeURIComponent(query)}&status=active&limit=20`)
-      if (res.ok) {
-        const data = await res.json()
-        setSearchResults(data.releases ?? [])
-      }
-    } catch {
-      setSearchResults([])
-    } finally {
-      setSearching(false)
-    }
+    const q = query.toLowerCase().trim()
+    const filtered = MOCKUP_RECORDS.filter(
+      (r) =>
+        r.artist.toLowerCase().includes(q) ||
+        r.title.toLowerCase().includes(q) ||
+        r.format.toLowerCase().includes(q) ||
+        r.condition.toLowerCase().includes(q)
+    )
+    setFilteredResults(filtered)
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => doSearch(searchQuery), 300)
+    const timer = setTimeout(() => filterRecords(searchQuery), 150)
     return () => clearTimeout(timer)
-  }, [searchQuery, doSearch])
+  }, [searchQuery, filterRecords])
 
   // ── Ticket management ─────────────────────────────────────────────
-  function addToTicket(item: SearchResult) {
-    setTicket(prev => {
-      const existing = prev.find(t => t.id === item.id)
+  function addToTicket(record: MockupRecord) {
+    setTicket((prev) => {
+      const existing = prev.find((t) => t.id === record.id)
       if (existing) {
-        // Incrementar cantidad si hay stock
-        if (existing.ticketQty < item.quantity) {
-          return prev.map(t =>
-            t.id === item.id ? { ...t, ticketQty: t.ticketQty + 1 } : t
+        if (existing.qty < record.stock) {
+          return prev.map((t) =>
+            t.id === record.id ? { ...t, qty: t.qty + 1 } : t
           )
         }
         return prev
       }
-      // Añadir nuevo item con precio physical
-      const physicalCoefficient = 0.95 // Se obtendrá de price_channels, simplificado aquí
-      return [...prev, {
-        id: item.id,
-        discogs_listing_id: 0,
-        title: item.title,
-        artists: item.artists,
-        condition: item.condition ?? '',
-        format: item.format ?? '',
-        price_base: item.price,
-        price_channel: Math.round(item.price * physicalCoefficient * 100) / 100,
-        cover_image: item.cover_image,
-        barcode: item.barcode,
-        quantity: item.quantity,
-        ticketQty: 1,
-      }]
+      const physicalCoefficient = 0.95
+      return [
+        ...prev,
+        {
+          id: record.id,
+          artist: record.artist,
+          title: record.title,
+          condition: record.condition,
+          format: record.format,
+          price: Math.round(record.price * physicalCoefficient * 100) / 100,
+          priceBase: record.price,
+          stock: record.stock,
+          qty: 1,
+          initials: record.initials,
+          color: record.color,
+        },
+      ]
     })
-    setSearchQuery('')
-    setSearchResults([])
+    // Don't clear search — user might want to add multiple items
     searchInputRef.current?.focus()
   }
 
   function removeFromTicket(id: string) {
-    setTicket(prev => prev.filter(t => t.id !== id))
+    setTicket((prev) => prev.filter((t) => t.id !== id))
   }
 
   function updateTicketQty(id: string, qty: number) {
@@ -127,23 +239,23 @@ export default function POSPage() {
       removeFromTicket(id)
       return
     }
-    setTicket(prev => prev.map(t =>
-      t.id === id ? { ...t, ticketQty: Math.min(qty, t.quantity) } : t
-    ))
+    setTicket((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, qty: Math.min(qty, t.stock) } : t))
+    )
   }
 
   // ── Calculations ──────────────────────────────────────────────────
-  const subtotal = ticket.reduce((sum, t) => sum + (t.price_channel * t.ticketQty), 0)
+  const subtotal = ticket.reduce((sum, t) => sum + t.price * t.qty, 0)
   const discountAmount = subtotal * (discount / 100)
   const totalAfterDiscount = subtotal - discountAmount
   const taxRate = 0.04 // 4% IVA superreducido
-  const taxAmount = Math.round(totalAfterDiscount * taxRate / (1 + taxRate) * 100) / 100
+  const taxAmount = Math.round((totalAfterDiscount * taxRate) / (1 + taxRate) * 100) / 100
   const total = totalAfterDiscount
 
   const cashReceivedNum = parseFloat(cashReceived) || 0
   const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashReceivedNum - total) : 0
 
-  // ── Checkout ──────────────────────────────────────────────────────
+  // ── Simulated checkout ────────────────────────────────────────────
   async function handleCheckout() {
     if (ticket.length === 0) return
     if (paymentMethod === 'cash' && cashReceivedNum < total) {
@@ -154,42 +266,17 @@ export default function POSPage() {
     setCheckoutLoading(true)
     setError('')
 
-    try {
-      const res = await fetch('/api/pos/sale', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: ticket.map(t => ({
-            release_id: t.id,
-            title: t.title,
-            artists: t.artists,
-            condition: t.condition,
-            price_base: t.price_base,
-            price_channel: t.price_channel,
-            quantity: t.ticketQty,
-          })),
-          payment_method: paymentMethod,
-          discount_percentage: discount,
-          cash_received: paymentMethod === 'cash' ? cashReceivedNum : null,
-        }),
-      })
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 800))
 
-      const data = await res.json()
-
-      if (res.ok) {
-        setLastSaleNumber(data.sale_number)
-        setTicket([])
-        setCashReceived('')
-        setDiscount(0)
-        setShowCheckout(false)
-      } else {
-        setError(data.error || 'Error al procesar la venta')
-      }
-    } catch {
-      setError('Error de conexión')
-    } finally {
-      setCheckoutLoading(false)
-    }
+    const saleId = `RC-${Date.now().toString(36).toUpperCase().slice(-6)}`
+    setSuccessSaleId(saleId)
+    setShowCheckout(false)
+    setShowSuccess(true)
+    setTicket([])
+    setCashReceived('')
+    setDiscount(0)
+    setCheckoutLoading(false)
   }
 
   // ── Keyboard shortcuts ────────────────────────────────────────────
@@ -198,318 +285,683 @@ export default function POSPage() {
       if (e.key === 'F2') {
         e.preventDefault()
         searchInputRef.current?.focus()
+        searchInputRef.current?.select()
       }
-      if (e.key === 'F9' && ticket.length > 0) {
+      if (e.key === 'F9' && ticket.length > 0 && !showCheckout) {
         e.preventDefault()
         setShowCheckout(true)
       }
       if (e.key === 'Escape') {
-        setShowCheckout(false)
-        setLastSaleNumber(null)
+        if (showSuccess) {
+          setShowSuccess(false)
+        } else {
+          setShowCheckout(false)
+        }
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [ticket.length])
+  }, [ticket.length, showCheckout, showSuccess])
 
+  // ── Check if item is in ticket ─────────────────────────────────
+  function isInTicket(id: string) {
+    return ticket.some((t) => t.id === id)
+  }
+
+  function getTicketQty(id: string) {
+    return ticket.find((t) => t.id === id)?.qty ?? 0
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="flex flex-1 overflow-hidden">
-      {/* ── Left panel: Search ──────────────────────────────────────── */}
-      <div className="w-[45%] flex flex-col border-r" style={{ borderColor: '#333' }}>
+      {/* ── Left panel: Search (45%) ─────────────────────────────── */}
+      <div
+        className="w-[45%] flex flex-col"
+        style={{ borderRight: '1px solid #E5E7EB', backgroundColor: '#FFFFFF' }}
+      >
         {/* Search bar */}
-        <div className="p-3 border-b" style={{ borderColor: '#333' }}>
+        <div className="p-4" style={{ borderBottom: '1px solid #E5E7EB' }}>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs" style={{ color: '#666' }}>F2</span>
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Buscar disco, artista, barcode..."
-              className="flex-1 bg-transparent font-mono text-sm focus:outline-none"
-              style={{ border: '1px solid #333', color: '#FFF', padding: '10px' }}
-            />
+            <span
+              className="font-mono text-[10px] px-1.5 py-0.5 flex-shrink-0"
+              style={{ backgroundColor: '#F3F4F6', color: '#9CA3AF' }}
+            >
+              F2
+            </span>
+            <div className="flex-1 relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar disco, artista..."
+                className="w-full font-mono text-sm focus:outline-none"
+                style={{
+                  border: '1px solid #E5E7EB',
+                  color: '#000000',
+                  padding: '11px 14px',
+                  backgroundColor: '#F9FAFB',
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('')
+                    searchInputRef.current?.focus()
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center"
+                  style={{ color: '#9CA3AF', cursor: 'pointer' }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
+          <p className="font-mono text-[10px] mt-2" style={{ color: '#9CA3AF' }}>
+            {filteredResults.length} disco{filteredResults.length !== 1 ? 's' : ''} en catálogo
+          </p>
         </div>
 
         {/* Search results */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {searching && (
-            <p className="font-mono text-xs" style={{ color: '#666' }}>Buscando...</p>
-          )}
-          {searchResults.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => addToTicket(item)}
-              className="w-full flex items-center gap-3 p-3 text-left transition-colors"
-              style={{ border: '1px solid #222', backgroundColor: '#111', cursor: 'pointer', minHeight: '60px' }}
-            >
-              <div className="w-12 h-12 relative flex-shrink-0 bg-gray-800">
-                <Image
-                  src={item.cover_image || '/placeholder.png'}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-display text-xs uppercase truncate" style={{ color: '#FFF' }}>
-                  {item.artists?.[0]} — {item.title}
-                </p>
-                <p className="font-mono text-xs" style={{ color: '#666' }}>
-                  {item.condition} {item.format ? `· ${item.format}` : ''}
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="font-display text-sm" style={{ color: '#F0E040' }}>
-                  {item.price.toFixed(2)} €
-                </p>
-                <p className="font-mono text-xs" style={{ color: '#666' }}>
-                  Stock: {item.quantity}
-                </p>
-              </div>
-            </button>
-          ))}
-          {!searching && searchQuery && searchResults.length === 0 && (
-            <p className="font-mono text-xs text-center mt-8" style={{ color: '#666' }}>
-              Sin resultados para &quot;{searchQuery}&quot;
-            </p>
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+          {filteredResults.map((record) => {
+            const inTicket = isInTicket(record.id)
+            const ticketQty = getTicketQty(record.id)
+
+            return (
+              <button
+                key={record.id}
+                onClick={() => addToTicket(record)}
+                className="w-full flex items-center gap-3 p-3 text-left transition-all min-h-[64px]"
+                style={{
+                  border: inTicket ? '2px solid #F0E040' : '1px solid #E5E7EB',
+                  backgroundColor: inTicket ? '#FEFCE8' : '#FFFFFF',
+                  cursor: 'pointer',
+                }}
+              >
+                {/* Placeholder cover */}
+                <div
+                  className="w-11 h-11 flex-shrink-0 flex items-center justify-center font-display text-[10px]"
+                  style={{ backgroundColor: record.color, color: '#FFFFFF' }}
+                >
+                  {record.initials}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="font-display text-[11px] truncate"
+                    style={{ color: '#000000', letterSpacing: '0.02em' }}
+                  >
+                    {record.artist} — {record.title}
+                  </p>
+                  <p className="font-mono text-[10px] mt-0.5" style={{ color: '#6B7280' }}>
+                    {record.condition} · {record.format} · Stock: {record.stock}
+                  </p>
+                </div>
+
+                {/* Price + ticket indicator */}
+                <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                  <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>
+                    {record.price.toFixed(2)} €
+                  </p>
+                  {inTicket && (
+                    <span
+                      className="font-mono text-[10px] px-1.5 py-0.5"
+                      style={{ backgroundColor: '#F0E040', color: '#000000' }}
+                    >
+                      ×{ticketQty} en ticket
+                    </span>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+
+          {searchQuery && filteredResults.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <p className="font-mono text-sm" style={{ color: '#6B7280' }}>
+                Sin resultados para &quot;{searchQuery}&quot;
+              </p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="font-mono text-xs mt-2 px-3 py-1.5 min-h-[44px] flex items-center"
+                style={{ color: '#000000', borderBottom: '1px solid #000000', cursor: 'pointer' }}
+              >
+                Limpiar búsqueda
+              </button>
+            </div>
           )}
         </div>
       </div>
 
-      {/* ── Right panel: Ticket ──────────────────────────────────────── */}
-      <div className="w-[55%] flex flex-col" style={{ backgroundColor: '#0d0d0d' }}>
+      {/* ── Right panel: Ticket (55%) ─────────────────────────────── */}
+      <div
+        className="w-[55%] flex flex-col"
+        style={{ backgroundColor: '#F9FAFB' }}
+      >
         {/* Ticket header */}
-        <div className="p-3 border-b" style={{ borderColor: '#333', backgroundColor: '#111' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-xs uppercase" style={{ color: '#FFF', letterSpacing: '0.1em' }}>
+        <div
+          className="px-5 py-3 flex items-center justify-between flex-shrink-0"
+          style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#FFFFFF' }}
+        >
+          <div className="flex items-center gap-2">
+            <h2
+              className="font-display text-xs"
+              style={{ color: '#000000', letterSpacing: '0.08em' }}
+            >
               TICKET
             </h2>
-            <span className="font-mono text-xs" style={{ color: '#666' }}>
-              {ticket.length} {ticket.length === 1 ? 'item' : 'items'}
-            </span>
+            {ticket.length > 0 && (
+              <span
+                className="font-mono text-[10px] px-1.5 py-0.5"
+                style={{ backgroundColor: '#F0E040', color: '#000000' }}
+              >
+                {ticket.reduce((sum, t) => sum + t.qty, 0)} ud{ticket.reduce((sum, t) => sum + t.qty, 0) !== 1 ? 's' : ''}
+              </span>
+            )}
           </div>
-        </div>
-
-        {/* Ticket items */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {ticket.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <p className="font-mono text-xs" style={{ color: '#333' }}>
-                Escanea o busca discos para añadir al ticket
-              </p>
-            </div>
-          ) : (
-            ticket.map(item => (
-              <div key={item.id} className="flex items-center gap-3 p-2" style={{ borderBottom: '1px solid #1a1a1a' }}>
-                <div className="w-10 h-10 relative flex-shrink-0 bg-gray-800">
-                  <Image
-                    src={item.cover_image || '/placeholder.png'}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    sizes="40px"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-display text-xs uppercase truncate" style={{ color: '#FFF' }}>
-                    {item.artists?.[0]} — {item.title}
-                  </p>
-                  <p className="font-mono text-xs" style={{ color: '#666' }}>
-                    {item.price_channel.toFixed(2)} € / ud.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => updateTicketQty(item.id, item.ticketQty - 1)}
-                    className="w-8 h-8 flex items-center justify-center font-mono text-sm"
-                    style={{ border: '1px solid #333', color: '#FFF', cursor: 'pointer' }}
-                  >−</button>
-                  <span className="font-mono text-sm w-6 text-center" style={{ color: '#FFF' }}>
-                    {item.ticketQty}
-                  </span>
-                  <button
-                    onClick={() => updateTicketQty(item.id, item.ticketQty + 1)}
-                    className="w-8 h-8 flex items-center justify-center font-mono text-sm"
-                    style={{ border: '1px solid #333', color: '#FFF', cursor: 'pointer', opacity: item.ticketQty >= item.quantity ? 0.3 : 1 }}
-                  >+</button>
-                </div>
-                <div className="text-right flex-shrink-0 w-20">
-                  <p className="font-display text-sm" style={{ color: '#F0E040' }}>
-                    {(item.price_channel * item.ticketQty).toFixed(2)} €
-                  </p>
-                </div>
-                <button
-                  onClick={() => removeFromTicket(item.id)}
-                  className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-                  style={{ color: '#ef4444', cursor: 'pointer' }}
-                >✕</button>
-              </div>
-            ))
+          {ticket.length > 0 && (
+            <button
+              onClick={() => setTicket([])}
+              className="font-mono text-[10px] min-h-[44px] flex items-center px-2 transition-colors"
+              style={{ color: '#9CA3AF', cursor: 'pointer' }}
+            >
+              Limpiar todo
+            </button>
           )}
         </div>
 
-        {/* Discount */}
+        {/* Ticket items */}
+        <div className="flex-1 overflow-y-auto">
+          {ticket.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full px-8">
+              <div
+                className="w-16 h-16 flex items-center justify-center mb-4"
+                style={{ backgroundColor: '#F3F4F6' }}
+              >
+                <span style={{ color: '#9CA3AF', fontSize: '24px' }}>♪</span>
+              </div>
+              <p className="font-mono text-xs text-center" style={{ color: '#9CA3AF' }}>
+                Busca o haz clic en un disco para añadirlo al ticket
+              </p>
+              <p className="font-mono text-[10px] mt-1" style={{ color: '#D1D5DB' }}>
+                F2 para buscar · F9 para cobrar
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 space-y-2">
+              {ticket.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 p-3"
+                  style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB' }}
+                >
+                  {/* Placeholder */}
+                  <div
+                    className="w-9 h-9 flex-shrink-0 flex items-center justify-center font-display text-[9px]"
+                    style={{ backgroundColor: item.color, color: '#FFFFFF' }}
+                  >
+                    {item.initials}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="font-display text-[10px] truncate"
+                      style={{ color: '#000000', letterSpacing: '0.02em' }}
+                    >
+                      {item.artist} — {item.title}
+                    </p>
+                    <p className="font-mono text-[10px]" style={{ color: '#6B7280' }}>
+                      {item.price.toFixed(2)} €/ud · {item.condition} · {item.format}
+                    </p>
+                  </div>
+
+                  {/* Qty controls */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => updateTicketQty(item.id, item.qty - 1)}
+                      className="w-9 h-9 flex items-center justify-center font-mono text-sm transition-colors"
+                      style={{
+                        border: '1px solid #E5E7EB',
+                        color: '#000000',
+                        backgroundColor: '#FFFFFF',
+                        cursor: 'pointer',
+                        minHeight: '44px',
+                        minWidth: '44px',
+                      }}
+                    >
+                      −
+                    </button>
+                    <span
+                      className="font-mono text-sm w-8 text-center"
+                      style={{ color: '#000000' }}
+                    >
+                      {item.qty}
+                    </span>
+                    <button
+                      onClick={() => updateTicketQty(item.id, item.qty + 1)}
+                      className="w-9 h-9 flex items-center justify-center font-mono text-sm transition-colors"
+                      style={{
+                        border: '1px solid #E5E7EB',
+                        color: item.qty >= item.stock ? '#D1D5DB' : '#000000',
+                        backgroundColor: '#FFFFFF',
+                        cursor: item.qty >= item.stock ? 'not-allowed' : 'pointer',
+                        opacity: item.qty >= item.stock ? 0.4 : 1,
+                        minHeight: '44px',
+                        minWidth: '44px',
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Line total */}
+                  <div className="text-right flex-shrink-0 w-20">
+                    <p className="font-mono text-sm font-bold" style={{ color: '#000000' }}>
+                      {(item.price * item.qty).toFixed(2)} €
+                    </p>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeFromTicket(item.id)}
+                    className="w-9 h-9 flex items-center justify-center flex-shrink-0 transition-colors"
+                    style={{
+                      color: '#EF4444',
+                      cursor: 'pointer',
+                      minHeight: '44px',
+                      minWidth: '44px',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Discount row */}
         {ticket.length > 0 && (
-          <div className="px-3 py-2 border-t" style={{ borderColor: '#222' }}>
+          <div
+            className="px-5 py-3 flex items-center justify-between"
+            style={{ borderTop: '1px solid #E5E7EB', backgroundColor: '#FFFFFF' }}
+          >
+            <span className="font-mono text-xs" style={{ color: '#6B7280' }}>
+              Descuento %
+            </span>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs" style={{ color: '#666' }}>Descuento %</span>
+              {[0, 5, 10, 15, 20].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDiscount(d)}
+                  className="font-mono text-[11px] px-2.5 py-1 min-h-[36px] flex items-center transition-colors"
+                  style={{
+                    border: discount === d ? '2px solid #F0E040' : '1px solid #E5E7EB',
+                    backgroundColor: discount === d ? '#FEFCE8' : '#FFFFFF',
+                    color: discount === d ? '#000000' : '#6B7280',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {d}%
+                </button>
+              ))}
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={discount || ''}
-                onChange={e => setDiscount(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                className="w-16 bg-transparent font-mono text-sm text-center focus:outline-none"
-                style={{ border: '1px solid #333', color: '#FFF', padding: '4px' }}
+                onChange={(e) =>
+                  setDiscount(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))
+                }
+                className="font-mono text-xs text-center focus:outline-none"
+                style={{
+                  border: '1px solid #E5E7EB',
+                  color: '#000000',
+                  padding: '6px 8px',
+                  width: '52px',
+                  backgroundColor: '#F9FAFB',
+                }}
+                placeholder="%"
               />
             </div>
           </div>
         )}
 
-        {/* Totals and checkout button */}
-        <div className="p-3 border-t" style={{ borderColor: '#333', backgroundColor: '#111' }}>
+        {/* Totals + COBRAR */}
+        <div
+          className="px-5 py-4 flex-shrink-0"
+          style={{ borderTop: '1px solid #E5E7EB', backgroundColor: '#FFFFFF' }}
+        >
           {discount > 0 && (
-            <div className="flex justify-between mb-1">
-              <span className="font-mono text-xs" style={{ color: '#999' }}>Descuento ({discount}%)</span>
-              <span className="font-mono text-xs" style={{ color: '#ef4444' }}>-{discountAmount.toFixed(2)} €</span>
+            <div className="flex justify-between mb-1.5">
+              <span className="font-mono text-xs" style={{ color: '#6B7280' }}>
+                Subtotal
+              </span>
+              <span className="font-mono text-xs" style={{ color: '#6B7280' }}>
+                {subtotal.toFixed(2)} €
+              </span>
+            </div>
+          )}
+          {discount > 0 && (
+            <div className="flex justify-between mb-1.5">
+              <span className="font-mono text-xs" style={{ color: '#6B7280' }}>
+                Descuento ({discount}%)
+              </span>
+              <span className="font-mono text-xs" style={{ color: '#EF4444' }}>
+                −{discountAmount.toFixed(2)} €
+              </span>
             </div>
           )}
           <div className="flex justify-between mb-1">
-            <span className="font-mono text-xs" style={{ color: '#999' }}>IVA incluido (4%)</span>
-            <span className="font-mono text-xs" style={{ color: '#999' }}>{taxAmount.toFixed(2)} €</span>
+            <span className="font-mono text-[10px]" style={{ color: '#9CA3AF' }}>
+              IVA incluido (4%)
+            </span>
+            <span className="font-mono text-[10px]" style={{ color: '#9CA3AF' }}>
+              {taxAmount.toFixed(2)} €
+            </span>
           </div>
-          <div className="flex justify-between mb-4">
-            <span className="font-display text-lg" style={{ color: '#FFF' }}>TOTAL</span>
-            <span className="font-display text-lg" style={{ color: '#F0E040' }}>{total.toFixed(2)} €</span>
+          <div
+            className="flex justify-between items-baseline mt-3 mb-4 pt-3"
+            style={{ borderTop: '1px solid #E5E7EB' }}
+          >
+            <span className="font-display text-lg" style={{ color: '#000000' }}>
+              TOTAL
+            </span>
+            <span className="font-display text-2xl" style={{ color: '#000000' }}>
+              {total.toFixed(2)} €
+            </span>
           </div>
 
           <button
             onClick={() => setShowCheckout(true)}
             disabled={ticket.length === 0}
-            className="w-full py-4 font-display text-sm uppercase min-h-[56px] transition-colors"
+            className="w-full py-4 font-display text-sm transition-all min-h-[56px]"
             style={{
-              backgroundColor: ticket.length === 0 ? '#333' : '#F0E040',
-              color: ticket.length === 0 ? '#666' : '#000',
+              backgroundColor: ticket.length === 0 ? '#E5E7EB' : '#F0E040',
+              color: ticket.length === 0 ? '#9CA3AF' : '#000000',
               cursor: ticket.length === 0 ? 'not-allowed' : 'pointer',
+              letterSpacing: '0.08em',
             }}
           >
-            COBRAR (F9)
+            COBRAR · F9
           </button>
         </div>
       </div>
 
-      {/* ── Checkout modal ────────────────────────────────────────────── */}
+      {/* ── Checkout modal ────────────────────────────────────────── */}
       {showCheckout && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}>
-          <div className="w-full max-w-md p-6" style={{ backgroundColor: '#0a0a0a', border: '2px solid #F0E040' }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-lg" style={{ color: '#F0E040' }}>COBRO</h2>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
+          <div
+            className="w-full max-w-md"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            }}
+          >
+            {/* Modal header */}
+            <div
+              className="flex items-center justify-between px-6 py-4"
+              style={{ borderBottom: '1px solid #E5E7EB' }}
+            >
+              <h2
+                className="font-display text-sm"
+                style={{ color: '#000000', letterSpacing: '0.08em' }}
+              >
+                COBRO
+              </h2>
               <button
                 onClick={() => setShowCheckout(false)}
-                className="font-display text-sm min-h-[44px] flex items-center"
-                style={{ color: '#999', cursor: 'pointer' }}
-              >✕ ESC</button>
+                className="font-mono text-xs min-h-[44px] flex items-center gap-1 px-2"
+                style={{ color: '#6B7280', cursor: 'pointer' }}
+              >
+                ✕ <span style={{ color: '#9CA3AF' }}>ESC</span>
+              </button>
             </div>
 
-            <div className="text-center mb-6">
-              <p className="font-mono text-xs mb-1" style={{ color: '#999' }}>TOTAL A COBRAR</p>
-              <p className="font-display text-4xl" style={{ color: '#F0E040' }}>{total.toFixed(2)} €</p>
-            </div>
-
-            {/* Payment method selection */}
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(['card', 'cash', 'bizum'] as PaymentMethod[]).map(method => (
-                <button
-                  key={method}
-                  onClick={() => setPaymentMethod(method)}
-                  className="py-3 font-display text-xs uppercase min-h-[52px] transition-colors"
-                  style={{
-                    border: paymentMethod === method ? '2px solid #F0E040' : '1px solid #333',
-                    backgroundColor: paymentMethod === method ? 'rgba(240, 224, 64, 0.1)' : 'transparent',
-                    color: paymentMethod === method ? '#F0E040' : '#999',
-                    cursor: 'pointer',
-                  }}
+            <div className="px-6 py-6">
+              {/* Total */}
+              <div className="text-center mb-6">
+                <p className="font-mono text-[10px] mb-1" style={{ color: '#9CA3AF' }}>
+                  TOTAL A COBRAR
+                </p>
+                <p
+                  className="font-display text-4xl"
+                  style={{ color: '#000000' }}
                 >
-                  {method === 'card' ? 'TARJETA' : method === 'cash' ? 'EFECTIVO' : 'BIZUM'}
-                </button>
-              ))}
-            </div>
-
-            {/* Cash-specific fields */}
-            {paymentMethod === 'cash' && (
-              <div className="mb-6">
-                <label className="font-mono text-xs block mb-2" style={{ color: '#999' }}>
-                  Efectivo recibido
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={cashReceived}
-                  onChange={e => setCashReceived(e.target.value)}
-                  className="w-full bg-transparent font-display text-2xl text-center focus:outline-none"
-                  style={{ border: '1px solid #333', color: '#FFF', padding: '12px' }}
-                  placeholder="0.00"
-                  autoFocus
-                />
-                {cashReceivedNum >= total && (
-                  <div className="mt-3 p-3 text-center" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e' }}>
-                    <p className="font-mono text-xs" style={{ color: '#999' }}>CAMBIO</p>
-                    <p className="font-display text-2xl" style={{ color: '#22c55e' }}>{changeAmount.toFixed(2)} €</p>
-                  </div>
-                )}
+                  {total.toFixed(2)} €
+                </p>
               </div>
-            )}
 
-            {paymentMethod === 'card' && (
-              <p className="font-mono text-xs text-center mb-6" style={{ color: '#666' }}>
-                Cobra con el datáfono y confirma la venta
-              </p>
-            )}
+              {/* Payment method selection */}
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                {(['card', 'cash', 'bizum'] as PaymentMethod[]).map((method) => {
+                  const labels: Record<PaymentMethod, string> = {
+                    card: 'TARJETA',
+                    cash: 'EFECTIVO',
+                    bizum: 'BIZUM',
+                  }
+                  const icons: Record<PaymentMethod, string> = {
+                    card: '💳',
+                    cash: '💶',
+                    bizum: '📱',
+                  }
+                  return (
+                    <button
+                      key={method}
+                      onClick={() => {
+                        setPaymentMethod(method)
+                        setError('')
+                      }}
+                      className="py-3 font-display text-[10px] min-h-[52px] transition-all flex flex-col items-center gap-1"
+                      style={{
+                        border:
+                          paymentMethod === method
+                            ? '2px solid #F0E040'
+                            : '1px solid #E5E7EB',
+                        backgroundColor:
+                          paymentMethod === method ? '#FEFCE8' : '#FFFFFF',
+                        color:
+                          paymentMethod === method ? '#000000' : '#6B7280',
+                        cursor: 'pointer',
+                        letterSpacing: '0.06em',
+                      }}
+                    >
+                      <span className="text-lg">{icons[method]}</span>
+                      {labels[method]}
+                    </button>
+                  )
+                })}
+              </div>
 
-            {paymentMethod === 'bizum' && (
-              <p className="font-mono text-xs text-center mb-6" style={{ color: '#666' }}>
-                El cliente paga vía Bizum. Confirma cuando recibas el pago.
-              </p>
-            )}
+              {/* Cash-specific fields */}
+              {paymentMethod === 'cash' && (
+                <div className="mb-6">
+                  <label
+                    className="font-mono text-[10px] block mb-2"
+                    style={{ color: '#6B7280' }}
+                  >
+                    Efectivo recibido
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={cashReceived}
+                    onChange={(e) => setCashReceived(e.target.value)}
+                    className="w-full font-display text-2xl text-center focus:outline-none"
+                    style={{
+                      border: '1px solid #E5E7EB',
+                      color: '#000000',
+                      padding: '14px',
+                      backgroundColor: '#F9FAFB',
+                    }}
+                    placeholder="0.00"
+                    autoFocus
+                  />
+                  {/* Quick cash buttons */}
+                  <div className="flex gap-2 mt-2">
+                    {[total, Math.ceil(total / 5) * 5, Math.ceil(total / 10) * 10, Math.ceil(total / 20) * 20]
+                      .filter((v, i, arr) => arr.indexOf(v) === i && v >= total)
+                      .map((amount) => (
+                        <button
+                          key={amount}
+                          onClick={() => setCashReceived(amount.toFixed(2))}
+                          className="flex-1 font-mono text-xs py-2 min-h-[44px] transition-colors"
+                          style={{
+                            border: '1px solid #E5E7EB',
+                            backgroundColor:
+                              cashReceived === amount.toFixed(2) ? '#FEFCE8' : '#FFFFFF',
+                            color: '#000000',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {amount.toFixed(2)} €
+                        </button>
+                      ))}
+                  </div>
+                  {cashReceivedNum >= total && (
+                    <div
+                      className="mt-3 p-4 text-center"
+                      style={{ backgroundColor: '#F0FDF4', border: '1px solid #86EFAC' }}
+                    >
+                      <p className="font-mono text-[10px]" style={{ color: '#6B7280' }}>
+                        CAMBIO
+                      </p>
+                      <p
+                        className="font-display text-2xl"
+                        style={{ color: '#16A34A' }}
+                      >
+                        {changeAmount.toFixed(2)} €
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {error && (
-              <p className="font-mono text-xs mb-3" style={{ color: '#ef4444' }}>{error}</p>
-            )}
+              {paymentMethod === 'card' && (
+                <div
+                  className="mb-6 p-4 text-center"
+                  style={{ backgroundColor: '#F9FAFB', border: '1px solid #E5E7EB' }}
+                >
+                  <p className="font-mono text-xs" style={{ color: '#6B7280' }}>
+                    Cobra con el datáfono y confirma la venta
+                  </p>
+                </div>
+              )}
 
-            <button
-              onClick={handleCheckout}
-              disabled={checkoutLoading || (paymentMethod === 'cash' && cashReceivedNum < total)}
-              className="w-full py-4 font-display text-sm uppercase min-h-[56px] transition-colors"
-              style={{
-                backgroundColor: checkoutLoading ? '#666' : '#F0E040',
-                color: '#000',
-                cursor: checkoutLoading ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {checkoutLoading ? 'PROCESANDO...' : paymentMethod === 'cash' ? `CONFIRMAR — CAMBIO: ${changeAmount.toFixed(2)} €` : 'CONFIRMAR VENTA'}
-            </button>
+              {paymentMethod === 'bizum' && (
+                <div
+                  className="mb-6 p-4 text-center"
+                  style={{ backgroundColor: '#F9FAFB', border: '1px solid #E5E7EB' }}
+                >
+                  <p className="font-mono text-xs" style={{ color: '#6B7280' }}>
+                    El cliente paga vía Bizum. Confirma cuando recibas el pago.
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div
+                  className="mb-3 p-3 text-center"
+                  style={{ backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5' }}
+                >
+                  <p className="font-mono text-xs" style={{ color: '#DC2626' }}>
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={handleCheckout}
+                disabled={
+                  checkoutLoading ||
+                  (paymentMethod === 'cash' && cashReceivedNum < total)
+                }
+                className="w-full py-4 font-display text-sm min-h-[56px] transition-all"
+                style={{
+                  backgroundColor:
+                    checkoutLoading ||
+                    (paymentMethod === 'cash' && cashReceivedNum < total)
+                      ? '#E5E7EB'
+                      : '#F0E040',
+                  color:
+                    checkoutLoading ||
+                    (paymentMethod === 'cash' && cashReceivedNum < total)
+                      ? '#9CA3AF'
+                      : '#000000',
+                  cursor:
+                    checkoutLoading ||
+                    (paymentMethod === 'cash' && cashReceivedNum < total)
+                      ? 'not-allowed'
+                      : 'pointer',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {checkoutLoading
+                  ? 'PROCESANDO...'
+                  : paymentMethod === 'cash' && cashReceivedNum >= total
+                    ? `CONFIRMAR — CAMBIO: ${changeAmount.toFixed(2)} €`
+                    : 'CONFIRMAR VENTA'}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── Last sale confirmation ────────────────────────────────────── */}
-      {lastSaleNumber && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}>
-          <div className="w-full max-w-sm p-6 text-center" style={{ backgroundColor: '#0a0a0a', border: '2px solid #22c55e' }}>
-            <p className="font-display text-lg mb-2" style={{ color: '#22c55e' }}>VENTA COMPLETADA</p>
-            <p className="font-mono text-sm mb-4" style={{ color: '#FFF' }}>
-              {lastSaleNumber}
-            </p>
-            <button
-              onClick={() => setLastSaleNumber(null)}
-              className="w-full py-3 font-display text-sm min-h-[44px]"
-              style={{ backgroundColor: '#FFF', color: '#000', cursor: 'pointer' }}
-            >
-              CONTINUAR (ESC)
-            </button>
+      {/* ── Success modal ──────────────────────────────────────────── */}
+      {showSuccess && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
+          <div
+            className="w-full max-w-sm text-center"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            }}
+          >
+            <div className="px-6 py-8">
+              {/* Success icon */}
+              <div
+                className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                style={{ backgroundColor: '#F0FDF4' }}
+              >
+                <span style={{ fontSize: '32px' }}>✓</span>
+              </div>
+              <p
+                className="font-display text-lg mb-2"
+                style={{ color: '#16A34A', letterSpacing: '0.04em' }}
+              >
+                VENTA COMPLETADA
+              </p>
+              <p className="font-mono text-sm mb-1" style={{ color: '#000000' }}>
+                {successSaleId}
+              </p>
+              <p className="font-mono text-[10px] mb-6" style={{ color: '#9CA3AF' }}>
+                Demo — venta simulada
+              </p>
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="w-full py-3 font-display text-sm min-h-[44px] transition-colors"
+                style={{
+                  backgroundColor: '#F0E040',
+                  color: '#000000',
+                  cursor: 'pointer',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                CONTINUAR · ESC
+              </button>
+            </div>
           </div>
         </div>
       )}
