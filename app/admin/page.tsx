@@ -95,6 +95,7 @@ export default async function AdminDashboard() {
           <QuickLink href="/admin/events" label="GESTIONAR AGENDA" />
           <QuickLink href="/admin/pedidos" label="VER PEDIDOS" />
           <QuickLink href="/admin/codigos" label="CÓDIGOS / ETIQUETAS" />
+          <QuickLink href="/admin/equipo" label="GESTIONAR EQUIPO" />
           <QuickLink href="/admin/ajustes" label="AJUSTES" />
           <QuickLink href="/" label="VER TIENDA →" external />
         </div>
