@@ -7,7 +7,7 @@ import { SpinningR }    from '@/components/ui/RhythmControlLogo'
 import { createClient } from '@/lib/supabase/server'
 import type { Release } from '@/types'
 
-// Yellow diagonal stripes pattern — #F0E040 on black, spaced out so they read as yellow
+// Yellow diagonal stripes pattern — #F0E040 on black, tight spacing, full opacity
 const YellowStripes = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -21,11 +21,11 @@ const YellowStripes = () => (
       <pattern
         id="diagonal-stripes"
         patternUnits="userSpaceOnUse"
-        width="14"
-        height="14"
+        width="8"
+        height="8"
         patternTransform="rotate(45)"
       >
-        <rect width="3" height="14" fill="#F0E040" opacity="0.25"/>
+        <rect width="2" height="8" fill="#F0E040" opacity="1"/>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#diagonal-stripes)"/>

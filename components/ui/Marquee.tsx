@@ -1,24 +1,33 @@
 'use client'
 // components/ui/Marquee.tsx
-// Seamless marquee: measures text, scrolls only when overflowing.
-// Uses translateX animation with proper unit calculation for zero-gap loop.
+// Seamless marquee: measures one unit (text + separator), scrolls with zero-gap loop.
+// Uses unique keyframe per instance to avoid collisions.
+// Separator " · " added between repetitions as requested.
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useId } from 'react'
 
-const PX_PER_SECOND = 80
+const DEFAULT_SPEED = 80  // px per second
+const SEP = ' \u00B7 '   // space · space
 
 interface MarqueeProps {
   text: string
   className?: string
   style?: React.CSSProperties
+  speed?: number
 }
 
-export function Marquee({ text, className = '', style }: MarqueeProps) {
+export function Marquee({ text, className = '', style, speed = DEFAULT_SPEED }: MarqueeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const measureRef   = useRef<HTMLSpanElement>(null)
   const [overflows, setOverflows] = useState(false)
   const [unitPx, setUnitPx]       = useState(200)
   const [duration, setDuration]   = useState(5)
+
+  // Unique keyframe name per instance to avoid CSS collisions
+  const uid = useId().replace(/:/g, '')
+  const kfName = `mq-${uid}`
+
+  const unit = `${text}${SEP}`
 
   useEffect(() => {
     const container = containerRef.current
@@ -27,12 +36,12 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
 
     const doMeasure = () => {
       const cw = container.clientWidth
-      const tw = measure.scrollWidth
+      const tw = measure.scrollWidth  // width of one unit: "text · "
       const doesOverflow = tw > cw + 2
       setOverflows(doesOverflow)
       if (doesOverflow) {
         setUnitPx(tw)
-        setDuration(Math.max(tw / PX_PER_SECOND, 2))
+        setDuration(Math.max(tw / speed, 1.5))
       }
     }
 
@@ -44,56 +53,48 @@ export function Marquee({ text, className = '', style }: MarqueeProps) {
       cancelAnimationFrame(raf)
       ro.disconnect()
     }
-  }, [text])
+  }, [text, speed])
 
-  // Static: text fits
-  if (!overflows) {
-    return (
-      <div
-        ref={containerRef}
-        className={`font-display ${className}`}
-        style={{ overflow: 'hidden', whiteSpace: 'nowrap', position: 'relative', ...style }}
-      >
-        <span ref={measureRef} style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
-          {text}
-        </span>
-      </div>
-    )
-  }
-
-  // Scrolling: seamless loop with CSS animation
-  // The keyframe moves by exactly one unit (text + separator width)
-  // Two copies are placed side by side so the loop is seamless
   return (
     <div
       ref={containerRef}
       className={`font-display ${className}`}
       style={{ overflow: 'hidden', whiteSpace: 'nowrap', position: 'relative', ...style }}
     >
+      {/* Hidden measure: one unit (always present for consistent measurement) */}
       <span
         ref={measureRef}
         aria-hidden
         style={{ visibility: 'hidden', position: 'absolute', whiteSpace: 'nowrap' }}
       >
-        {text}&ensp;
+        {unit}
       </span>
-      <span
-        style={{
-          display: 'inline-flex',
-          whiteSpace: 'nowrap',
-          animation: `mq-scroll ${duration}s linear infinite`,
-          willChange: 'transform',
-        } as React.CSSProperties}
-      >
-        <span style={{ paddingRight: '0.5em' }}>{text}</span>
-        <span style={{ paddingRight: '0.5em' }}>{text}</span>
-      </span>
-      <style>{`
-        @keyframes mq-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-${unitPx}px); }
-        }
-      `}</style>
+
+      {overflows ? (
+        <span
+          style={{
+            display: 'inline-block',
+            whiteSpace: 'nowrap',
+            animation: `${kfName} ${duration}s linear infinite`,
+            willChange: 'transform',
+          }}
+        >
+          {unit}{unit}
+        </span>
+      ) : (
+        <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+          {text}
+        </span>
+      )}
+
+      {overflows && (
+        <style>{`
+          @keyframes ${kfName} {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-${unitPx}px); }
+          }
+        `}</style>
+      )}
     </div>
   )
 }

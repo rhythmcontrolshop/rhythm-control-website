@@ -2,7 +2,8 @@
 // RecordCard — Catálogo grid card
 // Identidad única RC: negro + amarillo #F0E040 + blanco
 // Default: bottom overlay with Marquee + compact buttons. Heart top-left over text.
-// Hover: full-info overlay with same layout. Heart top-left, text shifts down to avoid badge overlap.
+// Hover: full-info overlay — details (label/year/format) ABOVE marquee so marquee
+//         stays at same height as default, no text jump, badge not covered.
 
 import { memo }       from 'react'
 import Image          from 'next/image'
@@ -20,6 +21,8 @@ interface RecordCardProps {
 }
 
 const ACCENT = '#F0E040'
+const MQ_FONT = '1.3rem'
+const MQ_LINE = '1.15'
 
 /* ── Shared compact button row ── */
 function CompactButtons({
@@ -100,8 +103,8 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
           <div className="absolute" style={{ top: '6px', left: '6px', zIndex: 20 }}>
             <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={18} />
           </div>
-          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.3rem', lineHeight: '1.15' }} />
-          <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.3rem', lineHeight: '1.15' }} />
+          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: MQ_FONT, lineHeight: MQ_LINE }} />
+          <Marquee text={release.title} style={{ color: ACCENT, fontSize: MQ_FONT, lineHeight: MQ_LINE }} />
         </div>
 
         {/* Compact buttons */}
@@ -116,24 +119,28 @@ const RecordCard = memo(function RecordCard({ release, onSelect, isNew = false }
         </div>
       </div>
 
-      {/* ── Hover overlay (DESKTOP ONLY): full info + same buttons ── */}
+      {/* ── Hover overlay (DESKTOP ONLY): details above marquee + same buttons ── */}
       <div className="hidden md:flex absolute inset-0 flex-col justify-between
                       opacity-0 md:transition-opacity md:duration-200 md:group-hover:opacity-100 z-20"
         style={{ backgroundColor: '#000000', padding: '6px 8px 8px 8px' }}>
 
-        {/* Top area: heart (top-left) + text below (shifted down to avoid badge) */}
+        {/* Top area: heart (top-left) + details + marquee */}
         <div style={{ paddingTop: '24px' }}>
           <div className="absolute" style={{ top: '6px', left: '6px', zIndex: 20 }}>
             <FavoriteButton releaseId={release.id} discogsReleaseId={release.discogs_release_id} variant="card" size={20} />
           </div>
-          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: '1.6rem', lineHeight: '1.15' }} />
-          <Marquee text={release.title} style={{ color: ACCENT, fontSize: '1.6rem', lineHeight: '1.15' }} />
-          <p className="font-display text-xs font-bold mt-1" style={{ color: '#FFFFFF' }}>
+
+          {/* Disc details ABOVE marquee — avoids badge overlap & text jump */}
+          <p className="font-display text-xs font-bold" style={{ color: '#FFFFFF', paddingRight: '60px' }}>
             {release.labels[0] ?? ''}
           </p>
-          <p className="font-mono mt-0.5" style={{ color: '#FFFFFF', fontSize: '0.65rem' }}>
+          <p className="font-mono mb-1" style={{ color: '#FFFFFF', fontSize: '0.65rem', paddingRight: '60px' }}>
             {[release.year, release.format].filter(Boolean).join(' · ')}
           </p>
+
+          {/* Marquees — same size as default, at same visual position */}
+          <Marquee text={artist}        style={{ color: '#FFFFFF', fontSize: MQ_FONT, lineHeight: MQ_LINE }} />
+          <Marquee text={release.title} style={{ color: ACCENT, fontSize: MQ_FONT, lineHeight: MQ_LINE }} />
         </div>
 
         {/* Bottom area: compact buttons */}

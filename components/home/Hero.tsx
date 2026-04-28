@@ -171,7 +171,7 @@ export default function Hero({ releases }: HeroProps) {
           ))}
         </div>
         <div className="hidden md:flex col-span-3 items-center" style={{ paddingLeft: '12px', backgroundColor: '#000000', borderBottom: '2px solid #FFFFFF' }}>
-          <Marquee text={marqueeText} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
+          <Marquee text={marqueeText} speed={160} style={{ color: '#F0E040', fontSize: '1.3rem', lineHeight: '1.1' }} />
         </div>
       </div>
       <div>
