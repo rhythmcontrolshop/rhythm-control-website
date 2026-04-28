@@ -1,7 +1,7 @@
 # RHYTHM CONTROL — Progreso por Etapas
-> **Ultima actualizacion**: 18 abril 2026
-> **Rama**: main
-> **Sesion actual**: #8
+> **Ultima actualizacion**: 28 abril 2026
+> **Rama**: audit/E0-E5
+> **Sesion actual**: #9
 
 ---
 
@@ -20,7 +20,7 @@
 | E0-1 | PKCE recovery roto | [x] | 18/04 | local | 3 estrategias: code exchange, hash parse, auth state change listener |
 | E0-2 | Sin error boundaries | [x] | 18/04 | local | Creados: error.tsx, global-error.tsx, not-found.tsx, admin/error.tsx, loading.tsx |
 | E0-3 | Sistema dual de ordenes | [x] | 18/04 | local | /admin/orders y /admin/order/[id] redirigen a /admin/pedidos |
-| E0-4 | overflow-x: hidden parche | [x] | 18/04 | local | Cambiado a overflow-x:clip; BARCELONA text con clamp() y overflow-hidden |
+| E0-4 | overflow-x: hidden parche | [x] | 28/04 | 6b3bcd1 | overflow-x:clip; Barcelona opacity-0 en mobile (era opacity-100), overflow-hidden en logo Link, font-size fijo 1.5rem |
 | E0-5 | Sin Suspense boundaries | [x] | 18/04 | local | Agregado Suspense en page.tsx, novedades, stock con skeletons |
 | E0-6 | searchParams Promise sin Suspense | [x] | 18/04 | local | admin/recover envuelto en Suspense con skeleton |
 
@@ -114,8 +114,8 @@
 ### Hover-Only Interactions (4/4) ✅
 | ID | Issue | Estado | Fecha | Commit | Notas |
 |----|-------|--------|-------|--------|-------|
-| E3-14 | RecordCard hover-only | [x] | 18/04 | local | Mobile action bar siempre visible (ESCUCHAR + precio), hover solo en desktop |
-| E3-15 | Logo BARCELONA hover-only | [x] | 18/04 | local | opacity-100 en móvil, md:opacity-0 md:group-hover:opacity-100 |
+| E3-14 | RecordCard hover-only | [x] | 28/04 | 41721e4 | Bottom overlay siempre visible + fades OUT en hover desktop, compact buttons compartidos, FavoriteButton top-right, z-0 stacking |
+| E3-15 | Logo BARCELONA hover-only | [x] | 28/04 | 6b3bcd1 | opacity-0 en mobile (era opacity-100), md:group-hover:opacity-100, overflow-hidden + font-size fijo |
 | E3-16 | Admin buttons hover-only | [x] | 18/04 | local | InventoryButton + QuickLink → hover:bg-black CSS classes |
 | E3-17 | Cuenta cards hover-only | [x] | 18/04 | local | StatCard + QuickLink + OrderRow → hover:bg-[#1a1a1a] CSS |
 
@@ -158,7 +158,7 @@
 | E4-3 | FavoriteButton N+1 | [x] | 18/04 | local | FavoritesContext batch: 1 fetch para todos los favoritos (vs 24), toggle compartido |
 | E4-4 | select(*) sin proyeccion | [x] | 18/04 | local | HOME_COLUMNS projection en page.tsx (16 cols vs *), CATALOGUE_COLUMNS ya existia |
 | E4-5 | StrobeDots rAF | [x] | 18/04 | local | Migrado a CSS @keyframes con scoped styles, 0 re-renderizados/seg (era 60) |
-| E4-6 | Marquee CLS + keyframes duplicados | [x] | 18/04 | local | CSS custom properties (--mq-unit, --mq-duration), @keyframes mq-scroll global, 2 copias (vs 4+) |
+| E4-6 | Marquee CLS + keyframes duplicados | [x] | 28/04 | 41721e4 | ResizeObserver + rAF para medición robusta, position:relative, scrollWidth vs clientWidth |
 | E4-7 | createAdminClient por webhook | [x] | 18/04 | local | Lazy singleton: reutiliza instancia dentro del mismo request, resetAdminClient para testing |
 | E4-8 | Hero carga todos los tabs | [x] | 18/04 | local | loading=lazy en Mixcloud iframe, tabs inactivos ya no renderizados (condicional) |
 | E4-9 | YouTube iframes precargados | [x] | 18/04 | local | async=true en YouTube IFrame API script, Mixcloud iframe loading=lazy |
@@ -261,6 +261,27 @@
 - **Avance**: Todos los DM items verificados por análisis de código. Build pasa limpio, 9 tests pasan
 - **Siguiente**: AUDITORÍA COMPLETA (93/93). Pendiente verificación visual en dispositivos reales post-deploy
 - **Bloqueos**: Sin Chrome para Lighthouse, sin dispositivos reales. DM-5 requiere test manual
+
+### Sesion #9 — 28 abril 2026
+- **Enfoque**: Post-audit completo — Redsys, POS, Facturas, Admin, Search, UI
+- **Commits**: 27 commits (6b936e5 → 6b3bcd1)
+- **Avance**:
+  - **Redsys TPV**: integración completa pasarela de pago española (Stripe→Redsys), test keys configuradas
+  - **POS Sistema**: inventario real, sesiones de caja (pos_sessions), ventas, tickets, facturas (invoices)
+  - **Admin**: settings CMS (Discogs + site content), team management (invitar miembros, roles), sidebar navigation, bootstrap/setup page
+  - **Cuenta**: navegación, order details, schema corrections, Stripe fallback sync
+  - **Search**: RPC function search_release_ids (Migration 012), barra búsqueda catálogo, POS y Admin
+  - **Events**: type_check fix (dj_set/live/session/all_night), city field, Migration 013
+  - **Emails**: Resend branded (welcome + password reset), fallback a Supabase
+  - **Auth**: password reset robusto (AuthHashRedirect, hash auto-processing, /recuperar alias)
+  - **RecordCard**: bottom overlay siempre visible + fades OUT en hover desktop, compact buttons, FavoriteButton top-right
+  - **Marquee**: ResizeObserver + rAF para medición robusta
+  - **Logo**: Barcelona opacity-0 en mobile (antes tapaba logo), overflow-hidden, font-size fijo
+  - **Cart**: pantalla completa (eliminado max-w-md)
+  - **LanguageSwitcher**: hover blanco+negro, dropdown ancho=columna
+  - **UI**: per-tab hover colors, checkout blue theme, green buttons, i18n ampliado, spinning R loader, visual polish
+- **Siguiente**: Verificar visualmente en deploy. Migrations 011, 012, 013 pendientes de aplicar en Supabase
+- **Bloqueos**: Ninguno
 
 ---
 
