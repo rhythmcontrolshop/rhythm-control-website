@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import LogoutButton from '@/components/admin/LogoutButton'
 import RhythmControlLogo from '@/components/ui/RhythmControlLogo'
 
-const NO_NAV_PATHS = ['/admin/login', '/admin/recover', '/admin/reset-password']
+const NO_NAV_PATHS = ['/admin/login', '/admin/recover', '/admin/reset-password', '/admin/setup']
 
 const NAV_LINKS = [
   { href: '/admin',           label: 'Dashboard'  },

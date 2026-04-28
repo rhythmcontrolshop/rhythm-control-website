@@ -57,7 +57,8 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       request.nextUrl.pathname.startsWith('/admin') &&
       !request.nextUrl.pathname.startsWith('/admin/login') &&
       !request.nextUrl.pathname.startsWith('/admin/recover') &&
-      !request.nextUrl.pathname.startsWith('/admin/reset-password')
+      !request.nextUrl.pathname.startsWith('/admin/reset-password') &&
+      !request.nextUrl.pathname.startsWith('/admin/setup')
 
     if (isProtectedAdmin) {
       if (!user) return redirectToLogin(request)
@@ -78,7 +79,8 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
       request.nextUrl.pathname.startsWith('/admin') &&
       !request.nextUrl.pathname.startsWith('/admin/login') &&
       !request.nextUrl.pathname.startsWith('/admin/recover') &&
-      !request.nextUrl.pathname.startsWith('/admin/reset-password')
+      !request.nextUrl.pathname.startsWith('/admin/reset-password') &&
+      !request.nextUrl.pathname.startsWith('/admin/setup')
 
     if (isProtectedAdmin) return redirectToLogin(request, 'session-error')
   }
