@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/CartContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import { FavoritesProvider } from '@/context/FavoritesContext'
 import CartDrawer from '@/components/cart/CartDrawer'
+import AuthHashRedirect from '@/components/auth/AuthHashRedirect'
 
 const spaceMono = Space_Mono({
   variable: '--font-space-mono',
@@ -29,6 +30,7 @@ export default function RootLayout({
         <LocaleProvider>
           <CartProvider>
             <FavoritesProvider>
+              <AuthHashRedirect />
               {children}
               <CartDrawer />
             </FavoritesProvider>
