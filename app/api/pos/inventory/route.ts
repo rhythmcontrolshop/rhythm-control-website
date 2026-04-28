@@ -25,8 +25,12 @@ export async function GET(request: Request) {
   // Barcode search takes priority
   if (barcode) {
     query = query.eq('barcode', barcode)
-  } else if (search) {
-    query = query.or(`title.ilike.%${search}%,artists.cs.{"${search}"},barcode.ilike.%${search}%`)
+  } else if (search.length >= 2) {
+    // Use RPC function for proper search across all fields (title, artists, labels, catno, etc.)
+    const { data: matchIds } = await admin.rpc('search_release_ids', { search_query: search })
+    const ids = matchIds ?? []
+    if (ids.length === 0) return Response.json({ items: [] })
+    query = query.in('id', ids)
   }
 
   const { data, error } = await query

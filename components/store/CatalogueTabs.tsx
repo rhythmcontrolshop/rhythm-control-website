@@ -1,6 +1,7 @@
 'use client'
 // E3-2: onMouseEnter/Leave → CSS :hover
 // E3-12: Arrow touch area enlarged
+// Search bar added for text search across title, artists, labels, catno
 
 import { useState, useEffect, useRef } from 'react'
 
@@ -24,6 +25,9 @@ interface CatalogueTabsProps {
   sort:          SortOption
   onSortChange:  (s: SortOption) => void
   accentColor?:  string  // hex color for active/hover states
+  // Search props
+  searchQuery?:     string
+  onSearchChange?:  (q: string) => void
 }
 
 export default function CatalogueTabs({
@@ -31,9 +35,12 @@ export default function CatalogueTabs({
   labels, activeLabel, onLabelChange,
   sort, onSortChange,
   accentColor = '#F0E040',
+  searchQuery = '',
+  onSearchChange,
 }: CatalogueTabsProps) {
   const [open, setOpen] = useState<'sort' | 'style' | 'label' | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     function onOutside(e: PointerEvent) {
@@ -49,20 +56,84 @@ export default function CatalogueTabs({
   const labelLabel = activeLabel ?? 'SELLO'
 
   return (
-    <div ref={ref} className="flex" style={{ height: '48px', borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
-      <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight accentColor={accentColor}>
-        {SORT_OPTIONS.map(opt => (
-          <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} accentColor={accentColor} />
-        ))}
-      </Dropdown>
-      <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight accentColor={accentColor}>
-        <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} accentColor={accentColor} />
-        {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} accentColor={accentColor} />)}
-      </Dropdown>
-      <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false} accentColor={accentColor}>
-        <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} accentColor={accentColor} />
-        {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} accentColor={accentColor} />)}
-      </Dropdown>
+    <div ref={ref}>
+      {/* Search bar row */}
+      {onSearchChange && (
+        <div style={{
+          height: '48px',
+          borderBottom: '2px solid #FFFFFF',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#000000',
+          position: 'relative',
+        }}>
+          <span
+            className="font-display text-xs"
+            style={{
+              color: searchQuery ? accentColor : '#FFFFFF',
+              padding: '0 12px 0 16px',
+              opacity: searchQuery ? 1 : 0.5,
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+            }}
+          >
+            {searchQuery ? String.fromCharCode(10005) : String.fromCharCode(128269)}
+          </span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchQuery}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder="BUSCAR DISCO..."
+            className="font-display text-xs"
+            style={{
+              flex: 1,
+              height: '100%',
+              backgroundColor: 'transparent',
+              border: 'none',
+              outline: 'none',
+              color: searchQuery ? accentColor : '#FFFFFF',
+              padding: 0,
+              letterSpacing: '0.05em',
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { onSearchChange(''); inputRef.current?.focus() }}
+              className="font-display text-xs"
+              style={{
+                color: accentColor,
+                padding: '0 16px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                height: '100%',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.6' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+            >
+              LIMPIAR
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Filter tabs row */}
+      <div className="flex" style={{ height: '48px', borderBottom: '2px solid #FFFFFF' }}>
+        <Dropdown label={sortLabel} isOpen={open === 'sort'} onToggle={() => toggle('sort')} isActive={false} borderRight accentColor={accentColor}>
+          {SORT_OPTIONS.map(opt => (
+            <DropItem key={opt.value} label={opt.label} isSelected={sort === opt.value} onClick={() => { onSortChange(opt.value); setOpen(null) }} accentColor={accentColor} />
+          ))}
+        </Dropdown>
+        <Dropdown label={styleLabel} isOpen={open === 'style'} onToggle={() => toggle('style')} isActive={!!activeStyle} borderRight accentColor={accentColor}>
+          <DropItem label="TODOS" isSelected={!activeStyle} onClick={() => { onStyleChange(null); setOpen(null) }} accentColor={accentColor} />
+          {styles.map(s => <DropItem key={s} label={s} isSelected={activeStyle === s} onClick={() => { onStyleChange(s); setOpen(null) }} accentColor={accentColor} />)}
+        </Dropdown>
+        <Dropdown label={labelLabel} isOpen={open === 'label'} onToggle={() => toggle('label')} isActive={!!activeLabel} borderRight={false} accentColor={accentColor}>
+          <DropItem label="TODOS" isSelected={!activeLabel} onClick={() => { onLabelChange(null); setOpen(null) }} accentColor={accentColor} />
+          {labels.map(l => <DropItem key={l} label={l} isSelected={activeLabel === l} onClick={() => { onLabelChange(l); setOpen(null) }} accentColor={accentColor} />)}
+        </Dropdown>
+      </div>
     </div>
   )
 }
@@ -71,7 +142,6 @@ function Dropdown({ label, isOpen, onToggle, isActive, borderRight, accentColor 
   label: string; isOpen: boolean; onToggle: () => void
   isActive: boolean; borderRight: boolean; accentColor: string; children: React.ReactNode
 }) {
-  // Generate dynamic hover class using inline styles since we can't use arbitrary Tailwind values for dynamic colors
   return (
     <div style={{ flex: 1, position: 'relative', height: '48px', borderRight: borderRight ? '2px solid #FFFFFF' : 'none' }}>
       <button

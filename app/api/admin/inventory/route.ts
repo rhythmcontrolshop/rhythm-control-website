@@ -23,9 +23,13 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq('status', status)
   if (genre)  query = query.contains('genres', [genre])
 
-  // Search by title or artist
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,artists.cs.{"${search}"}`)
+  // Search by title, artists, labels, catno (via RPC function)
+  if (search.length >= 2) {
+    const rpcStatus = status || 'all'  // If no status filter, search across all statuses
+    const { data: matchIds } = await admin.rpc('search_release_ids', { search_query: search, filter_status: rpcStatus })
+    const ids = matchIds ?? []
+    if (ids.length === 0) return Response.json({ items: [], total: 0, page, limit, totalPages: 0 })
+    query = query.in('id', ids)
   }
 
   const { data, count, error } = await query

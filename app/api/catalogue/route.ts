@@ -1,5 +1,5 @@
 // app/api/catalogue/route.ts
-// GET /api/catalogue — releases activos con filtros, paginación y precios por canal.
+// GET /api/catalogue — releases activos con filtros, búsqueda por texto, paginación y precios por canal.
 // E1-8: Usa proyección de columnas en vez de select(*) para reducir payload y evitar exponer datos innecesarios.
 
 import { createClient } from '@/lib/supabase/server'
@@ -15,6 +15,7 @@ const CATALOGUE_COLUMNS = [
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
+  const q       = searchParams.get('q')?.trim() ?? ''
   const genre   = searchParams.get('genre')
   const style   = searchParams.get('style')
   const label   = searchParams.get('label')
@@ -25,10 +26,27 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient()
 
+  // ── Text search: use RPC function for ILIKE across title, artists[], labels[], catno ──
+  let searchMatchIds: string[] | null = null
+  if (q.length >= 2) {
+    const { data: ids } = await supabase.rpc('search_release_ids', { search_query: q })
+    const resolvedIds: string[] = ids ?? []
+    // No matches → return empty immediately
+    if (resolvedIds.length === 0) {
+      return Response.json({ data: [], total: 0, page, per_page: perPage, total_pages: 0 })
+    }
+    searchMatchIds = resolvedIds
+  }
+
   let query = supabase
     .from('releases')
     .select(CATALOGUE_COLUMNS, { count: 'exact' })
     .eq('status', 'active')
+
+  // Restrict to search matches when a query is provided
+  if (searchMatchIds) {
+    query = query.in('id', searchMatchIds)
+  }
 
   if (genre && genre !== 'all') {
     query = query.contains('genres', [genre])
@@ -44,6 +62,7 @@ export async function GET(request: NextRequest) {
     case 'price_asc':  query = query.order('price', { ascending: true });  break
     case 'price_desc': query = query.order('price', { ascending: false }); break
     case 'year':       query = query.order('year',  { ascending: false }); break
+    case 'artist':     query = query.order('title', { ascending: true });   break
     default:           query = query.order('created_at', { ascending: false })
   }
 

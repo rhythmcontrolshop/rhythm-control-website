@@ -1,8 +1,8 @@
 'use client'
 // components/store/CatalogueView.tsx
-// Orquestador del catálogo: filtros, grid, modal y player.
+// Orquestador del catálogo: búsqueda, filtros, grid, modal y player.
 
-import { useState, useCallback, useEffect, useTransition } from 'react'
+import { useState, useCallback, useEffect, useTransition, useRef } from 'react'
 import CatalogueTabs  from './CatalogueTabs'
 import type { SortOption } from './CatalogueTabs'
 import RecordGrid     from './RecordGrid'
@@ -23,6 +23,7 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
   const [total,     setTotal]     = useState(initialTotal)
   const [loading,   setLoading]   = useState(false)
   const [isPending, startTransition] = useTransition()  // E4-2: Non-blocking filter changes
+  const [searchQ,   setSearchQ]   = useState('')
   const [style,     setStyle]     = useState<string | null>(null)
   const [label,     setLabel]     = useState<string | null>(null)
   const [sort,      setSort]      = useState<SortOption>('newest')
@@ -33,6 +34,9 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
   const [openTab,   setOpenTab]   = useState<'tracklist' | 'notes' | 'artist' | 'label' | undefined>(undefined)
   const [track,     setTrack]     = useState<PlayerTrack | null>(null)
   const [clipIndex, setClipIndex] = useState(1)
+
+  // Debounce timer for search
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const perPage = 24
 
@@ -61,6 +65,7 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
   }, [initialReleases])
 
   const fetchReleases = useCallback(async (
+    activeSearch: string,
     activeStyle: string | null,
     activeLabel: string | null,
     activeSort:  SortOption,
@@ -69,6 +74,7 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
     setLoading(true)
     try {
       const params = new URLSearchParams({ page: String(activePage), sort: activeSort })
+      if (activeSearch.length >= 2) params.set('q', activeSearch)
       if (activeStyle) params.set('style', activeStyle)
       if (activeLabel) params.set('label', activeLabel)
 
@@ -83,29 +89,38 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
     }
   }, [])
 
+  const handleSearchChange = (q: string) => {
+    setSearchQ(q); setPage(1)
+    // Debounce: wait 300ms after user stops typing before fetching
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => fetchReleases(q, style, label, sort, 1))
+    }, 300)
+  }
+
   const handleStyleChange = (s: string | null) => {
     setStyle(s); setPage(1)
-    startTransition(() => fetchReleases(s, label, sort, 1))
+    startTransition(() => fetchReleases(searchQ, s, label, sort, 1))
   }
   const handleLabelChange = (l: string | null) => {
     setLabel(l); setPage(1)
-    startTransition(() => fetchReleases(style, l, sort, 1))
+    startTransition(() => fetchReleases(searchQ, style, l, sort, 1))
   }
   const handleSortChange = (s: SortOption) => {
     setSort(s); setPage(1)
-    startTransition(() => fetchReleases(style, label, s, 1))
+    startTransition(() => fetchReleases(searchQ, style, label, s, 1))
   }
 
   const handlePageNext = () => {
     const next = page + 1
     setPage(next)
-    startTransition(() => fetchReleases(style, label, sort, next))
+    startTransition(() => fetchReleases(searchQ, style, label, sort, next))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const handlePagePrev = () => {
     const prev = page - 1
     setPage(prev)
-    startTransition(() => fetchReleases(style, label, sort, prev))
+    startTransition(() => fetchReleases(searchQ, style, label, sort, prev))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -121,6 +136,7 @@ export default function CatalogueView({ initialReleases, initialTotal, accentCol
         labels={labels}       activeLabel={label}   onLabelChange={handleLabelChange}
         sort={sort}           onSortChange={handleSortChange}
         accentColor={accentColor}
+        searchQuery={searchQ} onSearchChange={handleSearchChange}
       />
 
       <RecordGrid
