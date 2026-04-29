@@ -55,7 +55,14 @@ export default async function CheckoutSuccessPage({ searchParams }: SearchParams
     }
   }
 
+  // Si el pago sigue pendiente, auto-refresh cada 3s hasta que el webhook lo procese
+  const metaRefresh = !paymentVerified && orderNumber
+    ? <meta httpEquiv="refresh" content="3" />
+    : null
+
   return (
+    <>
+      {metaRefresh}
     <div className="min-h-[80vh] flex items-center justify-center p-6" style={{ backgroundColor: '#000' }}>
       <div className="max-w-md w-full p-8" style={{ border: '2px solid #22c55e' }}>
         <h1 className="font-display text-2xl mb-2" style={{ color: '#22c55e' }}>
@@ -114,5 +121,6 @@ export default async function CheckoutSuccessPage({ searchParams }: SearchParams
         </div>
       </div>
     </div>
+    </>
   )
 }
