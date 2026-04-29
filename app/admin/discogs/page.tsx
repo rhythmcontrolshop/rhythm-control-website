@@ -192,7 +192,7 @@ export default function DiscogsPage() {
           <div className="flex items-start gap-2">
             <span className="text-xs font-bold px-2 py-0.5 flex-shrink-0" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>4</span>
             <p className="text-xs leading-relaxed" style={{ color: '#78350f' }}>
-              <strong>Verificar:</strong> Ejecuta <code>SELECT count(*), min(discogs_listing_id), max(discogs_listing_id) FROM releases WHERE status = 'active';</code> — deberias ver los nuevos IDs >= 9000
+              <strong>Verificar:</strong> Ejecuta <code>SELECT count(*), min(discogs_listing_id), max(discogs_listing_id) FROM releases WHERE status = &apos;active&apos;;</code> — deberias ver los nuevos IDs {'>='} 9000
             </p>
           </div>
           <div className="flex items-start gap-2">
