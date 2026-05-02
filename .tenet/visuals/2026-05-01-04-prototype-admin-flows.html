@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype — Admin Flows</title>
+<style>
+  /* ── RESET / BASE (igual que el proyecto) ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #ffffff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #000; font-size: 14px; }
+  input, select, button, textarea { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── NAV PROTOTIPO ── */
+  .proto-nav { background: #f3f4f6; border-bottom: 1px solid #e5e7eb; padding: 8px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .proto-nav span { font-size: 10px; color: #9ca3af; letter-spacing: 0.05em; margin-right: 4px; }
+  .nav-btn { font-size: 11px; padding: 5px 12px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; letter-spacing: 0.04em; color: #374151; }
+  .nav-btn.active { background: #000; color: #fff; border-color: #000; }
+
+  /* ── SCREEN WRAPPER ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── ADMIN SHELL (replica del AdminShell del proyecto) ── */
+  .admin-shell { display: flex; min-height: calc(100vh - 41px); }
+  .admin-sidebar { width: 200px; border-right: 1px solid #e5e7eb; background: #fff; flex-shrink: 0; padding: 16px 0; }
+  .sidebar-title { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; padding: 0 16px 12px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px; }
+  .sidebar-link { display: block; font-size: 11px; padding: 8px 16px; color: #6b7280; letter-spacing: 0.06em; cursor: pointer; }
+  .sidebar-link:hover { background: #f9fafb; color: #000; }
+  .sidebar-link.current { color: #000; font-weight: bold; background: #f9fafb; border-left: 2px solid #000; }
+  .admin-content { flex: 1; overflow: auto; }
+
+  /* ── PAGE PATTERNS (del proyecto real) ── */
+  .page-wrap { padding: 24px; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+  .page-title { font-size: 20px; font-weight: bold; color: #000; letter-spacing: 0.02em; }
+  .page-meta { font-size: 12px; color: #6b7280; }
+  .back-link { font-size: 12px; color: #6b7280; cursor: pointer; }
+  .back-link:hover { text-decoration: underline; }
+
+  /* ── TABLA (del proyecto real) ── */
+  table { width: 100%; text-align: left; border-collapse: collapse; }
+  thead tr { border-bottom: 2px solid #000; }
+  th { font-size: 12px; font-weight: 500; padding: 10px 12px; color: #6b7280; letter-spacing: 0.04em; }
+  tbody tr { border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background 0.1s; }
+  tbody tr:hover { background: #f9fafb; }
+  tbody tr.selected-row { background: #fafaf0; }
+  td { font-size: 12px; padding: 10px 12px; color: #000; vertical-align: middle; }
+  td.muted { color: #6b7280; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border: 1px solid; }
+  .badge-active { color: #22c55e; border-color: #22c55e; }
+  .badge-inactive { color: #9ca3af; border-color: #9ca3af; }
+
+  /* ── BOTONES (del proyecto real) ── */
+  .btn-primary { font-size: 12px; font-weight: bold; padding: 8px 20px; background: #000; color: #fff; border: 1px solid #000; cursor: pointer; letter-spacing: 0.06em; }
+  .btn-primary:hover { background: #222; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { font-size: 12px; padding: 8px 16px; background: #fff; color: #6b7280; border: 1px solid #d1d5db; cursor: pointer; letter-spacing: 0.04em; }
+  .btn-secondary:hover { border-color: #9ca3af; color: #000; }
+  .btn-danger { font-size: 11px; padding: 4px 10px; background: #fff; color: #9ca3af; border: 1px solid #9ca3af; cursor: pointer; }
+  .btn-sm { font-size: 11px; padding: 3px 10px; background: #fff; border: 1px solid #d1d5db; color: #6b7280; cursor: pointer; letter-spacing: 0.04em; }
+  .btn-sm:hover { border-color: #000; color: #000; }
+
+  /* ── INPUTS (del proyecto real) ── */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: #6b7280; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-size: 12px; padding: 8px 10px;
+    border: 1px solid #e5e7eb; background: #fff; color: #000; outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #000; }
+  .field-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* ── MENSAJES ── */
+  .msg-success { margin-bottom: 16px; padding: 10px 14px; border: 1px solid #22c55e; background: #f0fdf4; }
+  .msg-success p { font-size: 12px; color: #22c55e; }
+  .msg-error { margin-bottom: 16px; padding: 10px 14px; border: 1px solid #ef4444; background: #fef2f2; }
+  .msg-error p { font-size: 12px; color: #ef4444; }
+
+  /* ── SPLIT VIEW (Variación B) ── */
+  .split-view { display: flex; min-height: 500px; }
+  .split-list { width: 320px; border-right: 1px solid #e5e7eb; flex-shrink: 0; overflow-y: auto; }
+  .split-list-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; }
+  .split-list-title { font-size: 12px; font-weight: bold; letter-spacing: 0.06em; color: #6b7280; }
+  .list-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
+  .list-item:hover { background: #f9fafb; }
+  .list-item.active { background: #fafaf0; border-left: 2px solid #000; }
+  .list-item-name { font-size: 12px; font-weight: bold; color: #000; margin-bottom: 2px; }
+  .list-item-sub { font-size: 11px; color: #9ca3af; }
+  .list-item-price { font-size: 13px; font-weight: bold; color: #000; float: right; margin-top: -18px; }
+  .split-detail { flex: 1; padding: 20px 24px; overflow-y: auto; }
+  .split-detail-title { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; color: #9ca3af; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6; }
+  .detail-actions { display: flex; gap: 10px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #f3f4f6; }
+
+  /* ── SLIDE-OVER CLIENTES ── */
+  .clientes-layout { display: flex; }
+  .clientes-table-wrap { flex: 1; overflow: auto; }
+  .slide-over { width: 0; overflow: hidden; border-left: 1px solid #e5e7eb; transition: width 0.2s ease; flex-shrink: 0; background: #fff; }
+  .slide-over.open { width: 300px; }
+  .slide-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; }
+  .slide-title { font-size: 12px; font-weight: bold; letter-spacing: 0.06em; }
+  .slide-body { padding: 16px; overflow-y: auto; }
+  .slide-footer { padding: 12px 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; }
+  .readonly-val { font-size: 12px; color: #9ca3af; padding: 8px 0 4px; }
+
+  /* ── REGISTRO PENDIENTE ── */
+  .auth-page { min-height: calc(100vh - 41px); background: #000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .auth-card { width: 100%; max-width: 360px; }
+  .auth-logo { text-align: center; margin-bottom: 32px; }
+  .auth-logo h1 { font-size: 22px; font-weight: bold; color: #fff; letter-spacing: 0.02em; }
+  .auth-logo p { font-size: 11px; color: #999; letter-spacing: 0.12em; margin-top: 4px; }
+  .auth-separator { border: none; border-top: 1px solid #1C1C1C; margin-bottom: 28px; }
+  .auth-content { text-align: center; }
+  .auth-icon { font-size: 32px; margin-bottom: 16px; }
+  .auth-title { font-size: 16px; font-weight: bold; color: #fff; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .auth-desc { font-size: 12px; color: #999; line-height: 1.7; margin-bottom: 16px; }
+  .auth-email-box { font-size: 12px; color: #F0E040; border: 1px solid #1C1C1C; padding: 10px; margin-bottom: 20px; letter-spacing: 0.02em; }
+  .steps { text-align: left; margin-bottom: 24px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .step-num { width: 22px; height: 22px; border: 1px solid #333; color: #555; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; letter-spacing: 0; }
+  .step-num.done { border-color: #22c55e; color: #22c55e; }
+  .step-num.current { border-color: #F0E040; color: #F0E040; }
+  .step-text { font-size: 11px; color: #999; line-height: 1.6; padding-top: 3px; }
+  .step-text strong { color: #fff; }
+  .auth-btn-primary { display: block; width: 100%; font-size: 12px; font-weight: bold; padding: 13px; background: #F0E040; color: #000; border: none; cursor: pointer; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .auth-btn-primary:hover { background: #e8d800; }
+  .auth-btn-ghost { display: block; width: 100%; font-size: 11px; padding: 11px; background: none; color: #555; border: 1px solid #1C1C1C; cursor: pointer; letter-spacing: 0.08em; }
+  .auth-hint { font-size: 10px; color: #444; margin-top: 14px; }
+  .auth-btn-primary.sending { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── SUCCESS STATE ── */
+  .success-overlay { display: none; }
+  .success-overlay.show { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; text-align: center; }
+  .checkmark { font-size: 28px; color: #22c55e; }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION PROTOTIPO -->
+<div class="proto-nav">
+  <span>PROTOTYPE</span>
+  <button class="nav-btn active" onclick="showScreen('screen-shipping')">SHIPPING</button>
+  <button class="nav-btn" onclick="showScreen('screen-clientes')">CLIENTES</button>
+  <button class="nav-btn" onclick="showScreen('screen-pendiente')">REGISTRO PENDIENTE</button>
+  <button class="nav-btn" onclick="showScreen('screen-success-reg')">✓ CUENTA VERIFICADA</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 1: SHIPPING RATES
+════════════════════════════════════════════════════ -->
+<div id="screen-shipping" class="screen active">
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="sidebar-title">ADMIN</div>
+      <div class="sidebar-link" onclick="showScreen('screen-shipping')">Dashboard</div>
+      <div class="sidebar-link current">Envíos</div>
+      <div class="sidebar-link" onclick="showScreen('screen-clientes')">Clientes</div>
+      <div class="sidebar-link">Pedidos</div>
+      <div class="sidebar-link">Inventario</div>
+      <div class="sidebar-link">Ajustes</div>
+    </div>
+    <div class="admin-content">
+      <div class="page-wrap">
+        <div class="page-header">
+          <div>
+            <div class="page-title">TARIFAS DE ENVÍO</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="page-meta" id="shipping-count">4 tarifas configuradas</span>
+            <button class="btn-primary" onclick="showNewForm()">+ NUEVA TARIFA</button>
+          </div>
+        </div>
+
+        <!-- success msg -->
+        <div id="shipping-success" class="msg-success" style="display:none">
+          <p id="shipping-success-text">Tarifa guardada correctamente.</p>
+        </div>
+        <div id="shipping-error" class="msg-error" style="display:none">
+          <p>Nombre, método y precio son obligatorios.</p>
+        </div>
+
+        <!-- SPLIT VIEW -->
+        <div class="split-view" style="border:1px solid #e5e7eb;">
+          <!-- LISTA -->
+          <div class="split-list">
+            <div class="split-list-header">
+              <span class="split-list-title">TARIFAS</span>
+            </div>
+            <div id="rate-list">
+              <div class="list-item active" onclick="selectRate(this,'Envío Estándar Península','España Península','standard','Correos / SEUR','4.95','50','home_delivery','es_peninsula','r1')">
+                <div class="list-item-name">Envío Estándar Península</div>
+                <div class="list-item-sub">España Península · standard</div>
+                <div class="list-item-price">4,95 €</div>
+              </div>
+              <div class="list-item" onclick="selectRate(this,'Envío Express','España Península','express','SEUR','9.95','80','home_delivery','es_peninsula','r2')">
+                <div class="list-item-name">Envío Express</div>
+                <div class="list-item-sub">España Península · express</div>
+                <div class="list-item-price">9,95 €</div>
+              </div>
+              <div class="list-item" onclick="selectRate(this,'Recogida en Tienda','Barcelona','click_collect','—','0','','click_collect','es_barcelona','r3')">
+                <div class="list-item-name">Recogida en Tienda</div>
+                <div class="list-item-sub">Barcelona · GUARDI</div>
+                <div class="list-item-price">0,00 €</div>
+              </div>
+              <div class="list-item" onclick="selectRate(this,'Europa','Unión Europea','standard','DHL','12.00','100','home_delivery','eu','r4')">
+                <div class="list-item-name">Europa</div>
+                <div class="list-item-sub">UE · standard</div>
+                <div class="list-item-price">12,00 €</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DETALLE / FORM -->
+          <div class="split-detail">
+            <!-- Estado inicial: editar existente -->
+            <div id="form-edit">
+              <div class="split-detail-title" id="detail-mode-label">EDITAR TARIFA</div>
+              <div class="field-2col">
+                <div class="field" style="grid-column:1/-1">
+                  <label>NOMBRE *</label>
+                  <input id="f-name" value="Envío Estándar Península">
+                </div>
+              </div>
+              <div class="field-3col">
+                <div class="field">
+                  <label>PRECIO (€) *</label>
+                  <input id="f-price" type="number" step="0.01" value="4.95">
+                </div>
+                <div class="field">
+                  <label>GRATIS DESDE (€)</label>
+                  <input id="f-free" type="number" step="0.01" value="50">
+                </div>
+                <div class="field">
+                  <label>TRANSPORTISTA</label>
+                  <input id="f-carrier" value="Correos / SEUR">
+                </div>
+              </div>
+              <div class="field-2col">
+                <div class="field">
+                  <label>MÉTODO *</label>
+                  <select id="f-method">
+                    <option value="home_delivery">Domicilio</option>
+                    <option value="post_office">Oficina de correos</option>
+                    <option value="click_collect">GUARDI (Click&Collect)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>ZONA</label>
+                  <select id="f-zone">
+                    <option value="es_peninsula">España Península</option>
+                    <option value="es_baleares">Baleares</option>
+                    <option value="es_canarias">Canarias</option>
+                    <option value="es_barcelona">Barcelona</option>
+                    <option value="pt">Portugal</option>
+                    <option value="eu">Unión Europea</option>
+                    <option value="international">Internacional</option>
+                  </select>
+                </div>
+              </div>
+              <div class="detail-actions">
+                <button class="btn-primary" onclick="saveRate()">GUARDAR CAMBIOS</button>
+                <button class="btn-secondary" onclick="cancelForm()">CANCELAR</button>
+                <button class="btn-danger" onclick="deleteRate()" style="margin-left:auto;">ELIMINAR</button>
+              </div>
+            </div>
+
+            <!-- Estado nuevo -->
+            <div id="form-new" style="display:none">
+              <div class="split-detail-title">NUEVA TARIFA</div>
+              <div class="field" style="">
+                <label>NOMBRE *</label>
+                <input id="fn-name" placeholder="Ej: Envío Internacional">
+              </div>
+              <div class="field-3col">
+                <div class="field">
+                  <label>PRECIO (€) *</label>
+                  <input id="fn-price" type="number" step="0.01" placeholder="0.00">
+                </div>
+                <div class="field">
+                  <label>GRATIS DESDE (€)</label>
+                  <input id="fn-free" type="number" step="0.01" placeholder="—">
+                </div>
+                <div class="field">
+                  <label>TRANSPORTISTA</label>
+                  <input id="fn-carrier" placeholder="Ej: DHL">
+                </div>
+              </div>
+              <div class="field-2col">
+                <div class="field">
+                  <label>MÉTODO *</label>
+                  <select id="fn-method">
+                    <option value="home_delivery">Domicilio</option>
+                    <option value="post_office">Oficina de correos</option>
+                    <option value="click_collect">GUARDI (Click&Collect)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>ZONA</label>
+                  <select id="fn-zone">
+                    <option value="es_peninsula">España Península</option>
+                    <option value="es_baleares">Baleares</option>
+                    <option value="es_canarias">Canarias</option>
+                    <option value="es_barcelona">Barcelona</option>
+                    <option value="pt">Portugal</option>
+                    <option value="eu">Unión Europea</option>
+                    <option value="international">Internacional</option>
+                  </select>
+                </div>
+              </div>
+              <div class="detail-actions">
+                <button class="btn-primary" onclick="createRate()">CREAR TARIFA</button>
+                <button class="btn-secondary" onclick="cancelNew()">CANCELAR</button>
+              </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="form-empty" style="display:none;padding:40px 0;text-align:center;">
+              <p style="font-size:12px;color:#9ca3af;">Selecciona una tarifa para editarla<br>o crea una nueva.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 2: CLIENTES
+════════════════════════════════════════════════════ -->
+<div id="screen-clientes" class="screen">
+  <div class="admin-shell">
+    <div class="admin-sidebar">
+      <div class="sidebar-title">ADMIN</div>
+      <div class="sidebar-link">Dashboard</div>
+      <div class="sidebar-link" onclick="showScreen('screen-shipping')">Envíos</div>
+      <div class="sidebar-link current">Clientes</div>
+      <div class="sidebar-link">Pedidos</div>
+      <div class="sidebar-link">Inventario</div>
+      <div class="sidebar-link">Ajustes</div>
+    </div>
+    <div class="admin-content">
+      <div class="page-wrap" style="padding-right:0">
+        <div class="page-header" style="padding-right:24px;">
+          <div class="page-title">CLIENTES</div>
+          <span class="page-meta">5 registrados</span>
+        </div>
+
+        <div id="clientes-success" class="msg-success" style="display:none;margin-right:24px;">
+          <p>Cambios guardados correctamente.</p>
+        </div>
+
+        <!-- SEARCH -->
+        <div style="padding:0 24px 16px 0;">
+          <input
+            id="search-input"
+            style="width:280px;font-size:12px;padding:8px 10px;border:1px solid #e5e7eb;outline:none;"
+            placeholder="Buscar por email o nombre..."
+            oninput="filterClientes(this.value)"
+          >
+        </div>
+
+        <div class="clientes-layout">
+          <!-- TABLE -->
+          <div class="clientes-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>CLIENTE</th>
+                  <th>EMAIL</th>
+                  <th>TELÉFONO</th>
+                  <th>DIRECCIÓN</th>
+                  <th>CIUDAD</th>
+                  <th>PEDIDOS</th>
+                  <th>TOTAL</th>
+                  <th>REGISTRADO</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="clientes-tbody">
+                <tr data-email="carlos.ruiz@gmail.com" data-name="Carlos Ruiz">
+                  <td><strong>Carlos Ruiz</strong></td>
+                  <td class="muted">carlos.ruiz@gmail.com</td>
+                  <td class="muted">—</td>
+                  <td class="muted">—</td>
+                  <td>Barcelona</td>
+                  <td><strong>3</strong></td>
+                  <td><strong>87,50 €</strong></td>
+                  <td class="muted">12/01/2025</td>
+                  <td><button class="btn-sm" onclick="openSlide('Carlos Ruiz','carlos.ruiz@gmail.com','','','Barcelona','08001','')">EDITAR</button></td>
+                </tr>
+                <tr id="tr-maria" data-email="maria.font@gmail.com" data-name="Maria Font">
+                  <td><strong>Maria Font Ribas</strong></td>
+                  <td class="muted">maria.font@gmail.com</td>
+                  <td class="muted">677 234 567</td>
+                  <td class="muted">C/ Provença 123, 4o 2a</td>
+                  <td>Barcelona</td>
+                  <td><strong>7</strong></td>
+                  <td><strong>312,40 €</strong></td>
+                  <td class="muted">03/12/2024</td>
+                  <td><button class="btn-sm" onclick="openSlide('Maria Font Ribas','maria.font@gmail.com','677 234 567','C/ Provença 123, 4o 2a','Barcelona','08036','ES')">EDITAR</button></td>
+                </tr>
+                <tr data-email="alex.vidal@hotmail.com" data-name="Alex Vidal">
+                  <td><strong>Alex Vidal</strong></td>
+                  <td class="muted">alex.vidal@hotmail.com</td>
+                  <td class="muted">—</td>
+                  <td class="muted">—</td>
+                  <td>Terrassa</td>
+                  <td><strong>1</strong></td>
+                  <td><strong>24,95 €</strong></td>
+                  <td class="muted">15/02/2025</td>
+                  <td><button class="btn-sm" onclick="openSlide('Alex Vidal','alex.vidal@hotmail.com','','','Terrassa','08221','')">EDITAR</button></td>
+                </tr>
+                <tr data-email="jordi.mas@outlook.com" data-name="Jordi Mas">
+                  <td><strong>Jordi Mas</strong></td>
+                  <td class="muted">jordi.mas@outlook.com</td>
+                  <td class="muted">655 123 456</td>
+                  <td class="muted">Av. Diagonal 400, 2n</td>
+                  <td>Barcelona</td>
+                  <td><strong>12</strong></td>
+                  <td><strong>543,20 €</strong></td>
+                  <td class="muted">08/09/2024</td>
+                  <td><button class="btn-sm" onclick="openSlide('Jordi Mas','jordi.mas@outlook.com','655 123 456','Av. Diagonal 400, 2n','Barcelona','08017','ES')">EDITAR</button></td>
+                </tr>
+                <tr data-email="laura.puig@gmail.com" data-name="Laura Puig">
+                  <td><strong>Laura Puig</strong></td>
+                  <td class="muted">laura.puig@gmail.com</td>
+                  <td class="muted">—</td>
+                  <td class="muted">—</td>
+                  <td>Girona</td>
+                  <td><strong>2</strong></td>
+                  <td><strong>49,90 €</strong></td>
+                  <td class="muted">20/03/2025</td>
+                  <td><button class="btn-sm" onclick="openSlide('Laura Puig','laura.puig@gmail.com','','','Girona','17001','')">EDITAR</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- SLIDE-OVER -->
+          <div id="slide-over" class="slide-over">
+            <div class="slide-header">
+              <span class="slide-title" id="slide-name">—</span>
+              <button class="btn-sm" onclick="closeSlide()">✕</button>
+            </div>
+            <div class="slide-body">
+              <div class="field"><label>EMAIL</label><div class="readonly-val" id="slide-email">—</div></div>
+              <div class="field"><label>NOMBRE COMPLETO</label><input id="slide-fullname" value=""></div>
+              <div class="field"><label>TELÉFONO</label><input id="slide-phone" value="" placeholder="—"></div>
+              <div class="field"><label>DIRECCIÓN</label><input id="slide-address" value="" placeholder="—"></div>
+              <div class="field-2col">
+                <div class="field"><label>CIUDAD</label><input id="slide-city" value=""></div>
+                <div class="field"><label>COD. POSTAL</label><input id="slide-postal" value=""></div>
+              </div>
+            </div>
+            <div class="slide-footer">
+              <button class="btn-primary" style="flex:1;font-size:11px;" onclick="saveCliente()">GUARDAR</button>
+              <button class="btn-secondary" style="font-size:11px;" onclick="closeSlide()">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 3: REGISTRO PENDIENTE
+════════════════════════════════════════════════════ -->
+<div id="screen-pendiente" class="screen">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <h1>RHYTHM CONTROL</h1>
+        <p>BARCELONA</p>
+      </div>
+      <hr class="auth-separator">
+      <div class="auth-content">
+        <div class="auth-icon">✉</div>
+        <div class="auth-title">REVISA TU EMAIL</div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num done">1</div>
+            <div class="step-text"><strong>Cuenta creada</strong><br>Registro completado correctamente.</div>
+          </div>
+          <div class="step">
+            <div class="step-num current">2</div>
+            <div class="step-text"><strong>Confirma tu email</strong><br>Hemos enviado un enlace de activación a:</div>
+          </div>
+          <div class="step" style="opacity:0.35">
+            <div class="step-num">3</div>
+            <div class="step-text"><strong>Accede a tu cuenta</strong><br>Tras confirmar podrás iniciar sesión.</div>
+          </div>
+        </div>
+
+        <div class="auth-email-box">carlos.nuevo@gmail.com</div>
+
+        <button class="auth-btn-primary" id="btn-resend" onclick="simulateResend()">
+          REENVIAR EMAIL DE CONFIRMACIÓN
+        </button>
+        <div id="resend-msg" style="display:none;margin-bottom:10px;">
+          <div class="msg-success"><p>Email reenviado correctamente. Revisa tu bandeja.</p></div>
+        </div>
+        <button class="auth-btn-ghost" onclick="showScreen('screen-shipping')">← VOLVER A LA TIENDA</button>
+        <div class="auth-hint">¿No ves el email? Revisa la carpeta de spam. El enlace expira en 24h.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 4: CUENTA VERIFICADA (post-confirmación)
+════════════════════════════════════════════════════ -->
+<div id="screen-success-reg" class="screen">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <h1>RHYTHM CONTROL</h1>
+        <p>BARCELONA</p>
+      </div>
+      <hr class="auth-separator">
+      <div class="auth-content">
+        <div class="auth-icon">✓</div>
+        <div class="auth-title">¡CUENTA VERIFICADA!</div>
+        <div class="auth-desc" style="color:#999;margin-bottom:24px;">
+          Tu email ha sido confirmado correctamente.<br>
+          Ya puedes acceder a tu cuenta.
+        </div>
+        <button class="auth-btn-primary" onclick="alert('→ Redirigiendo a /cuenta...')">
+          IR A MI CUENTA
+        </button>
+        <button class="auth-btn-ghost" onclick="showScreen('screen-shipping')">SEGUIR COMPRANDO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── NAVIGATION ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  const map = { 'screen-shipping': 0, 'screen-clientes': 1, 'screen-pendiente': 2, 'screen-success-reg': 3 }
+  const btns = document.querySelectorAll('.nav-btn')
+  if (map[id] !== undefined) btns[map[id]].classList.add('active')
+}
+
+// ── SHIPPING ──
+let currentRateId = 'r1'
+let rates = [
+  { id:'r1', name:'Envío Estándar Península', zone:'es_peninsula', method:'home_delivery', carrier:'Correos / SEUR', price:4.95, free_above:50, active:true },
+  { id:'r2', name:'Envío Express', zone:'es_peninsula', method:'home_delivery', carrier:'SEUR', price:9.95, free_above:80, active:true },
+  { id:'r3', name:'Recogida en Tienda', zone:'es_barcelona', method:'click_collect', carrier:'', price:0, free_above:null, active:false },
+  { id:'r4', name:'Europa', zone:'eu', method:'home_delivery', carrier:'DHL', price:12.00, free_above:100, active:true },
+]
+
+function selectRate(el, name, zone, method, carrier, price, free, methodVal, zoneVal, id) {
+  document.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'))
+  el.classList.add('active')
+  currentRateId = id
+  document.getElementById('form-edit').style.display = 'block'
+  document.getElementById('form-new').style.display = 'none'
+  document.getElementById('form-empty').style.display = 'none'
+  document.getElementById('detail-mode-label').textContent = 'EDITAR TARIFA'
+  document.getElementById('f-name').value = name
+  document.getElementById('f-price').value = price
+  document.getElementById('f-free').value = free
+  document.getElementById('f-carrier').value = carrier === '—' ? '' : carrier
+  document.getElementById('f-method').value = methodVal
+  document.getElementById('f-zone').value = zoneVal
+}
+
+function showNewForm() {
+  document.getElementById('form-edit').style.display = 'none'
+  document.getElementById('form-new').style.display = 'block'
+  document.getElementById('form-empty').style.display = 'none'
+  document.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'))
+  document.getElementById('fn-name').value = ''
+  document.getElementById('fn-price').value = ''
+  document.getElementById('fn-free').value = ''
+  document.getElementById('fn-carrier').value = ''
+}
+
+function cancelForm() {
+  document.getElementById('form-edit').style.display = 'none'
+  document.getElementById('form-empty').style.display = 'block'
+  document.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'))
+}
+
+function cancelNew() {
+  document.getElementById('form-new').style.display = 'none'
+  document.getElementById('form-edit').style.display = 'block'
+}
+
+function saveRate() {
+  const name = document.getElementById('f-name').value.trim()
+  const price = document.getElementById('f-price').value
+  if (!name || !price) {
+    document.getElementById('shipping-error').style.display = 'block'
+    setTimeout(() => document.getElementById('shipping-error').style.display = 'none', 3000)
+    return
+  }
+  document.getElementById('shipping-error').style.display = 'none'
+  // Update list item
+  const items = document.querySelectorAll('.list-item')
+  items.forEach(item => {
+    if (item.classList.contains('active')) {
+      item.querySelector('.list-item-name').textContent = name
+      item.querySelector('.list-item-price').textContent = parseFloat(price).toFixed(2).replace('.',',') + ' €'
+    }
+  })
+  showSuccess('shipping-success', 'Tarifa actualizada correctamente.')
+}
+
+function createRate() {
+  const name = document.getElementById('fn-name').value.trim()
+  const price = document.getElementById('fn-price').value
+  if (!name || !price) {
+    document.getElementById('shipping-error').style.display = 'block'
+    setTimeout(() => document.getElementById('shipping-error').style.display = 'none', 3000)
+    return
+  }
+  document.getElementById('shipping-error').style.display = 'none'
+  // Add to list
+  const list = document.getElementById('rate-list')
+  const zone = document.getElementById('fn-zone')
+  const zoneText = zone.options[zone.selectedIndex].text
+  const method = document.getElementById('fn-method')
+  const div = document.createElement('div')
+  div.className = 'list-item'
+  div.innerHTML = `
+    <div class="list-item-name">${name}</div>
+    <div class="list-item-sub">${zoneText} · ${method.options[method.selectedIndex].text}</div>
+    <div class="list-item-price">${parseFloat(price).toFixed(2).replace('.',',')} €</div>
+  `
+  div.onclick = function() { selectRate(div, name, zoneText, method.value, document.getElementById('fn-carrier').value, price, document.getElementById('fn-free').value, method.value, document.getElementById('fn-zone').value, 'r-new') }
+  list.appendChild(div)
+  const count = list.querySelectorAll('.list-item').length
+  document.getElementById('shipping-count').textContent = count + ' tarifas configuradas'
+  cancelNew()
+  showSuccess('shipping-success', 'Nueva tarifa creada correctamente.')
+}
+
+function deleteRate() {
+  if (!confirm('¿Eliminar esta tarifa?')) return
+  const items = document.querySelectorAll('.list-item')
+  items.forEach(item => { if (item.classList.contains('active')) item.remove() })
+  document.getElementById('form-edit').style.display = 'none'
+  document.getElementById('form-empty').style.display = 'block'
+  const count = document.querySelectorAll('.list-item').length
+  document.getElementById('shipping-count').textContent = count + ' tarifas configuradas'
+  showSuccess('shipping-success', 'Tarifa eliminada.')
+}
+
+// ── CLIENTES ──
+function openSlide(name, email, phone, address, city, postal, country) {
+  document.getElementById('slide-name').textContent = name
+  document.getElementById('slide-email').textContent = email
+  document.getElementById('slide-fullname').value = name
+  document.getElementById('slide-phone').value = phone
+  document.getElementById('slide-address').value = address
+  document.getElementById('slide-city').value = city
+  document.getElementById('slide-postal').value = postal
+  document.getElementById('slide-over').classList.add('open')
+}
+
+function closeSlide() {
+  document.getElementById('slide-over').classList.remove('open')
+}
+
+function saveCliente() {
+  const name = document.getElementById('slide-fullname').value.trim()
+  if (!name) return
+  // Update table row for maria (demo)
+  const row = document.getElementById('tr-maria')
+  if (row && document.getElementById('slide-email').textContent === 'maria.font@gmail.com') {
+    row.querySelector('td strong').textContent = name
+  }
+  closeSlide()
+  showSuccess('clientes-success', null)
+}
+
+function filterClientes(q) {
+  const rows = document.querySelectorAll('#clientes-tbody tr')
+  rows.forEach(row => {
+    const email = row.dataset.email || ''
+    const name = row.dataset.name || ''
+    row.style.display = (email.includes(q.toLowerCase()) || name.toLowerCase().includes(q.toLowerCase())) ? '' : 'none'
+  })
+}
+
+// ── REGISTRO PENDIENTE ──
+function simulateResend() {
+  const btn = document.getElementById('btn-resend')
+  btn.textContent = 'ENVIANDO...'
+  btn.classList.add('sending')
+  setTimeout(() => {
+    btn.textContent = 'REENVIAR EMAIL DE CONFIRMACIÓN'
+    btn.classList.remove('sending')
+    document.getElementById('resend-msg').style.display = 'block'
+    setTimeout(() => document.getElementById('resend-msg').style.display = 'none', 4000)
+  }, 1200)
+}
+
+// ── UTILS ──
+function showSuccess(id, text) {
+  const el = document.getElementById(id)
+  if (text) document.getElementById(id + '-text') && (document.getElementById(id + '-text').textContent = text)
+  el.style.display = 'block'
+  setTimeout(() => el.style.display = 'none', 3000)
+}
+</script>
+</body>
+</html>

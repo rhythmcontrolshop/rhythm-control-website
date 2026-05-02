@@ -1,0 +1,6 @@
+[mcp_servers.tenet]
+command = "tenet"
+args = ["serve"]
+
+[projects."/Users/isaac/Documents/ISAAC/VIBECODE/RHYTHMCONTROL/CODE/rhythm-control-website_v3"]
+trust_level = "trusted"

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mockup B — Panel Lateral / Split View</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; font-family: 'Courier New', monospace; color: #fff; padding: 24px; }
+.label { font-size: 10px; letter-spacing: 0.15em; color: #F0E040; margin-bottom: 4px; }
+.sublabel { font-size: 9px; color: #555; letter-spacing: 0.08em; margin-bottom: 24px; }
+.section { margin-bottom: 40px; }
+.section h2 { font-size: 10px; letter-spacing: 0.2em; color: #aaa; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 16px; }
+
+/* SHIPPING SPLIT */
+.split-container { display: flex; gap: 0; border: 1px solid #222; max-width: 800px; height: 380px; }
+.split-list { width: 280px; border-right: 1px solid #222; overflow-y: auto; flex-shrink: 0; }
+.split-list-header { padding: 12px 16px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+.split-list-title { font-size: 11px; letter-spacing: 0.1em; }
+.btn-new { background: none; border: 1px solid #F0E040; color: #F0E040; font-family: inherit; font-size: 9px; letter-spacing: 0.08em; padding: 4px 10px; cursor: pointer; }
+.list-item { padding: 12px 16px; border-bottom: 1px solid #111; cursor: pointer; transition: background 0.1s; }
+.list-item:hover { background: #111; }
+.list-item.selected { background: #F0E040; }
+.list-item.selected .item-name, .list-item.selected .item-zone { color: #000; }
+.list-item.selected .item-price { color: #000; }
+.item-name { font-size: 11px; margin-bottom: 3px; }
+.item-zone { font-size: 9px; color: #555; }
+.item-price { font-size: 10px; color: #F0E040; float: right; margin-top: -20px; }
+.split-detail { flex: 1; padding: 20px; overflow-y: auto; }
+.detail-title { font-size: 10px; letter-spacing: 0.12em; color: #aaa; margin-bottom: 16px; }
+.field-row { margin-bottom: 12px; }
+.field-row label { display: block; font-size: 9px; color: #555; letter-spacing: 0.08em; margin-bottom: 4px; }
+.field-row input, .field-row select { width: 100%; background: #000; border: 1px solid #222; color: #fff; font-family: inherit; font-size: 11px; padding: 8px 10px; outline: none; border-radius: 0; }
+.field-row input:focus, .field-row select:focus { border-color: #F0E040; }
+.field-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid #111; margin-top: 4px; }
+.toggle-label { font-size: 10px; color: #aaa; letter-spacing: 0.08em; }
+.toggle { width: 36px; height: 18px; background: #22c55e; border-radius: 9px; position: relative; cursor: pointer; }
+.toggle-dot { width: 14px; height: 14px; background: #000; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #111; }
+.btn-save { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 10px; padding: 8px 20px; cursor: pointer; font-weight: bold; letter-spacing: 0.08em; }
+.btn-delete { background: none; border: 1px solid #333; color: #666; font-family: inherit; font-size: 10px; padding: 8px 14px; cursor: pointer; letter-spacing: 0.06em; margin-left: auto; }
+
+/* CLIENTES SLIDE-OVER */
+.clientes-container { display: flex; gap: 0; border: 1px solid #222; max-width: 800px; height: 360px; }
+.clientes-table { flex: 1; overflow-y: auto; }
+.table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; padding: 10px 16px; background: #0a0a0a; border-bottom: 1px solid #111; font-size: 9px; letter-spacing: 0.1em; color: #555; }
+.table-row { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; padding: 10px 16px; border-bottom: 1px solid #0d0d0d; font-size: 10px; cursor: pointer; }
+.table-row:hover { background: #0d0d0d; }
+.table-row.active { background: #111; border-left: 2px solid #F0E040; }
+.table-email { color: #aaa; }
+.table-pedidos { color: #666; text-align: center; }
+.table-total { color: #F0E040; text-align: right; }
+.table-action { text-align: right; }
+.btn-edit { background: none; border: 1px solid #333; color: #666; font-family: inherit; font-size: 8px; padding: 3px 8px; cursor: pointer; letter-spacing: 0.06em; }
+.slide-panel { width: 280px; border-left: 1px solid #222; background: #050505; padding: 0; flex-shrink: 0; }
+.slide-header { padding: 12px 14px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+.slide-name { font-size: 11px; letter-spacing: 0.08em; }
+.slide-form { padding: 14px; }
+.sf-field { margin-bottom: 10px; }
+.sf-field label { display: block; font-size: 8px; color: #444; letter-spacing: 0.08em; margin-bottom: 3px; }
+.sf-field input { width: 100%; background: #000; border: 1px solid #1a1a1a; color: #fff; font-family: inherit; font-size: 10px; padding: 6px 8px; outline: none; }
+.sf-field input:focus { border-color: #F0E040; }
+.sf-readonly { font-size: 9px; color: #555; padding: 4px 0; }
+.slide-footer { padding: 10px 14px; border-top: 1px solid #111; display: flex; gap: 6px; }
+.sf-save { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 9px; padding: 7px 12px; cursor: pointer; font-weight: bold; flex: 1; letter-spacing: 0.06em; }
+.sf-cancel { background: none; border: 1px solid #222; color: #555; font-family: inherit; font-size: 9px; padding: 7px 10px; cursor: pointer; }
+
+/* REGISTRO PENDIENTE — variacion B */
+.pending-b { background: #000; max-width: 400px; border: 1px solid #222; padding: 0; }
+.pending-top { background: #000; padding: 32px 24px; border-bottom: 1px solid #111; }
+.rc-logo { font-size: 13px; letter-spacing: 0.15em; color: #F0E040; text-align: center; margin-bottom: 4px; }
+.rc-sub { font-size: 9px; color: #444; text-align: center; letter-spacing: 0.12em; }
+.pending-body { padding: 24px; }
+.step-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.step-num { width: 22px; height: 22px; border: 1px solid #F0E040; color: #F0E040; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-num.done { background: #F0E040; color: #000; }
+.step-text { font-size: 10px; color: #aaa; line-height: 1.5; padding-top: 3px; }
+.step-text strong { color: #fff; }
+.pending-email-b { font-size: 11px; color: #F0E040; text-align: center; margin: 16px 0; padding: 10px; border: 1px solid #222; }
+.btn-resend { background: none; border: 1px solid #F0E040; color: #F0E040; font-family: inherit; font-size: 10px; padding: 10px; width: 100%; cursor: pointer; letter-spacing: 0.1em; margin-bottom: 8px; }
+.btn-home { background: none; border: 1px solid #222; color: #555; font-family: inherit; font-size: 10px; padding: 10px; width: 100%; cursor: pointer; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+<div class="label">VARIACIÓN B — SPLIT VIEW / PANEL LATERAL</div>
+<div class="sublabel">LISTA + DETALLE LADO A LADO • SLIDE-OVER CLIENTES • PASOS DE CONFIRMACIÓN</div>
+
+<div class="section">
+  <h2>1 / SHIPPING RATES — SPLIT VIEW (lista izquierda + form derecha)</h2>
+  <div class="split-container">
+    <div class="split-list">
+      <div class="split-list-header">
+        <span class="split-list-title">TARIFAS</span>
+        <button class="btn-new">+ NUEVA</button>
+      </div>
+      <div class="list-item selected">
+        <div class="item-name">Envío Estándar</div>
+        <div class="item-zone">es_peninsula · standard</div>
+        <div class="item-price">4,95 €</div>
+      </div>
+      <div class="list-item">
+        <div class="item-name">Envío Express</div>
+        <div class="item-zone">es_peninsula · express</div>
+        <div class="item-price">9,95 €</div>
+      </div>
+      <div class="list-item">
+        <div class="item-name">Recogida Tienda</div>
+        <div class="item-zone">pickup · local</div>
+        <div class="item-price">0,00 €</div>
+      </div>
+      <div class="list-item">
+        <div class="item-name">Europa</div>
+        <div class="item-zone">europa · standard</div>
+        <div class="item-price">12,00 €</div>
+      </div>
+      <div class="list-item">
+        <div class="item-name">Internacional</div>
+        <div class="item-zone">mundo · standard</div>
+        <div class="item-price">18,00 €</div>
+      </div>
+    </div>
+    <div class="split-detail">
+      <div class="detail-title">EDITAR TARIFA</div>
+      <div class="field-row"><label>NOMBRE *</label><input value="Envío Estándar Península"></div>
+      <div class="field-2col">
+        <div class="field-row"><label>PRECIO (€) *</label><input type="number" value="4.95"></div>
+        <div class="field-row"><label>GRATIS DESDE (€)</label><input type="number" value="50"></div>
+      </div>
+      <div class="field-2col">
+        <div class="field-row"><label>MÉTODO *</label><select><option selected>standard</option><option>express</option><option>pickup</option></select></div>
+        <div class="field-row"><label>ZONA</label><select><option selected>es_peninsula</option><option>es_islas</option><option>europa</option><option>mundo</option></select></div>
+      </div>
+      <div class="field-row"><label>TRANSPORTISTA</label><input value="Correos / SEUR"></div>
+      <div class="toggle-row">
+        <span class="toggle-label">TARIFA ACTIVA</span>
+        <div class="toggle"><div class="toggle-dot"></div></div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn-save">GUARDAR</button>
+        <button class="btn-delete">ELIMINAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>2 / CLIENTES — TABLA + SLIDE-OVER</h2>
+  <div class="clientes-container">
+    <div class="clientes-table">
+      <div class="table-header">
+        <span>CLIENTE</span>
+        <span style="text-align:center">PEDIDOS</span>
+        <span style="text-align:right">TOTAL</span>
+        <span></span>
+      </div>
+      <div class="table-row">
+        <div class="table-email">carlos.ruiz@gmail.com</div>
+        <div class="table-pedidos">3</div>
+        <div class="table-total">87,50 €</div>
+        <div class="table-action"><button class="btn-edit">EDITAR</button></div>
+      </div>
+      <div class="table-row active">
+        <div class="table-email">maria.font@gmail.com</div>
+        <div class="table-pedidos">7</div>
+        <div class="table-total">312,40 €</div>
+        <div class="table-action"><button class="btn-edit">EDITAR</button></div>
+      </div>
+      <div class="table-row">
+        <div class="table-email">alex.vidal@hotmail.com</div>
+        <div class="table-pedidos">1</div>
+        <div class="table-total">24,95 €</div>
+        <div class="table-action"><button class="btn-edit">EDITAR</button></div>
+      </div>
+      <div class="table-row">
+        <div class="table-email">jordi.mas@outlook.com</div>
+        <div class="table-pedidos">12</div>
+        <div class="table-total">543,20 €</div>
+        <div class="table-action"><button class="btn-edit">EDITAR</button></div>
+      </div>
+      <div class="table-row">
+        <div class="table-email">laura.puig@gmail.com</div>
+        <div class="table-pedidos">2</div>
+        <div class="table-total">49,90 €</div>
+        <div class="table-action"><button class="btn-edit">EDITAR</button></div>
+      </div>
+    </div>
+    <div class="slide-panel">
+      <div class="slide-header">
+        <span class="slide-name">MARIA FONT</span>
+        <span style="font-size:9px;color:#555;cursor:pointer;">✕</span>
+      </div>
+      <div class="slide-form">
+        <div class="sf-field"><label>EMAIL</label><div class="sf-readonly">maria.font@gmail.com</div></div>
+        <div class="sf-field"><label>NOMBRE COMPLETO</label><input value="Maria Font Ribas"></div>
+        <div class="sf-field"><label>TELÉFONO</label><input value="677 234 567"></div>
+        <div class="sf-field"><label>DIRECCIÓN</label><input value="C/ Provença 123, 4o 2a"></div>
+        <div class="sf-field"><label>CIUDAD</label><input value="Barcelona"></div>
+        <div class="sf-field"><label>COD. POSTAL</label><input value="08036"></div>
+      </div>
+      <div class="slide-footer">
+        <button class="sf-save">GUARDAR</button>
+        <button class="sf-cancel">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>3 / REGISTRO PENDIENTE — CON PASOS VISUALES</h2>
+  <div class="pending-b">
+    <div class="pending-top">
+      <div class="rc-logo">RHYTHM CONTROL</div>
+      <div class="rc-sub">BARCELONA</div>
+    </div>
+    <div class="pending-body">
+      <div class="step-row">
+        <div class="step-num done">1</div>
+        <div class="step-text"><strong>Cuenta creada</strong><br>Registro completado correctamente.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Confirma tu email</strong><br>Hemos enviado un enlace a:</div>
+      </div>
+      <div class="pending-email-b">carlos.nuevo@gmail.com</div>
+      <div class="step-row" style="opacity:0.4">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Accede a tu cuenta</strong><br>Tras confirmar, podrás iniciar sesión.</div>
+      </div>
+      <button class="btn-resend">REENVIAR EMAIL DE CONFIRMACIÓN</button>
+      <button class="btn-home">← VOLVER AL INICIO</button>
+      <div style="font-size:9px;color:#333;margin-top:12px;text-align:center;">Revisa también la carpeta de spam</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

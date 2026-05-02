@@ -1,0 +1,184 @@
+/* ============================================================
+   RHYTHM CONTROL — GLOBALS
+   ============================================================ */
+
+@import "../styles/variables.css";
+@import "tailwindcss";
+
+
+/* ── MAP TOKENS → TAILWIND v4 @THEME ──────────────────────── */
+
+@theme inline {
+  --color-background:  var(--rc-color-bg);
+  --color-foreground:  var(--rc-color-text);
+  --color-accent:      var(--rc-color-accent);
+  --color-separator:   var(--rc-color-separator);
+
+  --font-display:      var(--rc-font-display);
+  --font-mono:         var(--rc-font-mono);
+
+  --radius:    0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-full: 0;
+}
+
+
+/* ── RESET GLOBAL ───────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* E5-9: border-radius:0 solo para layout, no para inputs/buttons (touch-friendly) */
+html, body, div, section, article, aside, main, nav, footer, header,
+h1, h2, h3, h4, h5, h6, p, ul, ol, li, dl, dt, dd,
+table, thead, tbody, tr, th, td, img, figure, figcaption {
+  border-radius: 0;
+}
+
+html {
+  background-color: var(--rc-color-bg);
+  color: var(--rc-color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--rc-color-bg);
+  color: var(--rc-color-text);
+  font-family: var(--rc-font-mono);
+  font-weight: var(--rc-font-mono-weight, 500);
+  font-size: var(--rc-text-sm);
+  letter-spacing: var(--rc-tracking-mono);
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+
+/* ── TIPOGRAFÍA ────────────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--rc-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--rc-tracking-display);
+}
+
+.font-meta {
+  font-family: var(--rc-font-mono);
+  font-weight: var(--rc-font-mono-weight, 500);
+  letter-spacing: var(--rc-tracking-mono);
+}
+
+
+/* ── SEPARADORES ───────────────────────────────────────────── */
+
+.separator {
+  border: none;
+  border-top: var(--rc-border-main);
+}
+
+.separator-card {
+  border: none;
+  border-top: var(--rc-border-card);
+}
+
+
+/* ── MARQUEE SCROLL ────────────────────────────────────────── */
+
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Global marquee: always running (hero, etc.) */
+.marquee-content {
+  display: inline-block;
+  animation: marquee 15s linear infinite;
+}
+
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Marquee scroll keyframe — now injected inline per-component for correct unit calculation */
+
+
+/* ── SCROLLBAR ─────────────────────────────────────────────── */
+
+/* ── SPINNING LOADER ────────────────────────────────────────── */
+
+@keyframes rc-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.rc-loader-spin {
+  animation: rc-spin 1.2s linear infinite;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--rc-color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rc-color-text);
+}
+
+
+/* ── FOCUS ─────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--rc-color-accent);
+  outline-offset: 2px;
+}
+
+
+/* ── LAYOUT BASE ───────────────────────────────────────────── */
+
+.page-content {
+  padding-top: var(--rc-nav-height);
+  padding-bottom: var(--rc-player-height);
+}
+
+
+/* ── NAV TAB HOVER — RC identity: amarillo #F0E040 ──────────── */
+
+.nav-tab-default:hover,
+.nav-tab-default:active {
+  background-color: #F0E040 !important;
+  color: #000000 !important;
+}
+
+
+/* ── REDUCED MOTION (E3-25) ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .marquee-content {
+    animation: none !important;
+  }
+}

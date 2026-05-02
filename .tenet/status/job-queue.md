@@ -1,0 +1,41 @@
+# Job Queue
+
+Updated: 2026-05-02T11:47:50.461Z
+
+- [x] eval-monattxe
+- [x] eval-monaz31e
+- [x] eval-monc19m7
+- [x] eval-monc3egr
+- [x] eval-moncacsg
+- [x] eval-moncd8er
+- [x] eval-moncgld2
+- [x] eval-moncjz3e
+- [x] eval-moncocpc
+- [x] eval-moncs17r
+- [x] eval-mond1oa0
+- [x] eval-monxpnea
+- [x] Auth Callback + Registro Pendiente/Confirmado (E0)
+- [x] Login Error States (E1)
+- [x] Fix Resend Configuration (E2)
+- [x] Admin Shipping Split View (E3)
+- [x] Admin Clientes Slide-Over + PATCH /api/admin/users (E4)
+- [ ] Smoke Verify /admin/ajustes (E5)
+- [x] code_critic for e98291d6
+- [x] test_critic for e98291d6
+- [x] playwright_eval for e98291d6
+- [x] code_critic for 30a485ee
+- [x] test_critic for 30a485ee
+- [x] playwright_eval for 30a485ee
+- [x] code_critic for 9c0f2c31
+- [x] test_critic for 9c0f2c31
+- [!] playwright_eval for 9c0f2c31 !! claude exited with code 1
+- [x] code_critic for e0800594
+- [x] test_critic for e0800594
+- [!] playwright_eval for e0800594 !! claude exited with code 1
+- [!] test-fix-E1-login-errors !! claude exited with code 1
+- [!] test-fix-E2-resend !! claude exited with code 1
+- [!] test-fix-E3-shipping !! claude exited with code 1
+- [!] test-fix-E4-clientes !! claude exited with code 1
+- [!] code_critic for f30ed45a !! claude exited with code 1
+- [ ] test_critic for f30ed45a
+- [ ] playwright_eval for f30ed45a

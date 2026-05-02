@@ -1,0 +1,30 @@
+import { createClient } from '@/lib/supabase/server'
+import UpdateProfileForm from './UpdateProfileForm'
+import ShippingAddressForm from './ShippingAddressForm'
+
+export default async function DatosPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase
+    .from('profiles').select('*').eq('id', user!.id).single()
+
+  return (
+    <div className="p-6 md:p-10 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <a href="/cuenta" className="font-meta text-xs" style={{ color: '#F0E040', textDecoration: 'none' }}>← CUENTA</a>
+      </div>
+      <h1 className="font-display text-3xl mb-10" style={{ color: '#FFFFFF' }}>MIS DATOS</h1>
+      <div className="space-y-8">
+        <section>
+          <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>DATOS PERSONALES</p>
+          <UpdateProfileForm profile={profile} />
+        </section>
+        <hr style={{ border: 'none', borderTop: '1px solid #333' }} />
+        <section>
+          <p className="font-meta text-xs mb-4" style={{ color: '#FFFFFF' }}>DIRECCIÓN DE ENVÍO</p>
+          <ShippingAddressForm profile={profile} />
+        </section>
+      </div>
+    </div>
+  )
+}

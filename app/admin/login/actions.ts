@@ -1,0 +1,40 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect }       from 'next/navigation'
+import { createClient }   from '@/lib/supabase/server'
+
+export async function login(formData: FormData) {
+  const supabase = await createClient()
+
+  const email    = ((formData.get('email')    as string) ?? '').trim()
+  const password =  (formData.get('password') as string) ?? ''
+
+  if (!email || !password) redirect('/admin/login?error=campos-requeridos')
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) redirect('/admin/login?error=credenciales-incorrectas')
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/admin/login?error=credenciales-incorrectas')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'admin') {
+    await supabase.auth.signOut()
+    redirect('/admin/login?error=sin-permisos')
+  }
+
+  revalidatePath('/admin', 'layout')
+  redirect('/admin')
+}
+
+export async function logout() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect('/admin/login')
+}

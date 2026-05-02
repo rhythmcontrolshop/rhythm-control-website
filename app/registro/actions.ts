@@ -1,0 +1,55 @@
+'use server'
+
+import { redirect }       from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import { createClient }   from '@/lib/supabase/server'
+import { sendWelcomeEmail } from '@/lib/resend'
+
+export async function registerCustomer(formData: FormData) {
+  const supabase = await createClient()
+
+  const email    = ((formData.get('email')    as string) ?? '').trim()
+  const password =  (formData.get('password') as string) ?? ''
+  const username = ((formData.get('username') as string) ?? '').trim() || null
+
+  if (!email || !password) redirect('/registro?error=campos-requeridos')
+  if (password.length < 8) redirect('/registro?error=password-corto')
+  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+    redirect('/registro?error=password-debil')
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username,
+      }
+    }
+  })
+
+  if (error) {
+    if (error.message.includes('already registered')) {
+      redirect('/registro?error=email-existe')
+    }
+    redirect('/registro?error=unknown')
+  }
+
+  // El trigger en Supabase crea el perfil automáticamente
+
+  if (data.user?.email_confirmed_at) {
+    // Email ya confirmado (confirmación deshabilitada en Supabase o proveedor OAuth)
+    const displayName = username || email.split('@')[0]
+    sendWelcomeEmail({
+      customerName: displayName,
+      customerEmail: email,
+    }).catch(err => {
+      console.error('Welcome email failed (non-blocking):', err)
+    })
+    revalidatePath('/', 'layout')
+    redirect('/cuenta?welcome=true')
+  }
+
+  // Confirmación de email pendiente
+  redirect(`/registro/pendiente?email=${encodeURIComponent(email)}`)
+}

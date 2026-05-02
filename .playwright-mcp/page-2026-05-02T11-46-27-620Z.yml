@@ -1,0 +1,30 @@
+- generic [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "RHYTHM CONTROL" [level=1] [ref=e15]
+        - paragraph [ref=e16]: MI CUENTA
+      - separator [ref=e17]
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: EMAIL
+          - textbox "tu@email.com" [active] [ref=e21]: user@example.com
+        - generic [ref=e22]:
+          - generic [ref=e23]: CONTRASEÑA
+          - generic [ref=e24]:
+            - textbox "••••••••" [ref=e25]
+            - button [ref=e26]:
+              - img [ref=e27]
+        - generic [ref=e30]:
+          - paragraph [ref=e31]: Por favor confirma tu email antes de iniciar sesión.
+          - link "REENVIAR EMAIL" [ref=e32] [cursor=pointer]:
+            - /url: /registro/pendiente?email=user%40example.com
+        - button "ENTRAR" [ref=e33]
+      - generic [ref=e34]:
+        - link "¿No tienes cuenta? Regístrate" [ref=e35] [cursor=pointer]:
+          - /url: /registro
+        - link "¿Has olvidado tu contraseña?" [ref=e36] [cursor=pointer]:
+          - /url: /recuperar

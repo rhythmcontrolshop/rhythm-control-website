@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mockup A — Minimalista / Inline</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; font-family: 'Courier New', monospace; color: #fff; padding: 24px; }
+.label { font-size: 10px; letter-spacing: 0.15em; color: #F0E040; margin-bottom: 4px; }
+.sublabel { font-size: 9px; color: #555; letter-spacing: 0.08em; margin-bottom: 24px; }
+.section { margin-bottom: 40px; }
+.section h2 { font-size: 10px; letter-spacing: 0.2em; color: #aaa; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 16px; }
+/* SHIPPING FORM */
+.shipping-page { background: #000; border: 1px solid #222; max-width: 700px; padding: 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 12px; margin-bottom: 20px; }
+.page-title { font-size: 16px; font-weight: bold; letter-spacing: 0.1em; }
+.btn-add { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 10px; letter-spacing: 0.1em; padding: 8px 16px; cursor: pointer; font-weight: bold; }
+.rate-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #111; }
+.rate-name { flex: 1; font-size: 12px; }
+.rate-zone { font-size: 10px; color: #666; width: 100px; }
+.rate-price { font-size: 12px; color: #F0E040; width: 70px; text-align: right; }
+.rate-status { font-size: 9px; letter-spacing: 0.08em; padding: 2px 6px; border: 1px solid #333; color: #666; width: 70px; text-align: center; }
+.rate-status.active { border-color: #22c55e; color: #22c55e; }
+.rate-actions { display: flex; gap: 6px; }
+.btn-sm { font-family: inherit; font-size: 9px; letter-spacing: 0.06em; padding: 4px 8px; background: none; cursor: pointer; border: 1px solid #333; color: #aaa; }
+.btn-sm:hover { border-color: #666; color: #fff; }
+.btn-sm.danger { border-color: #555; color: #666; }
+/* INLINE FORM (add/edit) */
+.inline-form { background: #111; border: 1px solid #F0E040; padding: 16px; margin-top: 8px; margin-bottom: 8px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.form-field label { display: block; font-size: 9px; letter-spacing: 0.1em; color: #666; margin-bottom: 4px; }
+.form-field input, .form-field select { width: 100%; background: #000; border: 1px solid #333; color: #fff; font-family: inherit; font-size: 11px; padding: 6px 8px; outline: none; }
+.form-field input:focus, .form-field select:focus { border-color: #F0E040; }
+.form-actions { display: flex; gap: 8px; }
+.btn-save { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 10px; padding: 7px 16px; cursor: pointer; font-weight: bold; letter-spacing: 0.08em; }
+.btn-cancel { background: none; border: 1px solid #333; color: #666; font-family: inherit; font-size: 10px; padding: 7px 16px; cursor: pointer; letter-spacing: 0.08em; }
+/* CLIENTE MODAL */
+.modal-overlay { background: rgba(0,0,0,0.85); border: 1px solid #222; max-width: 420px; padding: 24px; }
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px; }
+.modal-title { font-size: 12px; letter-spacing: 0.1em; }
+.modal-meta { font-size: 9px; color: #555; margin-top: 2px; }
+.btn-close { background: none; border: none; color: #555; font-family: inherit; font-size: 14px; cursor: pointer; }
+.modal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-form .full { grid-column: 1 / -1; }
+.field-group label { display: block; font-size: 9px; color: #555; letter-spacing: 0.08em; margin-bottom: 4px; }
+.field-group input { width: 100%; background: #000; border: 1px solid #333; color: #fff; font-family: inherit; font-size: 11px; padding: 7px 8px; outline: none; }
+.field-group input:focus { border-color: #F0E040; }
+.field-readonly { font-size: 10px; color: #666; padding: 7px 0; }
+.modal-footer { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #111; }
+/* REGISTRO PENDIENTE */
+.pending-page { background: #000; max-width: 380px; margin: 0 auto; padding: 40px 24px; text-align: center; }
+.pending-icon { width: 48px; height: 48px; border: 2px solid #F0E040; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 20px; }
+.pending-title { font-size: 18px; font-weight: bold; letter-spacing: 0.08em; margin-bottom: 8px; }
+.pending-sub { font-size: 11px; color: #666; line-height: 1.6; margin-bottom: 24px; }
+.pending-email { font-size: 11px; color: #F0E040; margin-bottom: 24px; }
+.btn-primary { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 11px; padding: 12px 24px; cursor: pointer; font-weight: bold; letter-spacing: 0.1em; width: 100%; margin-bottom: 8px; }
+.btn-secondary { background: none; border: 1px solid #333; color: #666; font-family: inherit; font-size: 10px; padding: 10px 24px; cursor: pointer; letter-spacing: 0.08em; width: 100%; }
+hr.sep { border: none; border-top: 1px solid #111; margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="label">VARIACIÓN A — MINIMALISTA / INLINE FORMS</div>
+<div class="sublabel">TABLAS CON EDICIÓN INLINE • MODAL LATERAL • PÁGINA CONFIRMACIÓN LIMPIA</div>
+
+<div class="section">
+  <h2>1 / SHIPPING RATES — FORMA DE EDICIÓN INLINE</h2>
+  <div class="shipping-page">
+    <div class="page-header">
+      <div class="page-title">TARIFAS DE ENVÍO</div>
+      <button class="btn-add">+ NUEVA TARIFA</button>
+    </div>
+
+    <!-- Inline add form (shown when + clicked) -->
+    <div class="inline-form">
+      <div style="font-size:9px;letter-spacing:0.1em;color:#F0E040;margin-bottom:10px;">NUEVA TARIFA</div>
+      <div class="form-grid">
+        <div class="form-field"><label>NOMBRE *</label><input placeholder="Envío Estándar" value=""></div>
+        <div class="form-field"><label>MÉTODO *</label><select><option>standard</option><option>express</option><option>pickup</option></select></div>
+        <div class="form-field"><label>PRECIO (€) *</label><input type="number" placeholder="4.95" value=""></div>
+        <div class="form-field"><label>ZONA</label><select><option>es_peninsula</option><option>es_islas</option><option>europa</option><option>mundo</option></select></div>
+        <div class="form-field"><label>GRATIS DESDE (€)</label><input type="number" placeholder="50" value=""></div>
+        <div class="form-field"><label>TRANSPORTISTA</label><input placeholder="Correos, SEUR..." value=""></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save">GUARDAR</button>
+        <button class="btn-cancel">CANCELAR</button>
+      </div>
+    </div>
+
+    <!-- Existing rates -->
+    <div class="rate-row">
+      <div class="rate-name">Envío Estándar Península</div>
+      <div class="rate-zone">es_peninsula</div>
+      <div class="rate-price">4,95 €</div>
+      <div class="rate-status active">ACTIVO</div>
+      <div class="rate-actions">
+        <button class="btn-sm">EDITAR</button>
+        <button class="btn-sm danger">✕</button>
+      </div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-name">Envío Express</div>
+      <div class="rate-zone">es_peninsula</div>
+      <div class="rate-price">9,95 €</div>
+      <div class="rate-status active">ACTIVO</div>
+      <div class="rate-actions">
+        <button class="btn-sm">EDITAR</button>
+        <button class="btn-sm danger">✕</button>
+      </div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-name">Recogida en Tienda</div>
+      <div class="rate-zone">pickup</div>
+      <div class="rate-price">0,00 €</div>
+      <div class="rate-status">INACTIVO</div>
+      <div class="rate-actions">
+        <button class="btn-sm">EDITAR</button>
+        <button class="btn-sm danger">✕</button>
+      </div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-name">Europa</div>
+      <div class="rate-zone">europa</div>
+      <div class="rate-price">12,00 €</div>
+      <div class="rate-status active">ACTIVO</div>
+      <div class="rate-actions">
+        <button class="btn-sm">EDITAR</button>
+        <button class="btn-sm danger">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>2 / CLIENTES — MODAL DE EDICIÓN</h2>
+  <div style="display:flex;gap:20px;align-items:flex-start;">
+    <!-- Simulated list behind -->
+    <div style="background:#000;border:1px solid #222;padding:16px;width:280px;opacity:0.4;">
+      <div style="font-size:10px;letter-spacing:0.1em;border-bottom:1px solid #111;padding-bottom:8px;margin-bottom:12px;">CLIENTES — 347 registrados</div>
+      <div style="font-size:10px;padding:8px 0;border-bottom:1px solid #111;color:#aaa;display:flex;justify-content:space-between;"><span>carlos.ruiz@gmail.com</span><span style="color:#555;">3 pedidos</span></div>
+      <div style="font-size:10px;padding:8px 0;border-bottom:1px solid #111;background:#F0E040;color:#000;padding:8px;margin:-0px -0px;"><span>maria.font@gmail.com</span><span style="float:right;color:#666;">7 pedidos</span></div>
+      <div style="font-size:10px;padding:8px 0;border-bottom:1px solid #111;color:#aaa;display:flex;justify-content:space-between;"><span>alex.vidal@hotmail.com</span><span style="color:#555;">1 pedido</span></div>
+    </div>
+    <!-- Modal -->
+    <div class="modal-overlay">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">MARIA FONT</div>
+          <div class="modal-meta">maria.font@gmail.com · cliente desde 12/2024 · 7 pedidos · 312,40 €</div>
+        </div>
+        <button class="btn-close">✕</button>
+      </div>
+      <div class="modal-form">
+        <div class="field-group full"><label>EMAIL (solo lectura)</label><div class="field-readonly">maria.font@gmail.com</div></div>
+        <div class="field-group"><label>NOMBRE</label><input value="Maria Font"></div>
+        <div class="field-group"><label>TELÉFONO</label><input value="677 234 567"></div>
+        <div class="field-group full"><label>DIRECCIÓN</label><input value="C/ Provença 123, 4o 2a"></div>
+        <div class="field-group"><label>CIUDAD</label><input value="Barcelona"></div>
+        <div class="field-group"><label>CÓDIGO POSTAL</label><input value="08036"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-save" style="flex:1;">GUARDAR CAMBIOS</button>
+        <button class="btn-cancel">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>3 / REGISTRO — PÁGINA CONFIRMACIÓN PENDIENTE</h2>
+  <div class="pending-page" style="border:1px solid #222;">
+    <div class="pending-icon">✉</div>
+    <div class="pending-title">REVISA TU EMAIL</div>
+    <div class="pending-sub">Hemos enviado un enlace de confirmación a</div>
+    <div class="pending-email">carlos.nuevo@gmail.com</div>
+    <div class="pending-sub">Haz clic en el enlace para activar tu cuenta.<br>El enlace expira en 24 horas.</div>
+    <button class="btn-primary">REENVIAR EMAIL</button>
+    <button class="btn-secondary">← VOLVER AL INICIO</button>
+    <div style="font-size:9px;color:#444;margin-top:16px;">¿No lo ves? Revisa la carpeta de spam o correo no deseado.</div>
+  </div>
+</div>
+</body>
+</html>

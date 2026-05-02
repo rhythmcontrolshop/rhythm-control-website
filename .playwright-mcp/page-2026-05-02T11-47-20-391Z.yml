@@ -1,0 +1,121 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "/ ADMIN" [ref=e6] [cursor=pointer]:
+        - /url: /admin
+        - img [ref=e7]
+        - generic [ref=e22]: / ADMIN
+      - generic [ref=e23]:
+        - link "VER TIENDA →" [ref=e24] [cursor=pointer]:
+          - /url: /
+        - button "SALIR" [ref=e26]
+    - complementary [ref=e27]:
+      - navigation [ref=e28]:
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: GENERAL
+          - link "◉ Dashboard" [ref=e31] [cursor=pointer]:
+            - /url: /admin
+            - generic [ref=e32]: ◉
+            - generic [ref=e33]: Dashboard
+        - generic [ref=e34]:
+          - paragraph [ref=e35]: CATÁLOGO
+          - link "◼ Inventario" [ref=e36] [cursor=pointer]:
+            - /url: /admin/inventory
+            - generic [ref=e37]: ◼
+            - generic [ref=e38]: Inventario
+          - link "€ Precios" [ref=e39] [cursor=pointer]:
+            - /url: /admin/pricing
+            - generic [ref=e40]: €
+            - generic [ref=e41]: Precios
+          - link "⌨ Códigos" [ref=e42] [cursor=pointer]:
+            - /url: /admin/codigos
+            - generic [ref=e43]: ⌨
+            - generic [ref=e44]: Códigos
+          - link "↔ Discogs" [ref=e45] [cursor=pointer]:
+            - /url: /admin/discogs
+            - generic [ref=e46]: ↔
+            - generic [ref=e47]: Discogs
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: VENTA
+          - link "⏐ Guardi" [ref=e50] [cursor=pointer]:
+            - /url: /admin/guardi
+            - generic [ref=e51]: ⏐
+            - generic [ref=e52]: Guardi
+          - link "☐ Pedidos" [ref=e53] [cursor=pointer]:
+            - /url: /admin/pedidos
+            - generic [ref=e54]: ☐
+            - generic [ref=e55]: Pedidos
+          - link "✎ Facturas" [ref=e56] [cursor=pointer]:
+            - /url: /admin/facturas
+            - generic [ref=e57]: ✎
+            - generic [ref=e58]: Facturas
+          - link "→ Envíos" [ref=e59] [cursor=pointer]:
+            - /url: /admin/shipping
+            - generic [ref=e60]: →
+            - generic [ref=e61]: Envíos
+          - link "☺ Clientes" [ref=e62] [cursor=pointer]:
+            - /url: /admin/clientes
+            - generic [ref=e63]: ☺
+            - generic [ref=e64]: Clientes
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: TIENDA
+          - link "◷ Agenda" [ref=e67] [cursor=pointer]:
+            - /url: /admin/agenda
+            - generic [ref=e68]: ◷
+            - generic [ref=e69]: Agenda
+          - link "◇ Equipo" [ref=e70] [cursor=pointer]:
+            - /url: /admin/equipo
+            - generic [ref=e71]: ◇
+            - generic [ref=e72]: Equipo
+          - link "⚙ Ajustes" [ref=e73] [cursor=pointer]:
+            - /url: /admin/ajustes
+            - generic [ref=e74]: ⚙
+            - generic [ref=e75]: Ajustes
+    - main [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - link "← VOLVER" [ref=e79] [cursor=pointer]:
+            - /url: /admin
+          - heading "TARIFAS DE ENVÍO" [level=1] [ref=e80]
+          - paragraph [ref=e81]: 0 tarifas
+        - paragraph [ref=e101]: Error al cargar tarifas
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - button "+ NUEVA TARIFA" [active] [ref=e85] [cursor=pointer]
+            - paragraph [ref=e86]: No hay tarifas configuradas.
+          - generic [ref=e88]:
+            - heading "NUEVA TARIFA" [level=2] [ref=e102]
+            - generic [ref=e103]:
+              - generic [ref=e104]:
+                - generic [ref=e105]: NOMBRE *
+                - 'textbox "Ej: Estándar Península" [ref=e106]'
+              - generic [ref=e107]:
+                - generic [ref=e108]: PRECIO (€) *
+                - spinbutton [ref=e109]
+              - generic [ref=e110]:
+                - generic [ref=e111]: MÉTODO *
+                - combobox [ref=e112]:
+                  - option "Domicilio" [selected]
+                  - option "Recogida"
+              - generic [ref=e113]:
+                - generic [ref=e114]: ZONA
+                - combobox [ref=e115]:
+                  - option "España Península" [selected]
+                  - option "Canarias"
+                  - option "Baleares"
+                  - option "Internacional"
+              - generic [ref=e116]:
+                - generic [ref=e117]: TRANSPORTISTA
+                - 'textbox "Ej: Correos, SEUR..." [ref=e118]'
+              - generic [ref=e119]:
+                - generic [ref=e120]: ENVÍO GRATIS DESDE (€)
+                - spinbutton [ref=e121]
+              - generic [ref=e122]:
+                - checkbox "ACTIVA" [checked] [ref=e123] [cursor=pointer]
+                - generic [ref=e124] [cursor=pointer]: ACTIVA
+            - generic [ref=e125]:
+              - button "CREAR TARIFA" [ref=e126] [cursor=pointer]
+              - button "CANCELAR" [ref=e127] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e95] [cursor=pointer]:
+    - img [ref=e96]
+  - alert [ref=e99]

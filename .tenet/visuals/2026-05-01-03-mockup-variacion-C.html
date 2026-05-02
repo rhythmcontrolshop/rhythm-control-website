@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mockup C — Cards / Alta Densidad</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; font-family: 'Courier New', monospace; color: #fff; padding: 24px; }
+.label { font-size: 10px; letter-spacing: 0.15em; color: #F0E040; margin-bottom: 4px; }
+.sublabel { font-size: 9px; color: #555; letter-spacing: 0.08em; margin-bottom: 24px; }
+.section { margin-bottom: 40px; }
+.section h2 { font-size: 10px; letter-spacing: 0.2em; color: #aaa; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 16px; }
+
+/* SHIPPING CARDS */
+.shipping-wrap { max-width: 780px; }
+.shipping-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.shipping-title { font-size: 14px; letter-spacing: 0.1em; font-weight: bold; }
+.shipping-stats { font-size: 9px; color: #555; }
+.btn-add-card { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 10px; padding: 8px 18px; cursor: pointer; font-weight: bold; letter-spacing: 0.08em; }
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.rate-card { background: #0d0d0d; border: 1px solid #1a1a1a; padding: 14px; position: relative; transition: border-color 0.15s; }
+.rate-card:hover { border-color: #333; }
+.rate-card.active-card { border-color: #333; }
+.rate-card.editing { border-color: #F0E040; }
+.card-badge { position: absolute; top: 10px; right: 10px; font-size: 8px; letter-spacing: 0.06em; padding: 2px 6px; }
+.card-badge.on { background: #052e0a; color: #22c55e; }
+.card-badge.off { background: #1a0a0a; color: #ef4444; }
+.card-name { font-size: 12px; font-weight: bold; margin-bottom: 4px; letter-spacing: 0.04em; }
+.card-zone { font-size: 9px; color: #555; letter-spacing: 0.06em; margin-bottom: 10px; }
+.card-price { font-size: 20px; color: #F0E040; font-weight: bold; margin-bottom: 4px; }
+.card-free { font-size: 9px; color: #444; }
+.card-carrier { font-size: 9px; color: #444; margin-top: 6px; }
+.card-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #111; }
+.cta-edit { flex: 1; background: none; border: 1px solid #333; color: #aaa; font-family: inherit; font-size: 9px; padding: 5px; cursor: pointer; letter-spacing: 0.06em; }
+.cta-del { background: none; border: 1px solid #1a1a1a; color: #444; font-family: inherit; font-size: 9px; padding: 5px 8px; cursor: pointer; }
+/* Edit card (inline) */
+.rate-card.editing .card-edit-form { display: block; }
+.card-edit-form { display: none; }
+.ef-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.ef-field { flex: 1; }
+.ef-field label { display: block; font-size: 8px; color: #555; margin-bottom: 3px; }
+.ef-field input, .ef-field select { width: 100%; background: #000; border: 1px solid #222; color: #fff; font-family: inherit; font-size: 10px; padding: 5px 7px; outline: none; }
+.ef-field input:focus, .ef-field select:focus { border-color: #F0E040; }
+.ef-actions { display: flex; gap: 6px; }
+.ef-save { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 9px; padding: 6px 12px; cursor: pointer; font-weight: bold; flex: 1; }
+.ef-cancel { background: none; border: 1px solid #222; color: #555; font-family: inherit; font-size: 9px; padding: 6px 10px; cursor: pointer; }
+
+/* CLIENTES — CARDS + EXPANDABLE */
+.cliente-list { max-width: 680px; }
+.cliente-search { display: flex; gap: 10px; margin-bottom: 14px; }
+.search-input { flex: 1; background: #000; border: 1px solid #222; color: #fff; font-family: inherit; font-size: 11px; padding: 9px 12px; outline: none; }
+.search-input:focus { border-color: #F0E040; }
+.cliente-card { background: #0d0d0d; border: 1px solid #111; margin-bottom: 6px; }
+.cliente-card-header { display: flex; align-items: center; padding: 12px 14px; cursor: pointer; gap: 12px; }
+.cliente-avatar { width: 30px; height: 30px; background: #1a1a1a; border: 1px solid #222; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.cliente-info { flex: 1; }
+.ci-email { font-size: 10px; color: #aaa; }
+.ci-name { font-size: 11px; margin-bottom: 1px; }
+.ci-stats { font-size: 9px; color: #555; }
+.cliente-badge { font-size: 9px; color: #F0E040; padding: 2px 8px; border: 1px solid #333; }
+.chevron { color: #444; font-size: 10px; transition: transform 0.15s; }
+.chevron.open { transform: rotate(180deg); }
+.cliente-expanded { border-top: 1px solid #111; padding: 14px; background: #080808; display: none; }
+.cliente-expanded.show { display: block; }
+.exp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.exp-field label { display: block; font-size: 8px; color: #444; margin-bottom: 3px; }
+.exp-field input { width: 100%; background: #000; border: 1px solid #1a1a1a; color: #fff; font-family: inherit; font-size: 10px; padding: 6px 8px; outline: none; }
+.exp-field input:focus { border-color: #F0E040; }
+.exp-readonly { font-size: 9px; color: #444; padding: 7px 0; }
+.exp-actions { display: flex; gap: 8px; }
+.exp-save { background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 9px; padding: 6px 16px; cursor: pointer; font-weight: bold; }
+.exp-cancel { background: none; border: 1px solid #1a1a1a; color: #555; font-family: inherit; font-size: 9px; padding: 6px 12px; cursor: pointer; }
+
+/* PENDIENTE C */
+.pending-c { background: #000; max-width: 360px; border: 1px solid #1a1a1a; }
+.pc-header { background: #000; border-bottom: 2px solid #F0E040; padding: 20px 24px; text-align: center; }
+.pc-logo { font-size: 14px; letter-spacing: 0.15em; color: #fff; font-weight: bold; }
+.pc-body { padding: 28px 24px; text-align: center; }
+.pc-envelope { font-size: 36px; margin-bottom: 16px; }
+.pc-title { font-size: 14px; letter-spacing: 0.08em; font-weight: bold; margin-bottom: 12px; }
+.pc-desc { font-size: 10px; color: #666; line-height: 1.7; margin-bottom: 20px; }
+.pc-email-box { background: #0d0d0d; border: 1px solid #222; padding: 10px 16px; font-size: 11px; color: #F0E040; text-align: center; margin-bottom: 20px; letter-spacing: 0.04em; }
+.pc-btn-primary { display: block; background: #F0E040; color: #000; border: none; font-family: inherit; font-size: 11px; padding: 13px; width: 100%; cursor: pointer; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 8px; }
+.pc-btn-ghost { display: block; background: none; border: 1px solid #1a1a1a; color: #444; font-family: inherit; font-size: 10px; padding: 10px; width: 100%; cursor: pointer; letter-spacing: 0.06em; }
+.pc-footer { background: #050505; padding: 12px 24px; text-align: center; font-size: 9px; color: #333; border-top: 1px solid #0d0d0d; }
+</style>
+</head>
+<body>
+<div class="label">VARIACIÓN C — CARDS / ALTA DENSIDAD</div>
+<div class="sublabel">TARJETAS EXPANDIBLES • CLIENTES CON BÚSQUEDA + ACORDEÓN • EMAIL LIMPIO CON LOGO</div>
+
+<div class="section">
+  <h2>1 / SHIPPING RATES — GRID DE CARDS</h2>
+  <div class="shipping-wrap">
+    <div class="shipping-header">
+      <div>
+        <div class="shipping-title">TARIFAS DE ENVÍO</div>
+        <div class="shipping-stats">5 tarifas · 4 activas</div>
+      </div>
+      <button class="btn-add-card">+ NUEVA TARIFA</button>
+    </div>
+    <div class="cards-grid">
+      <!-- Card normal -->
+      <div class="rate-card active-card">
+        <div class="card-badge on">ACTIVO</div>
+        <div class="card-name">Estándar Península</div>
+        <div class="card-zone">es_peninsula · standard</div>
+        <div class="card-price">4,95 €</div>
+        <div class="card-free">Gratis desde 50 €</div>
+        <div class="card-carrier">Correos / SEUR</div>
+        <div class="card-actions">
+          <button class="cta-edit">EDITAR</button>
+          <button class="cta-del">✕</button>
+        </div>
+      </div>
+      <!-- Card en edición -->
+      <div class="rate-card editing">
+        <div class="card-badge on">ACTIVO</div>
+        <div class="card-name" style="color:#F0E040;margin-bottom:10px;">Express — Editando</div>
+        <div class="card-edit-form">
+          <div class="ef-row">
+            <div class="ef-field"><label>NOMBRE</label><input value="Envío Express"></div>
+          </div>
+          <div class="ef-row">
+            <div class="ef-field"><label>PRECIO €</label><input type="number" value="9.95"></div>
+            <div class="ef-field"><label>GRATIS DESDE €</label><input type="number" value="80"></div>
+          </div>
+          <div class="ef-row">
+            <div class="ef-field"><label>MÉTODO</label><select><option>standard</option><option selected>express</option></select></div>
+            <div class="ef-field"><label>ZONA</label><select><option selected>es_peninsula</option><option>europa</option></select></div>
+          </div>
+          <div class="ef-actions">
+            <button class="ef-save">GUARDAR</button>
+            <button class="ef-cancel">✕</button>
+          </div>
+        </div>
+      </div>
+      <!-- Card inactivo -->
+      <div class="rate-card">
+        <div class="card-badge off">INACTIVO</div>
+        <div class="card-name">Recogida Tienda</div>
+        <div class="card-zone">pickup · local</div>
+        <div class="card-price" style="color:#555;">0,00 €</div>
+        <div class="card-free">—</div>
+        <div class="card-carrier">—</div>
+        <div class="card-actions">
+          <button class="cta-edit">EDITAR</button>
+          <button class="cta-del">✕</button>
+        </div>
+      </div>
+      <div class="rate-card active-card">
+        <div class="card-badge on">ACTIVO</div>
+        <div class="card-name">Europa</div>
+        <div class="card-zone">europa · standard</div>
+        <div class="card-price">12,00 €</div>
+        <div class="card-free">Gratis desde 100 €</div>
+        <div class="card-carrier">DHL</div>
+        <div class="card-actions">
+          <button class="cta-edit">EDITAR</button>
+          <button class="cta-del">✕</button>
+        </div>
+      </div>
+      <div class="rate-card active-card">
+        <div class="card-badge on">ACTIVO</div>
+        <div class="card-name">Internacional</div>
+        <div class="card-zone">mundo · standard</div>
+        <div class="card-price">18,00 €</div>
+        <div class="card-free">—</div>
+        <div class="card-carrier">DHL / FedEx</div>
+        <div class="card-actions">
+          <button class="cta-edit">EDITAR</button>
+          <button class="cta-del">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>2 / CLIENTES — SEARCH + ACORDEÓN EXPANDIBLE</h2>
+  <div class="cliente-list">
+    <div class="cliente-search">
+      <input class="search-input" placeholder="Buscar por email o nombre..." value="">
+    </div>
+    <div class="cliente-card">
+      <div class="cliente-card-header">
+        <div class="cliente-avatar">C</div>
+        <div class="cliente-info">
+          <div class="ci-name">Carlos Ruiz</div>
+          <div class="ci-email">carlos.ruiz@gmail.com</div>
+          <div class="ci-stats">3 pedidos · 87,50 €</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+    <div class="cliente-card">
+      <div class="cliente-card-header">
+        <div class="cliente-avatar" style="background:#1a1600;border-color:#F0E040;color:#F0E040;">M</div>
+        <div class="cliente-info">
+          <div class="ci-name">Maria Font Ribas</div>
+          <div class="ci-email">maria.font@gmail.com</div>
+          <div class="ci-stats">7 pedidos · 312,40 € · VIP</div>
+        </div>
+        <span class="cliente-badge">VIP</span>
+        <span class="chevron open">▼</span>
+      </div>
+      <div class="cliente-expanded show">
+        <div class="exp-grid">
+          <div class="exp-field"><label>EMAIL</label><div class="exp-readonly">maria.font@gmail.com</div></div>
+          <div class="exp-field"><label>NOMBRE</label><input value="Maria Font Ribas"></div>
+          <div class="exp-field"><label>TELÉFONO</label><input value="677 234 567"></div>
+          <div class="exp-field"><label>DIRECCIÓN</label><input value="C/ Provença 123, 4o 2a"></div>
+          <div class="exp-field"><label>CIUDAD</label><input value="Barcelona"></div>
+          <div class="exp-field"><label>COD. POSTAL</label><input value="08036"></div>
+        </div>
+        <div class="exp-actions">
+          <button class="exp-save">GUARDAR</button>
+          <button class="exp-cancel">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+    <div class="cliente-card">
+      <div class="cliente-card-header">
+        <div class="cliente-avatar">J</div>
+        <div class="cliente-info">
+          <div class="ci-name">Jordi Mas</div>
+          <div class="ci-email">jordi.mas@outlook.com</div>
+          <div class="ci-stats">12 pedidos · 543,20 €</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>3 / REGISTRO PENDIENTE — EMAIL TEMPLATE VISUAL</h2>
+  <div class="pending-c">
+    <div class="pc-header">
+      <div class="pc-logo">RHYTHM CONTROL</div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-envelope">✉️</div>
+      <div class="pc-title">CONFIRMA TU CUENTA</div>
+      <div class="pc-desc">
+        Te hemos enviado un enlace de activación a:
+      </div>
+      <div class="pc-email-box">carlos.nuevo@gmail.com</div>
+      <div class="pc-desc">
+        Haz clic en el enlace del email para activar tu cuenta y empezar a explorar nuestra colección de vinilos.
+      </div>
+      <button class="pc-btn-primary">REENVIAR EMAIL</button>
+      <button class="pc-btn-ghost">VOLVER A LA TIENDA</button>
+    </div>
+    <div class="pc-footer">
+      ¿No ves el email? Revisa la carpeta de spam · El enlace expira en 24h
+    </div>
+  </div>
+</div>
+</body>
+</html>

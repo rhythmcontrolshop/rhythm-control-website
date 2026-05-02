@@ -1,0 +1,189 @@
+'use client'
+// components/store/CatalogueView.tsx
+// Orquestador del catálogo: búsqueda, filtros, grid, modal y player.
+
+import { useState, useCallback, useEffect, useTransition, useRef } from 'react'
+import CatalogueTabs  from './CatalogueTabs'
+import type { SortOption } from './CatalogueTabs'
+import RecordGrid     from './RecordGrid'
+import RecordModal    from './RecordModal'
+import FloatingPlayer from './FloatingPlayer'
+import type { Release, PlayerTrack, PaginatedResponse } from '@/types'
+
+interface CatalogueViewProps {
+  initialReleases: Release[]
+  initialTotal:    number
+  genres:          string[]
+}
+
+export default function CatalogueView({ initialReleases, initialTotal, genres }: CatalogueViewProps) {
+  const [releases,  setReleases]  = useState<Release[]>(initialReleases)
+  const [total,     setTotal]     = useState(initialTotal)
+  const [loading,   setLoading]   = useState(false)
+  const [isPending, startTransition] = useTransition()  // E4-2: Non-blocking filter changes
+  const [searchQ,   setSearchQ]   = useState('')
+  const [style,     setStyle]     = useState<string | null>(null)
+  const [label,     setLabel]     = useState<string | null>(null)
+  const [sort,      setSort]      = useState<SortOption>('newest')
+  const [styles,    setStyles]    = useState<string[]>([])
+  const [labels,    setLabels]    = useState<string[]>([])
+  const [page,      setPage]      = useState(1)
+  const [selected,  setSelected]  = useState<Release | null>(null)
+  const [openTab,   setOpenTab]   = useState<'tracklist' | 'notes' | 'artist' | 'label' | undefined>(undefined)
+  const [track,     setTrack]     = useState<PlayerTrack | null>(null)
+  const [clipIndex, setClipIndex] = useState(1)
+
+  // Debounce timer for search
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const perPage = 24
+
+  // E2-5: Extraer estilos y sellos de TODOS los releases (endpoint dedicado)
+  useEffect(() => {
+    async function fetchAllFilters() {
+      try {
+        const res = await fetch('/api/catalogue/filters')
+        if (!res.ok) throw new Error('filters API failed')
+        const json = await res.json()
+        if (json.styles?.length) setStyles(json.styles)
+        if (json.labels?.length) setLabels(json.labels)
+      } catch {
+        // Fallback: extraer de initialReleases (solo primera página)
+        const styleSet = new Set<string>()
+        const labelSet = new Set<string>()
+        initialReleases.forEach(r => {
+          r.styles?.forEach((s: string) => styleSet.add(s))
+          r.labels?.forEach((l: string) => labelSet.add(l))
+        })
+        setStyles(Array.from(styleSet).sort())
+        setLabels(Array.from(labelSet).sort())
+      }
+    }
+    fetchAllFilters()
+  }, [initialReleases])
+
+  const fetchReleases = useCallback(async (
+    activeSearch: string,
+    activeStyle: string | null,
+    activeLabel: string | null,
+    activeSort:  SortOption,
+    activePage:  number,
+  ) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({ page: String(activePage), sort: activeSort })
+      if (activeSearch.length >= 2) params.set('q', activeSearch)
+      if (activeStyle) params.set('style', activeStyle)
+      if (activeLabel) params.set('label', activeLabel)
+
+      const res  = await fetch(`/api/catalogue?${params}`)
+      const json = (await res.json()) as PaginatedResponse<Release>
+      setReleases(json.data)
+      setTotal(json.total)
+    } catch {
+      // silenciar errores de red
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const handleSearchChange = (q: string) => {
+    setSearchQ(q); setPage(1)
+    // Debounce: wait 300ms after user stops typing before fetching
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      startTransition(() => fetchReleases(q, style, label, sort, 1))
+    }, 300)
+  }
+
+  const handleStyleChange = (s: string | null) => {
+    setStyle(s); setPage(1)
+    startTransition(() => fetchReleases(searchQ, s, label, sort, 1))
+  }
+  const handleLabelChange = (l: string | null) => {
+    setLabel(l); setPage(1)
+    startTransition(() => fetchReleases(searchQ, style, l, sort, 1))
+  }
+  const handleSortChange = (s: SortOption) => {
+    setSort(s); setPage(1)
+    startTransition(() => fetchReleases(searchQ, style, label, s, 1))
+  }
+
+  const handlePageNext = () => {
+    const next = page + 1
+    setPage(next)
+    startTransition(() => fetchReleases(searchQ, style, label, sort, next))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  const handlePagePrev = () => {
+    const prev = page - 1
+    setPage(prev)
+    startTransition(() => fetchReleases(searchQ, style, label, sort, prev))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handlePlay = (t: PlayerTrack, clip: number) => { setTrack(t); setClipIndex(clip) }
+  const handleSelect = (r: Release, tab?: typeof openTab) => { setSelected(r); setOpenTab(tab) }
+
+  const totalPages = Math.ceil(total / perPage)
+
+  return (
+    <>
+      <CatalogueTabs
+        styles={styles}       activeStyle={style}   onStyleChange={handleStyleChange}
+        labels={labels}       activeLabel={label}   onLabelChange={handleLabelChange}
+        sort={sort}           onSortChange={handleSortChange}
+        searchQuery={searchQ} onSearchChange={handleSearchChange}
+      />
+
+      <RecordGrid
+        releases={releases}
+        loading={loading || isPending}
+        onSelect={r => handleSelect(r)}
+        onPlay={handlePlay}
+      />
+
+      {totalPages > 1 && !loading && (
+        <>
+          <div style={{ height: '48px' }} />
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '2px solid #FFFFFF', borderBottom: '2px solid #FFFFFF' }}>
+          <button
+            className="font-display text-xs disabled:opacity-30 hover:opacity-60"
+            style={{ color: '#FFFFFF' }}
+            onClick={handlePagePrev}
+            disabled={page <= 1}
+          >← ANTERIOR</button>
+          <span className="font-meta text-xs" style={{ color: '#FFFFFF' }}>
+            {page} / {totalPages}
+          </span>
+          <button
+            className="font-display text-xs disabled:opacity-30 hover:opacity-60"
+            style={{ color: '#FFFFFF' }}
+            onClick={handlePageNext}
+            disabled={page >= totalPages}
+          >SIGUIENTE →</button>
+          </div>
+        </>
+      )}
+
+      {selected && (
+        <RecordModal
+          release={selected}
+          releases={releases}
+          onClose={() => setSelected(null)}
+          onPlay={handlePlay}
+          onSelect={r => handleSelect(r)}
+          openTab={openTab}
+        />
+      )}
+
+      {track && (
+        <FloatingPlayer
+          track={track}
+          clipIndex={clipIndex}
+          onClose={() => setTrack(null)}
+        />
+      )}
+    </>
+  )
+}
