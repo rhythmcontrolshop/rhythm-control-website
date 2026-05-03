@@ -48,7 +48,7 @@ export default async function FacturasPage() {
         {(invoices ?? []).length === 0 ? (
           <div className="px-4 py-12 text-center">
             <p className="font-mono text-xs" style={{ color: '#9CA3AF' }}>No hay facturas todavía</p>
-            <p className="font-mono text-[10px] mt-1" style={{ color: '#D1D5DB' }}>Las facturas se generan desde Pedidos o Ventas POS</p>
+            <p className="font-mono text-[10px] mt-1" style={{ color: '#D1D5DB' }}>Las facturas se generan desde Pedidos online</p>
           </div>
         ) : (
           (invoices ?? []).map(inv => (
@@ -60,8 +60,8 @@ export default async function FacturasPage() {
               <p className="font-mono text-xs truncate" style={{ color: '#000000' }}>{inv.customer_name || '—'}</p>
               <p className="font-mono text-xs" style={{ color: '#6B7280' }}>{inv.customer_nif || '—'}</p>
               <p className="font-mono text-xs font-bold" style={{ color: '#000000' }}>{parseFloat(String(inv.total)).toFixed(2)} €</p>
-              <span className="font-mono text-[10px] px-1.5 py-0.5 inline-block" style={{ backgroundColor: inv.source_type === 'pos_sale' ? '#DBEAFE' : '#F3E8FF', color: '#000000' }}>
-                {inv.source_type === 'pos_sale' ? 'POS' : 'Online'}
+              <span className="font-mono text-[10px] px-1.5 py-0.5 inline-block" style={{ backgroundColor: '#F3E8FF', color: '#000000' }}>
+                Online
               </span>
               <span className="font-mono text-[10px] px-1.5 py-0.5 inline-block" style={{
                 backgroundColor: inv.status === 'issued' ? '#F0FDF4' : inv.status === 'cancelled' ? '#FEF2F2' : '#F9FAFB',
