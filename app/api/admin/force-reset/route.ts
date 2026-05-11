@@ -4,6 +4,7 @@
 // O si se proporciona el ADMIN_SECRET correcto
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { timingSafeEqual } from 'crypto'
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +21,12 @@ export async function POST(request: Request) {
       return Response.json({ error: 'ADMIN_SECRET no configurado en el servidor' }, { status: 500 })
     }
 
-    if (secret !== adminSecret) {
+    // Comparación en tiempo constante para evitar timing attacks
+    const secretMatch = secret && timingSafeEqual(
+      Buffer.from(secret),
+      Buffer.from(adminSecret)
+    )
+    if (!secretMatch) {
       return Response.json({ error: 'Código de seguridad incorrecto' }, { status: 403 })
     }
 

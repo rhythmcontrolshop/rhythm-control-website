@@ -3,6 +3,7 @@
 // Called by the frontend when the Redsys redirect fails
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const CleanupSchema = z.object({
@@ -11,6 +12,13 @@ const CleanupSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    // Solo usuarios autenticados pueden liberar su propio stock reservado
+    const userClient = await createClient()
+    const { data: { user } } = await userClient.auth.getUser()
+    if (!user) {
+      return Response.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const raw = await request.json()
     const parsed = CleanupSchema.safeParse(raw)
     if (!parsed.success) {

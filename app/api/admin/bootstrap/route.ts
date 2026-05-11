@@ -48,32 +48,13 @@ export async function POST(request: Request) {
   })
 
   if (authError) {
+    // No promover usuarios existentes — sería un vector de escalada de privilegios.
+    // Si el email ya existe, usar /api/admin/force-reset con ADMIN_SECRET.
     if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-      // User exists — just update their role to admin
-      const { data: existingProfile } = await admin
-        .from('profiles')
-        .select('id, role')
-        .eq('email', email)
-        .single()
-
-      if (existingProfile) {
-        if (existingProfile.role === 'admin') {
-          return Response.json({ ok: true, message: 'Este usuario ya es administrador.' }, { status: 200 })
-        }
-        const { error: updateError } = await admin
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('id', existingProfile.id)
-
-        if (updateError) {
-          return Response.json({ error: 'Error al actualizar el rol' }, { status: 500 })
-        }
-        return Response.json({
-          ok: true,
-          message: `Usuario ${email} ya existía. Rol actualizado a admin. Ya puedes iniciar sesión.`,
-        })
-      }
-      return Response.json({ error: 'Este email ya está registrado pero no se encontró el perfil.' }, { status: 409 })
+      return Response.json(
+        { error: 'Este email ya está registrado. Usa /api/admin/force-reset con ADMIN_SECRET para recuperar el acceso.' },
+        { status: 409 }
+      )
     }
     return Response.json({ error: authError.message }, { status: 500 })
   }

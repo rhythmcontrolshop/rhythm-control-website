@@ -16,8 +16,8 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Email y contraseña son requeridos' }, { status: 400 })
   }
 
-  if (password.length < 6) {
-    return Response.json({ error: 'La contraseña debe tener al menos 6 caracteres' }, { status: 400 })
+  if (password.length < 8) {
+    return Response.json({ error: 'La contraseña debe tener al menos 8 caracteres' }, { status: 400 })
   }
 
   const ALLOWED_ROLES = ['customer', 'admin']

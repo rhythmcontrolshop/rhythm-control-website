@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export default function AdminResetPassword() {
+export default function CustomerResetPassword() {
   const router = useRouter()
   const supabaseRef = useRef<SupabaseClient | null>(null)
   const [ready, setReady] = useState(false)
@@ -18,8 +18,6 @@ export default function AdminResetPassword() {
     supabaseRef.current = supabase
 
     async function exchangeCode() {
-      // Strategy 1: PKCE code flow (recommended by Supabase for SSR)
-      // Supabase sends ?code=xxx in the redirect URL
       const searchParams = new URLSearchParams(window.location.search)
       const code = searchParams.get('code')
 
@@ -33,15 +31,14 @@ export default function AdminResetPassword() {
           }
           setReady(true)
           setVerifying(false)
-          // Clean URL
           window.history.replaceState(null, '', window.location.pathname)
           return
         } catch {
-          // Fall through to hash parsing
+          // Fall through
         }
       }
 
-      // Strategy 2: Hash fragment flow (legacy, still used by password reset emails)
+      // Hash fragment flow (legacy)
       const hash = window.location.hash.substring(1)
       const params = new URLSearchParams(hash)
       const accessToken  = params.get('access_token')
@@ -61,7 +58,6 @@ export default function AdminResetPassword() {
           }
           setReady(true)
           setVerifying(false)
-          // Clean the hash from URL without reload
           window.history.replaceState(null, '', window.location.pathname)
           return
         } catch {
@@ -71,8 +67,6 @@ export default function AdminResetPassword() {
         }
       }
 
-      // Strategy 3: Listen for auth state change event
-      // If the Supabase client already processed the hash before this component mounted
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'PASSWORD_RECOVERY') {
           setReady(true)
@@ -81,7 +75,6 @@ export default function AdminResetPassword() {
         }
       })
 
-      // Timeout: if no recovery event after 6 seconds, show error
       const timeout = setTimeout(() => {
         setError('Enlace inválido o expirado.')
         setVerifying(false)
@@ -120,13 +113,12 @@ export default function AdminResetPassword() {
     }
 
     await supabase.auth.signOut()
-    router.replace('/admin/login')
+    router.replace('/login')
   }, [router])
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="w-full max-w-xs">
-
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold" style={{ color: '#000000' }}>RHYTHM CONTROL</h1>
           <p className="text-xs mt-2" style={{ color: '#6b7280' }}>NUEVA CONTRASEÑA</p>
@@ -137,7 +129,7 @@ export default function AdminResetPassword() {
         {error ? (
           <div className="text-center">
             <p className="text-xs mb-6" style={{ color: '#ef4444' }}>{error}</p>
-            <a href="/admin/recover" className="text-xs underline" style={{ color: '#6b7280' }}>
+            <a href="/recuperar" className="text-xs underline" style={{ color: '#6b7280' }}>
               Solicitar nuevo enlace
             </a>
           </div>
@@ -183,7 +175,7 @@ export default function AdminResetPassword() {
         )}
 
         <div className="mt-6 text-center">
-          <a href="/admin/login" className="text-xs underline hover:opacity-60" style={{ color: '#6b7280' }}>
+          <a href="/login" className="text-xs underline hover:opacity-60" style={{ color: '#6b7280' }}>
             ← Volver al login
           </a>
         </div>

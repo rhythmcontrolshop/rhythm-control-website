@@ -54,7 +54,7 @@ export function verifyOrigin(request: Request): boolean {
 }
 
 /**
- * Valida que una URL de redirección pertenece a nuestros dominios.
+ * Valida que una URL de redirección pertenece a rutas permitidas.
  * Previene open redirect attacks.
  */
 const ALLOWED_REDIRECT_PATHS = [
@@ -66,31 +66,16 @@ const ALLOWED_REDIRECT_PATHS = [
 ]
 
 export function validateRedirectUrl(url: string): string {
-  // Si es una ruta relativa (empieza con /), verificar contra whitelist
-  if (url.startsWith('/')) {
-    const path = url.split('?')[0] // Ignorar query params
-    // Permitir cualquier ruta interna que empiece con /
-    // Solo bloquear URLs absolutas externas
-    if (!url.startsWith('//') && !url.includes('://')) {
-      return url
-    }
-  }
+  // Rechazar cualquier URL que no sea relativa limpia (sin protocolo ni doble slash)
+  if (!url.startsWith('/') || url.startsWith('//')) return '/cuenta'
 
-  // Si es una URL absoluta, verificar que apunte a nuestros dominios
-  try {
-    const parsedUrl = new URL(url)
-    const isAllowed = ALLOWED_ORIGINS.some(allowed => {
-      try {
-        return parsedUrl.origin === new URL(allowed).origin
-      } catch {
-        return false
-      }
-    })
-    if (isAllowed) return url
-  } catch {
-    // URL inválida
-  }
+  // Extraer la ruta base (sin query params ni hash)
+  const path = url.split('?')[0].split('#')[0]
 
-  // Default: redirigir a cuenta
-  return '/cuenta'
+  // Verificar contra la whitelist de rutas permitidas
+  const isAllowed = ALLOWED_REDIRECT_PATHS.some(
+    allowed => path === allowed || path.startsWith(allowed + '/')
+  )
+
+  return isAllowed ? url : '/cuenta'
 }
