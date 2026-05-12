@@ -6,9 +6,10 @@ interface SyncJob {
   id: string
   status: string
   started_at: string
-  finished_at: string | null
-  records_processed: number
-  error_message: string | null
+  completed_at: string | null
+  items_processed: number
+  items_total: number
+  error: string | null
 }
 
 export default function DiscogsPage() {
@@ -86,11 +87,13 @@ export default function DiscogsPage() {
             <p className="text-xs" style={{ color: lastSync.status === 'completed' ? '#22c55e' : lastSync.status === 'running' ? '#f59e0b' : '#ef4444' }}>
               Estado: {lastSync.status === 'completed' ? 'Completada' : lastSync.status === 'running' ? 'En progreso' : 'Error'}
             </p>
-            {lastSync.records_processed > 0 && (
-              <p className="text-xs" style={{ color: '#000000' }}>Registros procesados: {lastSync.records_processed}</p>
+            {lastSync.items_processed > 0 && (
+              <p className="text-xs" style={{ color: '#000000' }}>
+                Procesados: {lastSync.items_processed}{lastSync.items_total > 0 ? ` / ${lastSync.items_total}` : ''}
+              </p>
             )}
-            {lastSync.error_message && (
-              <p className="text-xs" style={{ color: '#ef4444' }}>Error: {lastSync.error_message}</p>
+            {lastSync.error && (
+              <p className="text-xs" style={{ color: '#ef4444' }}>Error: {lastSync.error}</p>
             )}
           </div>
         ) : (

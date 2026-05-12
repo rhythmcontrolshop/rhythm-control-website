@@ -44,7 +44,7 @@ export default function CookiesPage() {
           <Section title="4. TERCEROS">
             <p>Algunos servicios integrados pueden instalar sus propias cookies:</p>
             <ul>
-              <li><strong>Stripe</strong> — para el proceso de pago seguro.</li>
+              <li><strong>Redsys</strong> — para el proceso de pago seguro mediante TPV Virtual.</li>
               <li><strong>Supabase</strong> — para la gestión de autenticación.</li>
             </ul>
             <p>Consulta las políticas de privacidad de estos proveedores para más información.</p>

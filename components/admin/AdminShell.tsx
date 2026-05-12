@@ -9,13 +9,12 @@ const NO_NAV_PATHS = ['/admin/login', '/admin/recover', '/admin/reset-password']
 
 const NAV_LINKS = [
   { href: '/admin',           label: 'Dashboard'  },
-  { href: '/admin/inventory', label: 'Inventario' },
-  { href: '/admin/pricing',   label: 'Precios'    },
-  { href: '/admin/shipping',  label: 'Envíos'     },
+  { href: '/admin/inventory', label: 'Inventari'  },
+  { href: '/admin/pricing',   label: 'Preus'      },
+  { href: '/admin/shipping',  label: 'Enviaments' },
   { href: '/admin/guardi',    label: 'Guardi'     },
-  { href: '/admin/codigos',   label: 'Códigos'    },
-  { href: '/admin/pedidos',   label: 'Pedidos'    },
-  { href: '/admin/clientes',  label: 'Clientes'   },
+  { href: '/admin/pedidos',   label: 'Comandes'   },
+  { href: '/admin/clientes',  label: 'Clients'    },
   { href: '/admin/discogs',   label: 'Discogs'    },
   { href: '/admin/agenda',    label: 'Agenda'     },
 ]

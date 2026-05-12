@@ -3,9 +3,9 @@
 
 const BASE_URL = 'https://api.discogs.com'
 
-function getHeaders(): HeadersInit {
+function getHeaders(token?: string): HeadersInit {
   return {
-    Authorization: `Discogs token=${process.env.DISCOGS_ACCESS_TOKEN}`,
+    Authorization: `Discogs token=${token ?? process.env.DISCOGS_ACCESS_TOKEN}`,
     'User-Agent': 'RhythmControl/1.0 +https://rhythmcontrol.es',
     Accept: 'application/vnd.discogs.v2.plaintext+json',
   }
@@ -14,7 +14,8 @@ function getHeaders(): HeadersInit {
 async function request<T>(
   path: string,
   params?: Record<string, string | number>,
-  retries = 1
+  retries = 1,
+  token?: string
 ): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`)
 
@@ -25,14 +26,14 @@ async function request<T>(
   }
 
   const res = await fetch(url.toString(), {
-    headers: getHeaders(),
+    headers: getHeaders(token),
     next: { revalidate: 0 },
   })
 
   // Rate limit — reintentar una sola vez tras 2s
   if (res.status === 429 && retries > 0) {
     await new Promise(r => setTimeout(r, 2000))
-    return request<T>(path, params, retries - 1)
+    return request<T>(path, params, retries - 1, token)
   }
 
   if (!res.ok) {
@@ -146,7 +147,8 @@ export interface DiscogsSearchResponse {
 export async function getInventory(
   username: string,
   page = 1,
-  perPage = 100
+  perPage = 100,
+  token?: string
 ): Promise<DiscogsInventoryResponse> {
   return request<DiscogsInventoryResponse>(`/users/${username}/inventory`, {
     status: 'For Sale',
@@ -154,7 +156,7 @@ export async function getInventory(
     sort_order: 'desc',
     page,
     per_page: perPage,
-  })
+  }, 1, token)
 }
 
 export async function searchByBarcode(

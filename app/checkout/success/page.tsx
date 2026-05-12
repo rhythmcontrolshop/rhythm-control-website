@@ -4,21 +4,21 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 interface SearchParams {
-  searchParams: { session_id?: string }
+  searchParams: { order?: string }
 }
 
 export default async function CheckoutSuccessPage({ searchParams }: SearchParams) {
-  const sessionId = searchParams.session_id
+  const orderParam = searchParams.order
   let orderNumber = ''
   let pickupCode = ''
 
-  if (sessionId) {
+  if (orderParam) {
     try {
       const supabase = createAdminClient()
       const { data: order } = await supabase
         .from('orders')
         .select('order_number, pickup_code, shipping_method')
-        .eq('stripe_session_id', sessionId)
+        .eq('order_number', orderParam)
         .single()
 
       if (order) {

@@ -41,7 +41,6 @@ interface Order {
   customer_name: string; customer_email: string; customer_phone: string
   shipping_address: any; pickup_code: string
   total_amount: number; subtotal: number; shipping_cost: number; tax_amount: number; tax_rate: number
-  stripe_payment_intent: string; stripe_checkout_session_id: string
   tracking_number: string; notes: string
   price_channel: string
   created_at: string; updated_at: string
@@ -59,7 +58,6 @@ export default function OrderDetailPage() {
   const [notesInput, setNotes]        = useState('')
   const [savingTracking, setSavingTracking] = useState(false)
   const [savingNotes, setSavingNotes]       = useState(false)
-  const [showRefundConfirm, setShowRefund]  = useState(false)
 
   useEffect(() => {
     async function fetchOrder() {
@@ -121,20 +119,6 @@ export default function OrderDetailPage() {
     if (res.ok) await refreshOrder()
     else alert('Error al guardar notas')
     setSavingNotes(false)
-  }
-
-  async function refundOrder() {
-    if (!confirm('Procesar reembolso via Stripe? Esta accion es irreversible.')) return
-    setUpdating(true)
-    const res = await fetch(`/api/admin/orders/${params.id}/refund`, { method: 'POST' })
-    if (res.ok) {
-      await refreshOrder()
-      setShowRefund(false)
-    } else {
-      const data = await res.json().catch(() => ({}))
-      alert(data.error || 'Error al procesar reembolso')
-    }
-    setUpdating(false)
   }
 
   if (loading) return <p className="text-xs animate-pulse p-6" style={{ color: '#6b7280' }}>CARGANDO...</p>
@@ -323,14 +307,6 @@ export default function OrderDetailPage() {
                   <p className="text-lg font-mono font-bold" style={{ color: '#000000' }}>{order.pickup_code}</p>
                 </div>
               )}
-              {order.stripe_payment_intent && (
-                <div>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>Stripe PI</p>
-                  <p className="text-xs font-mono" style={{ color: '#6b7280' }}>
-                    {order.stripe_payment_intent.slice(0, 20)}...
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -349,13 +325,6 @@ export default function OrderDetailPage() {
                 className="w-full text-xs px-6 py-3 transition-colors hover:bg-red-500 hover:text-white"
                 style={{ border: '1px solid #ef4444', color: '#ef4444' }}>
                 CANCELAR PEDIDO
-              </button>
-            )}
-            {order.payment_status === 'paid' && !isTerminal && order.stripe_payment_intent && (
-              <button onClick={() => setShowRefund(true)}
-                className="w-full text-xs px-6 py-3 transition-colors hover:opacity-90"
-                style={{ border: '1px solid #9ca3af', color: '#6b7280' }}>
-                REEMBOLSAR
               </button>
             )}
           </div>
@@ -377,30 +346,6 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Modal de confirmación de reembolso */}
-      {showRefundConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="p-6 max-w-sm w-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #d1d5db' }}>
-            <p className="text-sm font-bold mb-2" style={{ color: '#000000' }}>Confirmar reembolso</p>
-            <p className="text-xs mb-4" style={{ color: '#6b7280' }}>
-              Se procesara un reembolso completo via Stripe. El pedido se marcara como reembolsado y los vinylos volveran a estar en venta.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={refundOrder} disabled={updating}
-                className="text-xs px-4 py-2 transition-colors hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: '#ef4444', color: '#FFFFFF' }}>
-                {updating ? 'PROCESANDO...' : 'REEMBOLSAR'}
-              </button>
-              <button onClick={() => setShowRefund(false)}
-                className="text-xs px-4 py-2 transition-colors hover:bg-gray-100"
-                style={{ border: '1px solid #d1d5db', color: '#374151' }}>
-                CANCELAR
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -416,8 +361,8 @@ function buildTimeline(order: Order): { label: string; date: string }[] {
     })
   }
 
-  if (order.payment_status === 'paid' && order.stripe_payment_intent) {
-    events.push({ label: 'Pago confirmado via Stripe', date: fmtDate(order.updated_at) })
+  if (order.payment_status === 'paid') {
+    events.push({ label: 'Pagament confirmat', date: fmtDate(order.updated_at) })
   }
 
   const statusLabels: Record<string, string> = {

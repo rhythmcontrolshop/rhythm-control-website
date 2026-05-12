@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-type Tab = 'discogs' | 'store' | 'legal' | 'stripe'
+type Tab = 'discogs' | 'store' | 'legal'
 
 interface Setting {
   key: string; value: any; category: string; label: string; updated_at: string
@@ -83,9 +83,8 @@ export default function AjustesPage() {
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'discogs', label: 'DISCOGS' },
-    { id: 'store', label: 'TIENDA' },
-    { id: 'legal', label: 'LEGAL' },
-    { id: 'stripe', label: 'STRIPE' },
+    { id: 'store',   label: 'BOTIGA'  },
+    { id: 'legal',   label: 'LEGAL'   },
   ]
 
   return (
@@ -195,28 +194,6 @@ export default function AjustesPage() {
               Edita aquí los textos introductorios de cada documento legal. Los cambios se reflejarán
               en las páginas de Aviso Legal, Privacidad, Cookies y Términos. Los textos deben ir entre comillas dobles.
             </p>
-          </>
-        )}
-        {tab === 'stripe' && (
-          <>
-            <h3 className="text-sm font-bold mb-2" style={{ color: '#000000' }}>CONFIGURACIÓN DE STRIPE</h3>
-            <p className="text-xs leading-relaxed mb-3" style={{ color: '#6b7280' }}>
-              Para que los pagos se registren automáticamente, necesitas configurar un Webhook en el dashboard de Stripe.
-              Sin el webhook, los pedidos se crearán pero no se actualizarán a &quot;pagado&quot; automáticamente.
-            </p>
-            <ol className="text-xs leading-relaxed mt-2 space-y-2" style={{ color: '#6b7280', listStyleType: 'decimal', paddingLeft: '1.5rem' }}>
-              <li>Ir a <a href="https://dashboard.stripe.com/webhooks" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#3b82f6' }}>Stripe Dashboard → Webhooks</a></li>
-              <li>Pulsa <strong>&quot;Add endpoint&quot;</strong></li>
-              <li>URL del endpoint: <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>{typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/stripe` : 'https://TU-DOMINIO/api/webhooks/stripe'}</code></li>
-              <li>Eventos a escuchar: <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>checkout.session.completed</code>, <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>checkout.session.expired</code>, <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>payment_intent.payment_failed</code>, <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>charge.refunded</code>, <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>charge.dispute.created</code></li>
-              <li>Copia el <strong>Signing secret</strong> y configúralo como variable de entorno <code className="px-1 py-0.5" style={{ backgroundColor: '#f3f4f6', fontFamily: 'monospace' }}>STRIPE_WEBHOOK_SECRET</code> en Vercel</li>
-            </ol>
-            <div className="mt-4 p-3" style={{ border: '1px solid #f59e0b', backgroundColor: '#fffbeb' }}>
-              <p className="text-xs font-bold mb-1" style={{ color: '#92400e' }}>SINCRONIZACIÓN MANUAL</p>
-              <p className="text-xs" style={{ color: '#92400e' }}>
-                Si el webhook no está configurado, puedes usar el botón <strong>&quot;SYNC STRIPE&quot;</strong> en la página de Pedidos para sincronizar manualmente el estado de los pagos.
-              </p>
-            </div>
           </>
         )}
       </div>

@@ -26,7 +26,7 @@ export default function PrivacidadPage() {
             <ul>
               <li><strong>Cuenta de usuario:</strong> nombre, apellidos, email, contraseña (cifrada), dirección de envío.</li>
               <li><strong>Pedidos:</strong> datos de facturación, dirección de entrega, historial de compras.</li>
-              <li><strong>Pago:</strong> gestionado íntegramente por Stripe. No almacenamos datos de tarjeta.</li>
+              <li><strong>Pago:</strong> gestionado íntegramente por Redsys (TPV Virtual Triodos Bank). No almacenamos datos de tarjeta.</li>
               <li><strong>Formulario de contacto:</strong> nombre, email y mensaje.</li>
               <li><strong>Navegación:</strong> cookies técnicas y analíticas (ver Política de Cookies).</li>
             </ul>
@@ -53,7 +53,7 @@ export default function PrivacidadPage() {
           <Section title="5. DESTINATARIOS">
             <p>No cedemos datos a terceros salvo obligación legal o prestadores de servicio necesarios para la actividad:</p>
             <ul>
-              <li><strong>Stripe, Inc.</strong> — procesador de pagos (EE.UU., cláusulas contractuales tipo).</li>
+              <li><strong>Redsys / Triodos Bank</strong> — procesador de pagos (España, normativa PSD2/RGPD aplicable).</li>
               <li><strong>Supabase, Inc.</strong> — base de datos y autenticación (EE.UU., cláusulas contractuales tipo).</li>
               <li><strong>Vercel, Inc.</strong> — alojamiento web (EE.UU., cláusulas contractuales tipo).</li>
               <li><strong>MRW / GLS</strong> — agencias de transporte para la entrega de pedidos.</li>

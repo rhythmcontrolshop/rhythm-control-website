@@ -100,7 +100,7 @@ export default function ContactoPage() {
               <li>Plazo de preparación: 24-48h laborables tras confirmación de pago.</li>
               <li>Devoluciones aceptadas en un plazo de 14 días naturales.</li>
               <li>Los discos de segunda mano se revisan antes del envío.</li>
-              <li>Pago seguro mediante tarjeta (Stripe).</li>
+              <li>Pago seguro mediante tarjeta (TPV Virtual Redsys).</li>
             </ul>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
               {LEGAL_LINKS.map(({ href, label }) => (

@@ -17,7 +17,20 @@ export interface SyncResult {
 
 export async function syncDiscogsInventory(): Promise<SyncResult> {
   const supabase  = createAdminClient()
-  const username  = process.env.DISCOGS_USERNAME!
+
+  // Read credentials from site_settings (admin-editable), fall back to env vars
+  const { data: settingsRows } = await supabase
+    .from('site_settings')
+    .select('key, value')
+    .in('key', ['discogs_username', 'discogs_token'])
+
+  const settingsMap = Object.fromEntries((settingsRows ?? []).map(r => [r.key, r.value]))
+  const username = (settingsMap['discogs_username'] as string) || process.env.DISCOGS_USERNAME || ''
+  const token    = (settingsMap['discogs_token']    as string) || process.env.DISCOGS_ACCESS_TOKEN || ''
+
+  if (!username || !token) {
+    throw new Error('Credenciales de Discogs no configuradas. Ve a Ajustes → Discogs.')
+  }
 
   // Crear registro del job
   const { data: job, error: jobError } = await supabase
@@ -35,7 +48,7 @@ export async function syncDiscogsInventory(): Promise<SyncResult> {
 
   try {
     // Primera página — obtenemos el total
-    const firstPage  = await getInventory(username, 1, PER_PAGE)
+    const firstPage  = await getInventory(username, 1, PER_PAGE, token)
     const totalPages = firstPage.pagination.pages
     const totalItems = firstPage.pagination.items
 
@@ -49,7 +62,7 @@ export async function syncDiscogsInventory(): Promise<SyncResult> {
 
     for (let page = 2; page <= totalPages; page++) {
       await new Promise(r => setTimeout(r, RATE_LIMIT_DELAY_MS))
-      const pageData = await getInventory(username, page, PER_PAGE)
+      const pageData = await getInventory(username, page, PER_PAGE, token)
       allListings.push(...pageData.listings)
     }
 

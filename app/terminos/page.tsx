@@ -37,7 +37,7 @@ export default function TerminosPage() {
           </Section>
 
           <Section title="5. MÉTODOS DE PAGO">
-            <p>Aceptamos pago mediante tarjeta de crédito/débito a través de Stripe. La transacción se procesa de forma segura y cifrada. No almacenamos datos de pago en nuestros servidores.</p>
+            <p>Aceptamos pago mediante tarjeta de crédito/débito a través del TPV Virtual de Redsys (Triodos Bank). La transacción se procesa de forma segura y cifrada. No almacenamos datos de pago en nuestros servidores.</p>
           </Section>
 
           <Section title="6. ENVÍOS">

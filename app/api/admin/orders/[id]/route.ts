@@ -21,7 +21,6 @@ export async function GET(
       customer_name, customer_email, customer_phone,
       shipping_address, pickup_code,
       total_amount, subtotal, shipping_cost, tax_amount, tax_rate,
-      stripe_payment_intent, stripe_checkout_session_id,
       tracking_number, notes, price_channel,
       created_at, updated_at,
       order_items(id, release_id, title, artist, artists, condition, price, price_base, price_channel, quantity, thumb, cover_image)
