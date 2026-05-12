@@ -39,3 +39,23 @@ export default function RhythmControlLogo({ height = 32, fill = 'currentColor', 
 }
 
 export { LOGO_PATHS }
+
+const R_PATH = 'M0,1.13h27.93c8.33,0,15.53,4.6,15.53,13.6,0,4.93-2.27,10.13-7.13,11.93,4,1.53,6.46,5.93,7,11.86.2,2.33.27,8,1.6,10.2h-14.66c-.73-2.4-1-4.87-1.2-7.33-.4-4.53-.8-9.26-6.6-9.26h-7.8v16.6H0V1.13ZM14.66,21.93h7.67c2.73,0,6.46-.47,6.46-4.73,0-3-1.67-4.73-7.26-4.73h-6.86v9.46Z'
+
+interface SpinningRProps {
+  size?: number
+  fill?: string
+}
+
+export function SpinningR({ size = 40, fill = 'currentColor' }: SpinningRProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 43.46 49.85"
+      style={{ width: size, height: size, fill, animation: 'spin 1s linear infinite' }}
+    >
+      <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+      <path d={R_PATH} />
+    </svg>
+  )
+}
