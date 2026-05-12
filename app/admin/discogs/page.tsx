@@ -82,8 +82,8 @@ export default function DiscogsPage() {
   }
 
   const handleSync = async () => {
-    if (!username || !token) {
-      setError('Cal configurar el compte Discogs abans de sincronitzar')
+    if (!username) {
+      setError('Cal configurar el nom d\'usuari Discogs abans de sincronitzar')
       return
     }
     setSyncing(true); setError(null); setMsg(null)
@@ -162,7 +162,7 @@ export default function DiscogsPage() {
 
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: '#374151' }}>
-              PERSONAL ACCESS TOKEN
+              PERSONAL ACCESS TOKEN <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opcional)</span>
             </label>
             <input
               type="password"
@@ -215,14 +215,19 @@ export default function DiscogsPage() {
           <p className="text-xs mb-4" style={{ color: '#6b7280' }}>Cap sincronització registrada.</p>
         )}
 
-        <button onClick={handleSync} disabled={syncing || !username || !token}
+        <button onClick={handleSync} disabled={syncing || !username}
           className="text-xs px-6 py-2 transition-colors disabled:opacity-50 hover:opacity-90"
           style={{ backgroundColor: '#000000', color: '#FFFFFF', cursor: 'pointer' }}>
           {syncing ? 'SINCRONITZANT...' : 'SINCRONITZAR ARA'}
         </button>
-        {(!username || !token) && (
+        {!username && (
           <p className="text-xs mt-2" style={{ color: '#f59e0b' }}>
-            Cal configurar el compte abans de sincronitzar.
+            Cal configurar el nom d'usuari abans de sincronitzar.
+          </p>
+        )}
+        {username && !token && (
+          <p className="text-xs mt-2" style={{ color: '#9ca3af' }}>
+            Sense token: límit de 25 req/min (suficient per inventaris normals).
           </p>
         )}
       </div>

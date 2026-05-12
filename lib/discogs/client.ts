@@ -4,11 +4,13 @@
 const BASE_URL = 'https://api.discogs.com'
 
 function getHeaders(token?: string): HeadersInit {
-  return {
-    Authorization: `Discogs token=${token ?? process.env.DISCOGS_ACCESS_TOKEN}`,
+  const resolved = token ?? process.env.DISCOGS_ACCESS_TOKEN
+  const headers: Record<string, string> = {
     'User-Agent': 'RhythmControl/1.0 +https://rhythmcontrol.es',
-    Accept: 'application/vnd.discogs.v2.plaintext+json',
+    'Accept': 'application/vnd.discogs.v2.plaintext+json',
   }
+  if (resolved) headers['Authorization'] = `Discogs token=${resolved}`
+  return headers
 }
 
 async function request<T>(

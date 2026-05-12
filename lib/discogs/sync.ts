@@ -28,8 +28,8 @@ export async function syncDiscogsInventory(): Promise<SyncResult> {
   const username = (settingsMap['discogs_username'] as string) || process.env.DISCOGS_USERNAME || ''
   const token    = (settingsMap['discogs_token']    as string) || process.env.DISCOGS_ACCESS_TOKEN || ''
 
-  if (!username || !token) {
-    throw new Error('Credenciales de Discogs no configuradas. Ve a Ajustes → Discogs.')
+  if (!username) {
+    throw new Error('Nom d\'usuari Discogs no configurat. Ve a Admin → Discogs.')
   }
 
   // Crear registro del job
