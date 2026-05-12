@@ -13,53 +13,105 @@ interface SyncJob {
 }
 
 export default function DiscogsPage() {
-  const [syncing, setSyncing] = useState(false)
-  const [lastSync, setLastSync] = useState<SyncJob | null>(null)
-  const [msg, setMsg] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing]       = useState(false)
+  const [lastSync, setLastSync]     = useState<SyncJob | null>(null)
+  const [msg, setMsg]               = useState<string | null>(null)
+  const [error, setError]           = useState<string | null>(null)
+  const [loading, setLoading]       = useState(true)
 
-  useEffect(() => { fetchLastSync() }, [])
+  // Credencials
+  const [username, setUsername]     = useState('')
+  const [token, setToken]           = useState('')
+  const [savingCreds, setSavingCreds] = useState(false)
+  const [credsMsg, setCredsMsg]     = useState<string | null>(null)
+  const [credsError, setCredsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchLastSync()
+    fetchCredentials()
+  }, [])
+
+  const fetchCredentials = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', { credentials: 'same-origin' })
+      if (res.ok) {
+        const data: { key: string; value: any }[] = await res.json()
+        const usernameRow = data.find(s => s.key === 'discogs_username')
+        const tokenRow    = data.find(s => s.key === 'discogs_token')
+        if (usernameRow) setUsername(usernameRow.value ?? '')
+        if (tokenRow)    setToken(tokenRow.value ?? '')
+      }
+    } catch {}
+  }
+
+  const saveCredentials = async () => {
+    setSavingCreds(true); setCredsMsg(null); setCredsError(null)
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          settings: [
+            { key: 'discogs_username', value: username.trim() },
+            { key: 'discogs_token',    value: token.trim() },
+          ],
+        }),
+      })
+      if (res.ok) {
+        setCredsMsg('Credencials guardades correctament')
+      } else {
+        const data = await res.json()
+        setCredsError(data.error || 'Error al guardar')
+      }
+    } catch {
+      setCredsError('Error de connexió')
+    }
+    setSavingCreds(false)
+  }
 
   const fetchLastSync = async () => {
     try {
       const res = await fetch('/api/admin/sync', { credentials: 'same-origin' })
       if (res.ok) {
         const data = await res.json()
-        setLastSync(data.lastJob || data)
-      } else {
-        // Auth error or other — don't crash, just show no data
-        console.warn('Sync GET failed:', res.status)
+        setLastSync(data.lastJob || null)
       }
-    } catch (err) {
-      console.warn('Sync GET error:', err)
-    }
+    } catch {}
     setLoading(false)
   }
 
   const handleSync = async () => {
-    setSyncing(true)
-    setError(null)
-    setMsg(null)
+    if (!username || !token) {
+      setError('Cal configurar el compte Discogs abans de sincronitzar')
+      return
+    }
+    setSyncing(true); setError(null); setMsg(null)
     try {
       const res = await fetch('/api/admin/sync', { method: 'POST', credentials: 'same-origin' })
       const data = await res.json()
       if (res.ok) {
-        setMsg('Sincronización iniciada')
+        setMsg(`Sincronització completada: ${data.synced ?? 0} discos importats`)
         fetchLastSync()
       } else {
-        setError(data.error || 'Error al iniciar sincronización')
+        setError(data.error || 'Error al sincronitzar')
       }
-    } catch (err) {
-      setError('Error de conexión')
+    } catch {
+      setError('Error de connexió')
     }
     setSyncing(false)
   }
 
+  const statusColor = (s: string) =>
+    s === 'completed' ? '#22c55e' : s === 'running' ? '#f59e0b' : '#ef4444'
+  const statusLabel = (s: string) =>
+    s === 'completed' ? 'Completada' : s === 'running' ? 'En curs' : 'Error'
+
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-8" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
-        <Link href="/admin" className="text-xs hover:underline" style={{ color: '#6b7280' }}>← VOLVER</Link>
+      <div className="flex justify-between items-center mb-8"
+        style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
+        <Link href="/admin" className="text-xs hover:underline" style={{ color: '#6b7280' }}>← TORNAR</Link>
         <h1 className="text-2xl font-bold" style={{ color: '#000000' }}>DISCOGS</h1>
         <div />
       </div>
@@ -75,21 +127,84 @@ export default function DiscogsPage() {
         </div>
       )}
 
+      {/* Credencials */}
       <div className="mb-8 p-6" style={{ border: '1px solid #d1d5db' }}>
-        <h2 className="text-lg font-bold mb-4" style={{ color: '#000000' }}>SINCRONIZACIÓN</h2>
-        {loading ? (
-          <p className="text-xs animate-pulse" style={{ color: '#6b7280' }}>Cargando...</p>
-        ) : lastSync ? (
-          <div className="space-y-2">
-            <p className="text-xs" style={{ color: '#6b7280' }}>
-              Última sincronización: {new Date(lastSync.started_at).toLocaleString('es-ES')}
+        <h2 className="text-sm font-bold mb-4" style={{ color: '#000000' }}>COMPTE DISCOGS</h2>
+
+        {credsMsg && (
+          <div className="mb-3 p-2" style={{ border: '1px solid #22c55e', backgroundColor: '#f0fdf4' }}>
+            <p className="text-xs" style={{ color: '#22c55e' }}>{credsMsg}</p>
+          </div>
+        )}
+        {credsError && (
+          <div className="mb-3 p-2" style={{ border: '1px solid #ef4444', backgroundColor: '#fef2f2' }}>
+            <p className="text-xs" style={{ color: '#ef4444' }}>{credsError}</p>
+          </div>
+        )}
+
+        <div className="space-y-4 mb-4">
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: '#374151' }}>
+              NOM D'USUARI DISCOGS
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="ex: rhythmcontrolshop"
+              className="w-full text-sm px-3 py-2 focus:outline-none font-mono"
+              style={{ border: '1px solid #d1d5db', color: '#000000' }}
+            />
+            <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>
+              El compte Discogs d'on s'importa l'inventari «For Sale»
             </p>
-            <p className="text-xs" style={{ color: lastSync.status === 'completed' ? '#22c55e' : lastSync.status === 'running' ? '#f59e0b' : '#ef4444' }}>
-              Estado: {lastSync.status === 'completed' ? 'Completada' : lastSync.status === 'running' ? 'En progreso' : 'Error'}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: '#374151' }}>
+              PERSONAL ACCESS TOKEN
+            </label>
+            <input
+              type="password"
+              value={token}
+              onChange={e => setToken(e.target.value)}
+              placeholder="••••••••••••••••••••••••••••••••••••••••"
+              className="w-full text-sm px-3 py-2 focus:outline-none font-mono"
+              style={{ border: '1px solid #d1d5db', color: '#000000' }}
+            />
+            <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>
+              Genera'l a{' '}
+              <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer"
+                className="underline" style={{ color: '#3b82f6' }}>
+                discogs.com/settings/developers
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <button onClick={saveCredentials} disabled={savingCreds}
+          className="text-xs px-6 py-2 transition-colors disabled:opacity-50 hover:opacity-90"
+          style={{ backgroundColor: '#000000', color: '#FFFFFF', cursor: 'pointer' }}>
+          {savingCreds ? 'GUARDANT...' : 'GUARDAR COMPTE'}
+        </button>
+      </div>
+
+      {/* Sincronització */}
+      <div className="mb-8 p-6" style={{ border: '1px solid #d1d5db' }}>
+        <h2 className="text-sm font-bold mb-4" style={{ color: '#000000' }}>SINCRONITZACIÓ</h2>
+        {loading ? (
+          <p className="text-xs animate-pulse" style={{ color: '#6b7280' }}>Carregant...</p>
+        ) : lastSync ? (
+          <div className="space-y-2 mb-4">
+            <p className="text-xs" style={{ color: '#6b7280' }}>
+              Última sincronització: {new Date(lastSync.started_at).toLocaleString('ca-ES')}
+            </p>
+            <p className="text-xs" style={{ color: statusColor(lastSync.status) }}>
+              Estat: {statusLabel(lastSync.status)}
             </p>
             {lastSync.items_processed > 0 && (
               <p className="text-xs" style={{ color: '#000000' }}>
-                Procesados: {lastSync.items_processed}{lastSync.items_total > 0 ? ` / ${lastSync.items_total}` : ''}
+                Processats: {lastSync.items_processed}{lastSync.items_total > 0 ? ` / ${lastSync.items_total}` : ''}
               </p>
             )}
             {lastSync.error && (
@@ -97,25 +212,27 @@ export default function DiscogsPage() {
             )}
           </div>
         ) : (
-          <p className="text-xs" style={{ color: '#6b7280' }}>No hay registros de sincronización.</p>
+          <p className="text-xs mb-4" style={{ color: '#6b7280' }}>Cap sincronització registrada.</p>
         )}
-        <button onClick={handleSync} disabled={syncing}
-          className="mt-4 text-xs px-6 py-2 transition-colors disabled:opacity-50 hover:opacity-90"
+
+        <button onClick={handleSync} disabled={syncing || !username || !token}
+          className="text-xs px-6 py-2 transition-colors disabled:opacity-50 hover:opacity-90"
           style={{ backgroundColor: '#000000', color: '#FFFFFF', cursor: 'pointer' }}>
-          {syncing ? 'SINCRONIZANDO...' : 'SINCRONIZAR AHORA'}
+          {syncing ? 'SINCRONITZANT...' : 'SINCRONITZAR ARA'}
         </button>
+        {(!username || !token) && (
+          <p className="text-xs mt-2" style={{ color: '#f59e0b' }}>
+            Cal configurar el compte abans de sincronitzar.
+          </p>
+        )}
       </div>
 
+      {/* Ajuda */}
       <div className="p-6" style={{ border: '1px solid #e5e7eb' }}>
-        <h3 className="text-sm font-bold mb-2" style={{ color: '#000000' }}>CÓMO FUNCIONA</h3>
+        <h3 className="text-sm font-bold mb-2" style={{ color: '#000000' }}>COM FUNCIONA</h3>
         <p className="text-xs leading-relaxed" style={{ color: '#6b7280' }}>
-          La sincronización con Discogs importa los discos disponibles en tu cuenta de Discogs
-          y los añade al inventario de Rhythm Control. Los discos nuevos se marcan como activos
-          y los que ya no están disponibles se actualizan automáticamente.
-        </p>
-        <p className="text-xs mt-3 leading-relaxed" style={{ color: '#6b7280' }}>
-          Necesitas configurar las variables de entorno DISCOGS_TOKEN y DISCOGS_USERNAME en Vercel
-          para que la sincronización funcione correctamente.
+          La sincronització importa tots els discos marcats com «For Sale» al compte Discogs indicat
+          i els afegeix a l'inventari actiu. Els discos que ja no estiguin a Discogs es marquen automàticament com a venuts.
         </p>
       </div>
     </div>
