@@ -88,18 +88,21 @@ export async function syncDiscogsInventory(): Promise<SyncResult> {
       }
     }
 
-    // Marcar como vendidos los listings que ya no están en el inventario
+    // Marcar com a venuts els listings que ja no estan a l'inventari.
+    // SEGURETAT: només s'executa si hem rebut ≥90% dels items esperats.
+    // Així un sync parcial (tall de xarxa, rate limit) no mata l'inventari local.
     let markedSold = 0
+    const fetchCompleteness = totalItems > 0 ? allListings.length / totalItems : 1
 
-    if (syncedListingIds.length > 0) {
+    if (syncedListingIds.length > 0 && fetchCompleteness >= 0.9) {
       const { data: activeReleases } = await supabase
         .from('releases')
         .select('id, discogs_listing_id')
         .eq('status', 'active')
 
       if (activeReleases) {
-        const syncedSet   = new Set(syncedListingIds)
-        const toMarkSold  = activeReleases
+        const syncedSet  = new Set(syncedListingIds)
+        const toMarkSold = activeReleases
           .filter(r => !syncedSet.has(r.discogs_listing_id))
           .map(r => r.id)
 
